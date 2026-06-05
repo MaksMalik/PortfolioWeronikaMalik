@@ -13,7 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 
-export function PressMentions({ mentions: initialMentions }: { mentions: PressMention[] }) {
+export function PressMentions({ mentions: initialMentions, bgClass }: { mentions: PressMention[]; bgClass?: string }) {
   const { editMode, updateContent, content: globalContent } = useAdminEdit();
   const mentions = editMode ? globalContent.press : initialMentions;
 
@@ -69,7 +69,8 @@ export function PressMentions({ mentions: initialMentions }: { mentions: PressMe
     <SectionReveal
       id="press"
       className={cn(
-        "relative bg-white py-24 transition-all duration-300 group/section",
+        "relative py-24 transition-all duration-300 group/section",
+        bgClass || "bg-white",
         editMode && "hover:ring-1 hover:ring-ink/20",
         editMode && !isSectionEnabled && "opacity-60 border-2 border-dashed border-ink/15 bg-ink/[0.01]"
       )}

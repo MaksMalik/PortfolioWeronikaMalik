@@ -50,6 +50,16 @@ export type PortfolioProject = {
   images: SiteImage[];
 };
 
+export type ShowreelVideo = {
+  id: string;
+  enabled: boolean;
+  title: string;
+  description?: string;
+  videoUrl: string;
+  thumbnail: SiteImage;
+  youtubeThumbnailEnabled?: boolean;
+};
+
 export type ShowreelContent = {
   eyebrow: string;
   title: string;
@@ -58,6 +68,7 @@ export type ShowreelContent = {
   thumbnail: SiteImage;
   videoUrl: string;
   youtubeThumbnailEnabled?: boolean;
+  videos?: ShowreelVideo[];
 };
 
 export type PressMention = {

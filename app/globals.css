@@ -449,9 +449,50 @@ body.is-edit-mode * {
 .eyebrow::before {
   content: "";
   display: inline-block;
-  width: 2.5rem;
+  width: 4.5rem;
+  height: 1.75rem;
+  background: 
+    radial-gradient(circle 2px at 0.875rem 50%, var(--foreground) 100%, transparent),
+    radial-gradient(circle 13px at 0.875rem 50%, transparent 90%, var(--foreground) 91%, var(--foreground) 98%, transparent 100%),
+    linear-gradient(to right, transparent 1.75rem, var(--border) 1.75rem);
+  background-repeat: no-repeat;
+  background-size: 1.75rem 1.75rem, 1.75rem 1.75rem, 100% 1px;
+  background-position: left center, left center, left center;
+  flex-shrink: 0;
+}
+
+.eyebrow-simple {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: #6e6a64;
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.eyebrow-simple::before {
+  content: "";
+  display: inline-block;
+  width: 1.5rem;
   height: 1px;
-  background: #b8b8b8;
+  background: var(--border);
+  flex-shrink: 0;
+}
+
+.eyebrow-ornament-only {
+  display: inline-block;
+  width: 1.75rem;
+  height: 1.75rem;
+  background: 
+    radial-gradient(circle 2px at 50% 50%, var(--foreground) 100%, transparent),
+    radial-gradient(circle 13px at 50% 50%, transparent 90%, var(--foreground) 91%, var(--foreground) 98%, transparent 100%);
+  background-repeat: no-repeat;
+  background-size: 1.75rem 1.75rem;
+  background-position: center;
+  flex-shrink: 0;
 }
 
 .ornament-line {

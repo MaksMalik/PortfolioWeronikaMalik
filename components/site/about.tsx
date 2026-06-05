@@ -14,7 +14,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 
-export function About({ content: initialContent }: { content: AboutContent }) {
+export function About({ content: initialContent, bgClass }: { content: AboutContent; bgClass?: string }) {
   const { editMode, updateContent, content: globalContent } = useAdminEdit();
   const content = editMode ? globalContent.about : initialContent;
 
@@ -47,7 +47,8 @@ export function About({ content: initialContent }: { content: AboutContent }) {
     <SectionReveal
       id="about"
       className={cn(
-        "relative border-y border-ink/10 bg-white py-24 transition-all duration-300 group/section",
+        "relative border-y border-ink/10 py-24 transition-all duration-300 group/section",
+        bgClass || "bg-white",
         editMode && "hover:ring-1 hover:ring-ink/20",
         editMode && !isSectionEnabled && "opacity-60 border-2 border-dashed border-ink/15 bg-ink/[0.01]"
       )}

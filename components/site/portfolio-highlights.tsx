@@ -38,7 +38,7 @@ function isFilmwebLink(label?: string, url?: string) {
   return `${label ?? ""} ${url ?? ""}`.toLowerCase().includes("filmweb");
 }
 
-export function PortfolioHighlights({ projects: initialProjects }: { projects: PortfolioProject[] }) {
+export function PortfolioHighlights({ projects: initialProjects, bgClass }: { projects: PortfolioProject[]; bgClass?: string }) {
   const { editMode, updateContent, content: globalContent } = useAdminEdit();
   const projects = editMode ? globalContent.portfolio : initialProjects;
   const visibleProjects = projects.filter((project) => editMode || project.enabled);
@@ -212,7 +212,8 @@ export function PortfolioHighlights({ projects: initialProjects }: { projects: P
       id="work"
       reveal={false}
       className={cn(
-        "relative bg-porcelain py-24 transition-all duration-300 group/section",
+        "relative py-24 transition-all duration-300 group/section",
+        bgClass || "bg-porcelain",
         editMode && "hover:ring-1 hover:ring-ink/20",
         editMode && !isSectionEnabled && "opacity-60 border-2 border-dashed border-ink/15 bg-ink/[0.01]"
       )}

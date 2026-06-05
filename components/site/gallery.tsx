@@ -33,7 +33,7 @@ function emptyImage(prefix: string): SiteImage {
   };
 }
 
-export function Gallery({ sessions: initialSessions }: { sessions: GallerySession[] }) {
+export function Gallery({ sessions: initialSessions, bgClass }: { sessions: GallerySession[]; bgClass?: string }) {
   const { editMode, updateContent, content: globalContent } = useAdminEdit();
   const sessions = editMode ? globalContent.gallery : initialSessions;
   const visibleSessions = sessions.filter((session) => editMode || session.enabled);
@@ -278,7 +278,8 @@ export function Gallery({ sessions: initialSessions }: { sessions: GallerySessio
       id="gallery"
       reveal={false}
       className={cn(
-        "relative bg-porcelain py-24 transition-all duration-300 group/section",
+        "relative py-24 transition-all duration-300 group/section",
+        bgClass || "bg-porcelain",
         editMode && "hover:ring-1 hover:ring-ink/20",
         editMode && !isSectionEnabled && "opacity-60 border-2 border-dashed border-ink/15 bg-ink/[0.01]"
       )}

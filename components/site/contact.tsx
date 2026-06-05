@@ -64,7 +64,7 @@ function socialIcon(label: string) {
   return <MessageCircle className="h-4.5 w-4.5 stroke-ink/65 group-hover:stroke-ink transition-colors duration-300 shrink-0" />;
 }
 
-export function Contact({ content: initialContent }: { content: ContactContent }) {
+export function Contact({ content: initialContent, bgClass }: { content: ContactContent; bgClass?: string }) {
   const { editMode, updateContent, content: globalContent } = useAdminEdit();
   const content = editMode ? globalContent.contact : initialContent;
 
@@ -127,7 +127,8 @@ export function Contact({ content: initialContent }: { content: ContactContent }
     <SectionReveal
       id="contact"
       className={cn(
-        "relative bg-porcelain pt-20 pb-10 transition-all duration-300 group/section sm:pt-24 sm:pb-12",
+        "relative pt-20 pb-10 transition-all duration-300 group/section sm:pt-24 sm:pb-12",
+        bgClass || "bg-porcelain",
         editMode && "hover:ring-1 hover:ring-ink/20",
         editMode && !isSectionEnabled && "opacity-60 border-2 border-dashed border-ink/15 bg-ink/[0.01]"
       )}

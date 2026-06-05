@@ -152,7 +152,8 @@ export const siteContent: SiteContent = {
       aspect: "wide"
     },
     videoUrl: "https://www.w3schools.com/html/mov_bbb.mp4",
-    youtubeThumbnailEnabled: false
+    youtubeThumbnailEnabled: false,
+    videos: []
   },
   gallery: [
     {

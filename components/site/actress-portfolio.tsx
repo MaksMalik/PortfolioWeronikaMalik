@@ -23,6 +23,67 @@ export function ActressPortfolio() {
     void startFirebaseAnalytics();
   }, []);
 
+  const sectionsConfig = [
+    {
+      id: "hero",
+      enabled: content.sections.hero.enabled,
+      render: (bgClass: string) => <Hero key="hero" content={content.hero} />
+    },
+    {
+      id: "about",
+      enabled: content.sections.about.enabled,
+      render: (bgClass: string) => <About key="about" content={content.about} bgClass={bgClass} />
+    },
+    {
+      id: "portfolio",
+      enabled: content.sections.portfolio.enabled,
+      render: (bgClass: string) => (
+        <PortfolioHighlights
+          key="portfolio"
+          projects={editMode ? content.portfolio : content.portfolio.filter((project) => project.enabled)}
+          bgClass={bgClass}
+        />
+      )
+    },
+    {
+      id: "showreel",
+      enabled: content.sections.showreel.enabled,
+      render: (bgClass: string) => <Showreel key="showreel" content={content.showreel} bgClass={bgClass} />
+    },
+    {
+      id: "gallery",
+      enabled: content.sections.gallery.enabled,
+      render: (bgClass: string) => (
+        <Gallery
+          key="gallery"
+          sessions={editMode ? content.gallery : content.gallery.filter((session) => session.enabled)}
+          bgClass={bgClass}
+        />
+      )
+    },
+    {
+      id: "press",
+      enabled: content.sections.press.enabled,
+      render: (bgClass: string) => (
+        <PressMentions
+          key="press"
+          mentions={editMode ? content.press : content.press.filter((mention) => mention.enabled)}
+          bgClass={bgClass}
+        />
+      )
+    },
+    {
+      id: "contact",
+      enabled: content.sections.contact.enabled,
+      render: (bgClass: string) => <Contact key="contact" content={content.contact} bgClass={bgClass} />
+    }
+  ];
+
+  const renderedSections = sectionsConfig.filter((sec) => editMode || sec.enabled);
+  const hasHero = renderedSections.some((sec) => sec.id === "hero");
+
+  let nonHeroIndex = 0;
+
   return (
     <motion.main
       className="relative"
@@ -35,41 +96,21 @@ export function ActressPortfolio() {
       <CustomCursor />
       <AdminBar />
       <Header monogram={content.hero.monogram} />
-      
-      {/* Sections rendered if enabled OR in edit mode */}
-      {(editMode || content.sections.hero.enabled) && (
-        <Hero content={content.hero} />
-      )}
-      
-      {(editMode || content.sections.about.enabled) && (
-        <About content={content.about} />
-      )}
-      
-      {(editMode || content.sections.portfolio.enabled) && (
-        <PortfolioHighlights 
-          projects={editMode ? content.portfolio : content.portfolio.filter((project) => project.enabled)} 
-        />
-      )}
-      
-      {(editMode || content.sections.showreel.enabled) && (
-        <Showreel content={content.showreel} />
-      )}
-      
-      {(editMode || content.sections.gallery.enabled) && (
-        <Gallery 
-          sessions={editMode ? content.gallery : content.gallery.filter((session) => session.enabled)} 
-        />
-      )}
-      
-      {(editMode || content.sections.press.enabled) && (
-        <PressMentions 
-          mentions={editMode ? content.press : content.press.filter((mention) => mention.enabled)} 
-        />
-      )}
-      
-      {(editMode || content.sections.contact.enabled) && (
-        <Contact content={content.contact} />
-      )}
+
+      {renderedSections.map((sec) => {
+        let bgClass = "bg-white";
+        
+        if (sec.id !== "hero") {
+          if (hasHero) {
+            bgClass = nonHeroIndex % 2 === 0 ? "bg-porcelain" : "bg-white";
+          } else {
+            bgClass = nonHeroIndex % 2 === 0 ? "bg-white" : "bg-porcelain";
+          }
+          nonHeroIndex++;
+        }
+        
+        return sec.render(bgClass);
+      })}
     </motion.main>
   );
 }
