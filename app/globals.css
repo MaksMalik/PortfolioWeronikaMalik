@@ -125,11 +125,6 @@
   background-color: rgba(10, 10, 9, 0.9) !important;
 }
 
-/* Delikatne podświetlenie linii siatki Vogue w trybie ciemnym */
-.dark .section-shell::before,
-.dark .section-shell::after {
-  background: rgba(248, 247, 244, 0.05) !important;
-}
 
 /* Filmweb mark w trybie ciemnym */
 .dark .FilmwebMark {
@@ -419,7 +414,6 @@ body.is-edit-mode * {
   width: min(1240px, 100%);
   padding-inline: 1.5rem;
   margin-inline: auto;
-  border-inline: 1px solid rgba(16, 16, 16, 0.04);
 }
 
 @media (min-width: 640px) {
