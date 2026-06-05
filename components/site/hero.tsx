@@ -7,14 +7,19 @@ import { CinematicImage } from "@/components/site/cinematic-image";
 import { MagneticButton } from "@/components/site/magnetic-button";
 import { useAdminEdit } from "@/components/admin/admin-edit-context";
 import { uploadImageFile } from "@/lib/firebase/content";
-import { Upload, Loader2 } from "lucide-react";
+import { Upload, Loader2, Edit } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { AdminDrawer } from "@/components/admin/admin-drawer";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 
 export function Hero({ content: initialContent }: { content: HeroContent }) {
   const { editMode, updateContent, content: globalContent } = useAdminEdit();
   const content = editMode ? globalContent.hero : initialContent;
 
   const [isUploading, setIsUploading] = useState(false);
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({
     target: ref,
@@ -50,33 +55,47 @@ export function Hero({ content: initialContent }: { content: HeroContent }) {
       id="home"
       ref={ref}
       className={cn(
-        "relative flex min-h-[80svh] items-end overflow-hidden pt-24 transition-opacity duration-300",
+        "relative flex min-h-[80svh] items-end overflow-hidden pt-24 transition-all duration-300 group/section",
+        editMode && "hover:ring-1 hover:ring-ink/20",
         editMode && !isSectionEnabled && "opacity-60 border-2 border-dashed border-ink/15 bg-ink/[0.01]"
       )}
     >
       <div className="absolute inset-x-0 top-20 h-px bg-ink/10" />
 
-      {/* Section Visibility Toggle for Admin */}
+      {/* Control overlay for Admin */}
       {editMode && (
-        <div className="absolute top-24 right-4 z-20 flex items-center gap-3 bg-white border border-ink/10 px-4 py-2 shadow-sm rounded-full backdrop-blur-md">
-          <span className="text-[0.62rem] font-bold uppercase tracking-[0.14em] text-ink/65">
-            Sekcja Startowa (Hero)
-          </span>
+        <div className="absolute top-24 right-4 z-20 flex items-center gap-2">
+          {/* Section Visibility Toggle */}
+          <div className="flex items-center gap-3 bg-white/90 border border-ink/10 px-4 py-2 shadow-sm rounded-full backdrop-blur-md">
+            <span className="text-[0.62rem] font-bold uppercase tracking-[0.14em] text-ink/65">
+              Sekcja Startowa (Hero)
+            </span>
+            <button
+              type="button"
+              onClick={() =>
+                updateContent((draft) => {
+                  draft.sections.hero.enabled = !draft.sections.hero.enabled;
+                })
+              }
+              className={cn(
+                "rounded-full px-2.5 py-0.5 text-[0.62rem] font-bold uppercase tracking-[0.1em] border transition-colors",
+                isSectionEnabled
+                  ? "border-emerald-500 bg-emerald-500 text-white"
+                  : "border-ink/15 bg-white text-ink/45 hover:border-ink hover:text-ink"
+              )}
+            >
+              {isSectionEnabled ? "Aktywna" : "Ukryta"}
+            </button>
+          </div>
+
+          {/* Edit Drawer Button */}
           <button
             type="button"
-            onClick={() =>
-              updateContent((draft) => {
-                draft.sections.hero.enabled = !draft.sections.hero.enabled;
-              })
-            }
-            className={cn(
-              "rounded-full px-2.5 py-0.5 text-[0.62rem] font-bold uppercase tracking-[0.1em] border transition-colors",
-              isSectionEnabled
-                ? "border-emerald-500 bg-emerald-500 text-white"
-                : "border-ink/15 bg-white text-ink/45 hover:border-ink hover:text-ink"
-            )}
+            onClick={() => setIsDrawerOpen(true)}
+            className="flex h-9 items-center gap-1.5 rounded-full border border-ink/15 bg-white px-4 text-xs font-bold uppercase tracking-[0.12em] text-ink/70 hover:border-ink hover:text-ink shadow-sm transition-all"
           >
-            {isSectionEnabled ? "Aktywna" : "Ukryta"}
+            <Edit className="h-3.5 w-3.5" />
+            Edytuj
           </button>
         </div>
       )}
@@ -129,78 +148,34 @@ export function Hero({ content: initialContent }: { content: HeroContent }) {
             transition={{ delay: 0.4, duration: 0.8 }}
           >
             <span className="h-px w-16 bg-silver" />
-            {editMode ? (
-              <div className="flex flex-wrap items-center gap-4">
-                <div className="flex items-center gap-2">
-                  <span className="text-[0.55rem] uppercase text-ink/40">Monogram:</span>
-                  <input
-                    type="text"
-                    value={content.monogram}
-                    onChange={(e) =>
-                      updateContent((draft) => {
-                        draft.hero.monogram = e.target.value.toUpperCase();
-                      })
-                    }
-                    className="w-12 bg-transparent border-b border-ink/15 text-center text-[0.66rem] font-bold uppercase tracking-[0.24em] text-ink focus:outline-none focus:border-ink"
-                  />
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-[0.55rem] uppercase text-ink/40">Tagline:</span>
-                  <input
-                    type="text"
-                    value={content.monogramTagline ?? "film / teatr / głos"}
-                    onChange={(e) =>
-                      updateContent((draft) => {
-                        draft.hero.monogramTagline = e.target.value;
-                      })
-                    }
-                    className="w-32 bg-transparent border-b border-ink/15 text-[0.66rem] font-bold uppercase tracking-[0.24em] text-ink focus:outline-none focus:border-ink"
-                  />
-                </div>
-              </div>
-            ) : (
-              <span>{content.monogramTagline ?? "film / teatr / głos"}</span>
-            )}
+            <span>{content.monogramTagline ?? "film / teatr / głos"}</span>
           </motion.div>
 
-          {editMode ? (
-            <textarea
-              value={content.name}
-              onChange={(e) =>
-                updateContent((draft) => {
-                  draft.hero.name = e.target.value.toUpperCase();
-                })
-              }
-              rows={2}
-              className="w-full bg-transparent border-none text-ink font-serif text-[clamp(2.4rem,5.5vw,5.5rem)] font-medium uppercase leading-[0.88] focus:outline-none focus:ring-1 focus:ring-ink/10 hover:bg-ink/[0.02] resize-none"
-            />
-          ) : (
-            <h1 className="max-w-[760px] font-serif text-[clamp(3.2rem,7.1vw,7.2rem)] font-medium uppercase leading-[0.88] text-ink">
-              {nameWords.map((word, wordIndex) => (
-                <span key={word} className="block whitespace-nowrap">
-                  {word.split("").map((letter, letterIndex) => {
-                    const index = wordIndex * 9 + letterIndex;
+          <h1 className="max-w-[760px] font-serif text-[clamp(3.2rem,7.1vw,7.2rem)] font-medium uppercase leading-[0.88] text-ink">
+            {nameWords.map((word, wordIndex) => (
+              <span key={word} className="block whitespace-nowrap">
+                {word.split("").map((letter, letterIndex) => {
+                  const index = wordIndex * 9 + letterIndex;
 
-                    return (
-                      <motion.span
-                        key={`${word}-${letter}-${letterIndex}`}
-                        className="inline-block"
-                        initial={{ opacity: 0, y: 54, rotateX: -18 }}
-                        animate={{ opacity: 1, y: 0, rotateX: 0 }}
-                        transition={{
-                          delay: 0.1 + index * 0.035,
-                          duration: 0.72,
-                          ease: [0.22, 1, 0.36, 1]
-                        }}
-                      >
-                        {letter}
-                      </motion.span>
-                    );
-                  })}
-                </span>
-              ))}
-            </h1>
-          )}
+                  return (
+                    <motion.span
+                      key={`${word}-${letter}-${letterIndex}`}
+                      className="inline-block"
+                      initial={{ opacity: 0, y: 54, rotateX: -18 }}
+                      animate={{ opacity: 1, y: 0, rotateX: 0 }}
+                      transition={{
+                        delay: 0.1 + index * 0.035,
+                        duration: 0.72,
+                        ease: [0.22, 1, 0.36, 1]
+                      }}
+                    >
+                      {letter}
+                    </motion.span>
+                  );
+                })}
+              </span>
+            ))}
+          </h1>
 
           <motion.div
             className="mt-8 max-w-xl space-y-7"
@@ -208,68 +183,124 @@ export function Hero({ content: initialContent }: { content: HeroContent }) {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.72, duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
           >
-            {editMode ? (
-              <div className="grid gap-4">
-                <div className="grid gap-1">
-                  <span className="text-[0.55rem] font-bold uppercase tracking-[0.14em] text-ink/30">
-                    Tagline:
-                  </span>
-                  <input
-                    type="text"
-                    value={content.tagline}
-                    onChange={(e) =>
-                      updateContent((draft) => {
-                        draft.hero.tagline = e.target.value;
-                      })
-                    }
-                    className="w-full bg-transparent border-none text-xs font-bold uppercase tracking-[0.26em] text-ink/65 focus:outline-none focus:ring-1 focus:ring-ink/10 hover:bg-ink/[0.02] p-1"
-                  />
-                </div>
-                <div className="grid gap-1">
-                  <span className="text-[0.55rem] font-bold uppercase tracking-[0.14em] text-ink/30">
-                    Cytat:
-                  </span>
-                  <textarea
-                    value={content.quote}
-                    onChange={(e) =>
-                      updateContent((draft) => {
-                        draft.hero.quote = e.target.value;
-                      })
-                    }
-                    rows={3}
-                    className="w-full bg-transparent border-none text-2xl leading-snug font-serif text-graphite focus:outline-none focus:ring-1 focus:ring-ink/10 hover:bg-ink/[0.02] p-1 resize-none"
-                  />
-                </div>
-                <div className="grid gap-1">
-                  <span className="text-[0.55rem] font-bold uppercase tracking-[0.14em] text-ink/30">
-                    Tekst przycisku:
-                  </span>
-                  <input
-                    type="text"
-                    value={content.buttonText}
-                    onChange={(e) =>
-                      updateContent((draft) => {
-                        draft.hero.buttonText = e.target.value;
-                      })
-                    }
-                    className="w-full bg-transparent border-none text-xs font-bold uppercase tracking-[0.14em] text-ink/80 focus:outline-none focus:ring-1 focus:ring-ink/10 hover:bg-ink/[0.02] p-1"
-                  />
-                </div>
-              </div>
-            ) : (
-              <>
-                <p className="text-xs font-bold uppercase tracking-[0.26em] text-ink/55">
-                  {content.tagline}
-                </p>
-                <p className="font-serif text-3xl leading-tight text-graphite sm:text-4xl">
-                  {content.quote}
-                </p>
-                <MagneticButton href="#work">{content.buttonText}</MagneticButton>
-              </>
-            )}
+            <p className="text-xs font-bold uppercase tracking-[0.26em] text-ink/55">
+              {content.tagline}
+            </p>
+            <p className="font-serif text-3xl leading-tight text-graphite sm:text-4xl">
+              {content.quote}
+            </p>
+            <MagneticButton href="#work">{content.buttonText}</MagneticButton>
           </motion.div>
         </motion.div>
       </div>
+
+      {/* Edit Drawer */}
+      <AdminDrawer
+        isOpen={isDrawerOpen}
+        onClose={() => setIsDrawerOpen(false)}
+        title="Sekcja Startowa (Hero)"
+      >
+        <div className="grid gap-5">
+          <div className="grid gap-1">
+            <Label htmlFor="hero-menu-label">Nazwa w menu</Label>
+            <Input
+              id="hero-menu-label"
+              value={globalContent.sections.hero.label ?? "Start"}
+              onChange={(e) =>
+                updateContent((draft) => {
+                  draft.sections.hero.label = e.target.value;
+                })
+              }
+              className="rounded-full"
+            />
+          </div>
+
+          <div className="grid gap-1">
+            <Label htmlFor="hero-monogram">Monogram (inicjały)</Label>
+            <Input
+              id="hero-monogram"
+              value={content.monogram}
+              onChange={(e) =>
+                updateContent((draft) => {
+                  draft.hero.monogram = e.target.value.toUpperCase();
+                })
+              }
+              className="rounded-full"
+            />
+          </div>
+
+          <div className="grid gap-1">
+            <Label htmlFor="hero-monogram-tagline">Podtytuł monogramu</Label>
+            <Input
+              id="hero-monogram-tagline"
+              value={content.monogramTagline ?? "film / teatr / głos"}
+              onChange={(e) =>
+                updateContent((draft) => {
+                  draft.hero.monogramTagline = e.target.value;
+                })
+              }
+              className="rounded-full"
+            />
+          </div>
+
+          <div className="grid gap-1">
+            <Label htmlFor="hero-name">Imię i Nazwisko</Label>
+            <Input
+              id="hero-name"
+              value={content.name}
+              onChange={(e) =>
+                updateContent((draft) => {
+                  draft.hero.name = e.target.value;
+                })
+              }
+              className="rounded-full font-serif"
+            />
+          </div>
+
+          <div className="grid gap-1">
+            <Label htmlFor="hero-tagline">Tagline</Label>
+            <Input
+              id="hero-tagline"
+              value={content.tagline}
+              onChange={(e) =>
+                updateContent((draft) => {
+                  draft.hero.tagline = e.target.value;
+                })
+              }
+              className="rounded-full"
+            />
+          </div>
+
+          <div className="grid gap-1">
+            <Label htmlFor="hero-quote">Cytat</Label>
+            <Textarea
+              id="hero-quote"
+              value={content.quote}
+              onChange={(e) =>
+                updateContent((draft) => {
+                  draft.hero.quote = e.target.value;
+                })
+              }
+              rows={3}
+              className="rounded-2xl"
+            />
+          </div>
+
+          <div className="grid gap-1">
+            <Label htmlFor="hero-btn-text">Tekst przycisku</Label>
+            <Input
+              id="hero-btn-text"
+              value={content.buttonText}
+              onChange={(e) =>
+                updateContent((draft) => {
+                  draft.hero.buttonText = e.target.value;
+                })
+              }
+              className="rounded-full"
+            />
+          </div>
+        </div>
+      </AdminDrawer>
     </section>
   );
 }

@@ -1,8 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState, ChangeEvent } from "react";
+import { useEffect, useState, ChangeEvent, useRef } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { ChevronLeft, ChevronRight, X, Plus, Trash2, ArrowUp, ArrowDown, Eye, EyeOff, Edit, Upload, Loader2, Image as ImageIcon } from "lucide-react";
+import { ChevronLeft, ChevronRight, X, Plus, Trash2, ArrowUp, ArrowDown, Eye, EyeOff, Edit, Upload, Loader2 } from "lucide-react";
 import type { GallerySession, SiteImage } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { CinematicImage } from "@/components/site/cinematic-image";
@@ -15,34 +15,6 @@ import { createId, cn } from "@/lib/utils";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-
-const aspectOptions: Array<{ value: NonNullable<SiteImage["aspect"]>; label: string }> = [
-  { value: "portrait", label: "Pion" },
-  { value: "landscape", label: "Poziom" },
-  { value: "square", label: "Kwadrat" },
-  { value: "wide", label: "Panorama" }
-];
-
-function aspectClass(image: SiteImage) {
-  switch (image.aspect) {
-    case "landscape":
-      return "aspect-[5/3]";
-    case "square":
-      return "aspect-square";
-    case "wide":
-      return "aspect-[16/9]";
-    case "portrait":
-    default:
-      return "aspect-[4/5]";
-  }
-}
-
-function coverFor(session: GallerySession) {
-  if (session.cover.enabled) {
-    return session.cover;
-  }
-  return session.images.find((image) => image.enabled) ?? session.cover;
-}
 
 const PLACEHOLDER_IMAGE =
   "https://images.unsplash.com/photo-1512316609839-ce289d3eba0a?auto=format&fit=crop&w=900&q=80";
@@ -65,75 +37,42 @@ export function Gallery({ sessions: initialSessions }: { sessions: GallerySessio
 
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
   const [activeImage, setActiveImage] = useState<SiteImage | null>(null);
-  const [sessionDirection, setSessionDirection] = useState(1);
   const [editingSession, setEditingSession] = useState<GallerySession | null>(null);
+  const [isSectionDrawerOpen, setIsSectionDrawerOpen] = useState(false);
   const [uploadingImageId, setUploadingImageId] = useState<string | null>(null);
+  const [sessionDirection, setSessionDirection] = useState<-1 | 1>(1);
 
   const railRef = useRef<HTMLDivElement>(null);
-  const touchStartRef = useRef<number | null>(null);
-  const activeSession = activeIndex === null ? null : sessions[activeIndex];
-  const visibleImages = useMemo(
-    () => activeSession?.images.filter((image) => image.enabled) ?? [],
-    [activeSession]
-  );
+  const modalImageRef = useRef<HTMLDivElement>(null);
 
-  const activeImageIndex = useMemo(() => {
-    if (!activeImage || visibleImages.length === 0) return -1;
-    return visibleImages.findIndex((img) => img.id === activeImage.id);
-  }, [activeImage, visibleImages]);
+  const activeSession = activeIndex !== null ? sessions[activeIndex] : null;
 
-  const navigateImage = useCallback(
-    (direction: "next" | "prev") => {
-      if (activeImageIndex === -1 || visibleImages.length === 0) return;
-      let nextIndex = activeImageIndex;
-      if (direction === "next") {
-        nextIndex = (activeImageIndex + 1) % visibleImages.length;
-      } else {
-        nextIndex = (activeImageIndex - 1 + visibleImages.length) % visibleImages.length;
-      }
-      setActiveImage(visibleImages[nextIndex]);
-    },
-    [activeImageIndex, visibleImages]
-  );
+  // Touch Swipe coordinates
+  const touchStart = useRef<number | null>(null);
 
-  const handleTouchStart = (e: React.TouchEvent) => {
-    touchStartRef.current = e.touches[0].clientX;
-  };
+  const visibleImages = activeSession?.images.filter((img) => editMode || img.enabled) ?? [];
+  const currentImageIndex = activeImage
+    ? visibleImages.findIndex((img) => img.id === activeImage.id)
+    : -1;
 
-  const handleTouchEnd = (e: React.TouchEvent) => {
-    if (touchStartRef.current === null) return;
-    const diffX = touchStartRef.current - e.changedTouches[0].clientX;
-    const threshold = 50;
-    if (Math.abs(diffX) > threshold) {
-      if (diffX > 0) {
-        navigateImage("next");
-      } else {
+  useEffect(() => {
+    if (activeIndex === null) return;
+
+    const handleKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape" && !activeImage) {
+        setActiveIndex(null);
+      } else if (event.key === "Escape" && activeImage) {
+        setActiveImage(null);
+      } else if (event.key === "ArrowLeft" && activeImage) {
         navigateImage("prev");
+      } else if (event.key === "ArrowRight" && activeImage) {
+        navigateImage("next");
       }
-    }
-    touchStartRef.current = null;
-  };
+    };
 
-  const goTo = useCallback(
-    (direction: "next" | "prev") => {
-      if (activeIndex === null || sessions.length === 0) {
-        return;
-      }
-
-      setSessionDirection(direction === "next" ? 1 : -1);
-      setActiveImage(null);
-      setActiveIndex((current) => {
-        if (current === null) {
-          return current;
-        }
-
-        return direction === "next"
-          ? (current + 1) % sessions.length
-          : (current - 1 + sessions.length) % sessions.length;
-      });
-    },
-    [activeIndex, sessions.length]
-  );
+    window.addEventListener("keydown", handleKey);
+    return () => window.removeEventListener("keydown", handleKey);
+  }, [activeIndex, activeImage, visibleImages]);
 
   const handleRailWheel = (event: React.WheelEvent<HTMLDivElement>) => {
     if (!railRef.current || Math.abs(event.deltaY) < Math.abs(event.deltaX)) {
@@ -151,44 +90,12 @@ export function Gallery({ sessions: initialSessions }: { sessions: GallerySessio
     });
   };
 
-  useEffect(() => {
-    if (activeIndex === null) {
-      return;
-    }
-
-    const handleKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        if (activeImage) {
-          setActiveImage(null);
-        } else {
-          setActiveIndex(null);
-        }
-      }
-
-      if (event.key === "ArrowRight") {
-        if (activeImage) {
-          navigateImage("next");
-        } else {
-          goTo("next");
-        }
-      }
-
-      if (event.key === "ArrowLeft") {
-        if (activeImage) {
-          navigateImage("prev");
-        } else {
-          goTo("prev");
-        }
-      }
-    };
-
-    window.addEventListener("keydown", handleKey);
-    return () => window.removeEventListener("keydown", handleKey);
-  }, [activeImage, activeIndex, goTo, navigateImage]);
-
   const isSectionEnabled = globalContent.sections.gallery.enabled;
 
-  // Reordering sessions
+  const coverFor = (session: GallerySession) => {
+    return session.cover?.enabled ? session.cover : emptyImage(`gallery-cover-${session.id}`);
+  };
+
   const moveSession = (fromIndex: number, toIndex: number) => {
     if (toIndex < 0 || toIndex >= sessions.length) return;
     updateContent((draft) => {
@@ -199,16 +106,14 @@ export function Gallery({ sessions: initialSessions }: { sessions: GallerySessio
     });
   };
 
-  // Toggle Visibility
   const toggleSessionEnabled = (index: number) => {
     updateContent((draft) => {
       draft.gallery[index].enabled = !draft.gallery[index].enabled;
     });
   };
 
-  // Delete Session
   const deleteSession = (id: string) => {
-    if (confirm("Czy na pewno chcesz usunąć tę sesję zdjęciową?")) {
+    if (confirm("Czy na pewno chcesz usunąć tę sesję z galerii?")) {
       updateContent((draft) => {
         draft.gallery = draft.gallery.filter((s) => s.id !== id);
       });
@@ -216,25 +121,23 @@ export function Gallery({ sessions: initialSessions }: { sessions: GallerySessio
     }
   };
 
-  // Add Session
   const addSession = () => {
-    const id = createId("session");
     const newSession: GallerySession = {
-      id,
+      id: createId("session"),
       enabled: true,
-      title: "Nowa sesja",
-      subtitle: "Sesja zdjęciowa / nowa",
-      description: "Opcjonalny opis sesji.",
-      cover: emptyImage(`${id}-cover`),
+      title: "Nowa sesja zdjęciowa",
+      subtitle: "Sesja / " + new Date().getFullYear(),
+      description: "Opis sesji zdjęciowej.",
+      cover: emptyImage("session-cover"),
       images: []
     };
     updateContent((draft) => {
       draft.gallery.push(newSession);
     });
-    setEditingSession(newSession);
+    setIsSectionDrawerOpen(false);
+    setEditingSession(newSession); // Open editing immediately
   };
 
-  // Update specific fields of editing session
   const updateSessionField = (field: keyof GallerySession, value: any) => {
     if (!editingSession) return;
     const nextSession = { ...editingSession, [field]: value };
@@ -244,18 +147,16 @@ export function Gallery({ sessions: initialSessions }: { sessions: GallerySessio
     });
   };
 
-  // Reorder image inside session
   const moveSessionImage = (index: number, direction: -1 | 1) => {
     if (!editingSession) return;
-    const toIndex = index + direction;
-    if (toIndex < 0 || toIndex >= editingSession.images.length) return;
     const list = [...editingSession.images];
+    const toIndex = index + direction;
+    if (toIndex < 0 || toIndex >= list.length) return;
     const [item] = list.splice(index, 1);
     list.splice(toIndex, 0, item);
     updateSessionField("images", list);
   };
 
-  // Handle uploading session cover
   const handleCoverUpload = async (event: ChangeEvent<HTMLInputElement>) => {
     if (!editingSession) return;
     const file = event.target.files?.[0];
@@ -274,146 +175,149 @@ export function Gallery({ sessions: initialSessions }: { sessions: GallerySessio
     }
   };
 
-  // Add multiple uploaded images to session
-  const addSessionImages = async (event: ChangeEvent<HTMLInputElement>) => {
+  const handleMultipleImagesUpload = async (event: ChangeEvent<HTMLInputElement>) => {
     if (!editingSession) return;
-    const files = Array.from(event.target.files ?? []);
-    if (files.length === 0) return;
+    const files = event.target.files;
+    if (!files || files.length === 0) return;
 
     try {
-      setUploadingImageId("multiple");
-      const uploaded = await Promise.all(
-        files.map(async (file) => ({
-          id: createId("gallery-image"),
+      setUploadingImageId("multi");
+      const uploaded: SiteImage[] = [];
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        const src = await uploadImageFile(file, `gallery-${editingSession.id}`);
+        uploaded.push({
+          id: createId("gal-img"),
           enabled: true,
-          src: await uploadImageFile(file, `gallery-${editingSession.id}`),
+          src,
           alt: file.name.replace(/\.[^.]+$/, ""),
-          title: file.name.replace(/\.[^.]+$/, ""),
+          title: "",
           description: "",
-          aspect: "portrait" as const
-        }))
-      );
+          aspect: "portrait"
+        });
+      }
       updateSessionField("images", [...editingSession.images, ...uploaded]);
     } catch (err) {
       console.error(err);
       alert("Błąd przesyłania zdjęć: " + (err instanceof Error ? err.message : String(err)));
     } finally {
       setUploadingImageId(null);
-      event.target.value = "";
     }
   };
 
-  // Remove image from session
   const removeSessionImage = (imageId: string) => {
     if (!editingSession) return;
     const nextImages = editingSession.images.filter((img) => img.id !== imageId);
     updateSessionField("images", nextImages);
   };
 
-  if (sessions.length === 0 && !editMode) {
-    return null;
-  }
+  const toggleImageEnabled = (imgIndex: number) => {
+    if (!editingSession) return;
+    const list = [...editingSession.images];
+    list[imgIndex].enabled = !list[imgIndex].enabled;
+    updateSessionField("images", list);
+  };
+
+  const aspectClass = (image: SiteImage) => {
+    if (image.aspect === "landscape") return "aspect-[4/3]";
+    if (image.aspect === "square") return "aspect-square";
+    if (image.aspect === "wide") return "aspect-video";
+    return "aspect-[3/4]";
+  };
+
+  const navigateImage = (direction: "next" | "prev") => {
+    if (visibleImages.length <= 1) return;
+    let nextIdx = currentImageIndex + (direction === "next" ? 1 : -1);
+    if (nextIdx >= visibleImages.length) nextIdx = 0;
+    if (nextIdx < 0) nextIdx = visibleImages.length - 1;
+    setActiveImage(visibleImages[nextIdx]);
+  };
+
+  const goTo = (direction: "next" | "prev") => {
+    if (sessions.length <= 1) return;
+    let nextIdx = (activeIndex ?? 0) + (direction === "next" ? 1 : -1);
+    if (nextIdx >= sessions.length) nextIdx = 0;
+    if (nextIdx < 0) nextIdx = sessions.length - 1;
+    setSessionDirection(direction === "next" ? 1 : -1);
+    setActiveIndex(nextIdx);
+    setActiveImage(null);
+  };
+
+  // Mobile Swipe events
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStart.current = e.targetTouches[0].clientX;
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (touchStart.current === null) return;
+    const touchEnd = e.changedTouches[0].clientX;
+    const diff = touchStart.current - touchEnd;
+    if (Math.abs(diff) > 60) {
+      navigateImage(diff > 0 ? "next" : "prev");
+    }
+    touchStart.current = null;
+  };
 
   return (
     <SectionReveal
       id="gallery"
       className={cn(
-        "relative bg-porcelain py-24 transition-opacity duration-300",
+        "relative bg-porcelain py-24 transition-all duration-300 group/section",
+        editMode && "hover:ring-1 hover:ring-ink/20",
         editMode && !isSectionEnabled && "opacity-60 border-2 border-dashed border-ink/15 bg-ink/[0.01]"
       )}
     >
-      {/* Section Visibility Toggle for Admin */}
+      {/* Control overlay for Admin */}
       {editMode && (
-        <div className="absolute top-6 right-4 z-20 flex items-center gap-3 bg-white border border-ink/10 px-4 py-2 shadow-sm rounded-full backdrop-blur-md">
-          <span className="text-[0.62rem] font-bold uppercase tracking-[0.14em] text-ink/65">
-            Sekcja Galeria (Sesje zdjęciowe)
-          </span>
+        <div className="absolute top-6 right-4 z-20 flex items-center gap-2">
+          {/* Section Visibility Toggle */}
+          <div className="flex items-center gap-3 bg-white border border-ink/10 px-4 py-2 shadow-sm rounded-full backdrop-blur-md">
+            <span className="text-[0.62rem] font-bold uppercase tracking-[0.14em] text-ink/65">
+              Sekcja Galeria (Sesje zdjęciowe)
+            </span>
+            <button
+              type="button"
+              onClick={() =>
+                updateContent((draft) => {
+                  draft.sections.gallery.enabled = !draft.sections.gallery.enabled;
+                })
+              }
+              className={cn(
+                "rounded-full px-2.5 py-0.5 text-[0.62rem] font-bold uppercase tracking-[0.1em] border transition-colors",
+                isSectionEnabled
+                  ? "border-emerald-500 bg-emerald-500 text-white"
+                  : "border-ink/15 bg-white text-ink/45 hover:border-ink hover:text-ink"
+              )}
+            >
+              {isSectionEnabled ? "Aktywna" : "Ukryta"}
+            </button>
+          </div>
+
+          {/* Edit Drawer Button */}
           <button
             type="button"
-            onClick={() =>
-              updateContent((draft) => {
-                draft.sections.gallery.enabled = !draft.sections.gallery.enabled;
-              })
-            }
-            className={cn(
-              "rounded-full px-2.5 py-0.5 text-[0.62rem] font-bold uppercase tracking-[0.1em] border transition-colors",
-              isSectionEnabled
-                ? "border-emerald-500 bg-emerald-500 text-white"
-                : "border-ink/15 bg-white text-ink/45 hover:border-ink hover:text-ink"
-            )}
+            onClick={() => setIsSectionDrawerOpen(true)}
+            className="flex h-9 items-center gap-1.5 rounded-full border border-ink/15 bg-white px-4 text-xs font-bold uppercase tracking-[0.12em] text-ink/70 hover:border-ink hover:text-ink shadow-sm transition-all"
           >
-            {isSectionEnabled ? "Aktywna" : "Ukryta"}
+            <Edit className="h-3.5 w-3.5" />
+            Edytuj
           </button>
         </div>
       )}
 
       <div className="section-shell">
         <div className="flex flex-col justify-between gap-8 md:flex-row md:items-end w-full">
-          {editMode ? (
-            <div className="grid gap-4 bg-white/70 p-4 border border-ink/10 rounded-2xl w-full">
-              <div className="grid gap-2 sm:grid-cols-2">
-                <div className="grid gap-1">
-                  <span className="text-[0.55rem] font-bold uppercase tracking-[0.1em] text-ink/30">
-                    Galeria Eyebrow (nadnagłówek):
-                  </span>
-                  <input
-                    type="text"
-                    value={globalContent.sections.gallery.eyebrow ?? "galeria"}
-                    onChange={(e) =>
-                      updateContent((draft) => {
-                        draft.sections.gallery.eyebrow = e.target.value;
-                      })
-                    }
-                    className="w-full bg-white border border-ink/10 rounded-full px-4 py-1.5 text-xs font-bold uppercase tracking-[0.2em] text-ink focus:outline-none"
-                  />
-                </div>
-                <div className="grid gap-1">
-                  <span className="text-[0.55rem] font-bold uppercase tracking-[0.1em] text-ink/30">
-                    Galeria Tytuł:
-                  </span>
-                  <input
-                    type="text"
-                    value={globalContent.sections.gallery.title ?? "Sesje zdjęciowe"}
-                    onChange={(e) =>
-                      updateContent((draft) => {
-                        draft.sections.gallery.title = e.target.value;
-                      })
-                    }
-                    className="w-full bg-white border border-ink/10 rounded-xl px-4 py-1.5 font-serif text-lg text-ink focus:outline-none"
-                  />
-                </div>
-              </div>
-              <div className="grid gap-1">
-                <span className="text-[0.55rem] font-bold uppercase tracking-[0.1em] text-ink/30">
-                  Galeria Wprowadzenie:
-                </span>
-                <textarea
-                  value={globalContent.sections.gallery.description ?? "Editorialowe portrety, kadry i fragmenty pracy przed obiektywem."}
-                  onChange={(e) =>
-                    updateContent((draft) => {
-                      draft.sections.gallery.description = e.target.value;
-                    })
-                  }
-                  rows={2}
-                  className="w-full bg-white border border-ink/10 rounded-xl px-4 py-1.5 text-xs text-ink focus:outline-none resize-none"
-                />
-              </div>
-            </div>
-          ) : (
-            <>
-              <SectionHeading
-                eyebrow={globalContent.sections.gallery.eyebrow ?? "galeria"}
-                title={globalContent.sections.gallery.title ?? "Sesje zdjęciowe"}
-              />
-              <p className="max-w-sm text-sm leading-7 text-ink/55">
-                {globalContent.sections.gallery.description ?? "Editorialowe portrety, kadry i fragmenty pracy przed obiektywem."}
-              </p>
-            </>
-          )}
+          <SectionHeading
+            eyebrow={globalContent.sections.gallery.eyebrow ?? "galeria"}
+            title={globalContent.sections.gallery.title ?? "Sesje zdjęciowe"}
+          />
+          <p className="max-w-sm text-sm leading-7 text-ink/55">
+            {globalContent.sections.gallery.description ?? "Editorialowe portrety, kadry i fragmenty pracy przed obiektywem."}
+          </p>
         </div>
 
         <div className="relative mt-12">
-          {sessions.length > 1 && (
+          {sessions.filter(s => editMode || s.enabled).length > 1 && (
             <div className="pointer-events-none absolute inset-y-0 left-0 right-0 z-10 hidden items-center justify-between px-2 md:flex">
               <Button
                 type="button"
@@ -443,7 +347,7 @@ export function Gallery({ sessions: initialSessions }: { sessions: GallerySessio
             className="no-scrollbar grid auto-cols-[84%] grid-flow-col gap-5 overflow-x-auto scroll-smooth pt-3 pb-7 -mt-3 [scroll-snap-type:x_mandatory] sm:auto-cols-[52%] lg:auto-cols-[36%]"
             onWheel={handleRailWheel}
           >
-            {sessions.map((session, index) => {
+            {sessions.filter(s => editMode || s.enabled).map((session, index) => {
               const cover = coverFor(session);
 
               return (
@@ -452,7 +356,7 @@ export function Gallery({ sessions: initialSessions }: { sessions: GallerySessio
                     type="button"
                     className={cn(
                       "w-full group grid min-h-[520px] border border-ink/10 bg-white text-left shadow-[0_18px_60px_rgba(16,16,16,0.04)] rounded-2xl",
-                      !session.enabled && "opacity-50"
+                      !session.enabled && "opacity-50 border-dashed"
                     )}
                     onClick={() => {
                       if (!editMode) {
@@ -491,97 +395,181 @@ export function Gallery({ sessions: initialSessions }: { sessions: GallerySessio
                       </div>
                       {!editMode && (
                         <span className="mt-6 inline-flex border-b border-ink pb-1 text-xs font-bold uppercase tracking-[0.18em] text-ink w-fit">
-                          Otwórz sesję
+                          {globalContent.sections.gallery.actionLabel ?? "Otwórz sesję"}
                         </span>
                       )}
-                      {editMode && !session.enabled && (
+                      {!session.enabled && (
                         <span className="mt-4 inline-flex items-center gap-1 rounded bg-ink/5 px-2 py-0.5 text-[0.6rem] font-bold uppercase tracking-[0.1em] text-ink/40 w-fit">
                           Ukryty
                         </span>
                       )}
                     </div>
                   </motion.button>
-
-                  {/* Admin Overlays for gallery session */}
-                  {editMode && (
-                    <div className="absolute top-3 right-3 z-30 flex flex-wrap gap-1 bg-white/95 border border-ink/10 p-1 rounded-full shadow-[0_4px_20px_rgba(16,16,16,0.08)] backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                      <button
-                        type="button"
-                        onClick={() => moveSession(index, index - 1)}
-                        className="flex h-8 w-8 items-center justify-center rounded-full hover:bg-ink/5 text-ink/60 hover:text-ink transition-colors"
-                        title="Przesuń wyżej"
-                      >
-                        <ArrowUp className="h-4 w-4" />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => moveSession(index, index + 1)}
-                        className="flex h-8 w-8 items-center justify-center rounded-full hover:bg-ink/5 text-ink/60 hover:text-ink transition-colors"
-                        title="Przesuń niżej"
-                      >
-                        <ArrowDown className="h-4 w-4" />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => toggleSessionEnabled(index)}
-                        className="flex h-8 w-8 items-center justify-center rounded-full hover:bg-ink/5 text-ink/60 hover:text-ink transition-colors"
-                        title={session.enabled ? "Ukryj" : "Pokaż"}
-                      >
-                        {session.enabled ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setEditingSession(session)}
-                        className="flex h-8 w-8 items-center justify-center rounded-full bg-ink text-white hover:bg-graphite transition-colors"
-                        title="Edytuj sesję"
-                      >
-                        <Edit className="h-4 w-4" />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => deleteSession(session.id)}
-                        className="flex h-8 w-8 items-center justify-center rounded-full hover:bg-red-500/10 text-red-500 transition-colors"
-                        title="Usuń sesję"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </button>
-                    </div>
-                  )}
                 </div>
               );
             })}
-
-            {/* Add Session Trigger Card in edit mode */}
-            {editMode && (
-              <button
-                type="button"
-                onClick={addSession}
-                className="group border-2 border-dashed border-ink/20 hover:border-ink/40 bg-ink/[0.01] hover:bg-ink/[0.03] transition-all duration-300 rounded-2xl min-w-[280px] min-h-[520px] flex flex-col items-center justify-center p-6 text-center cursor-pointer [scroll-snap-align:start]"
-              >
-                <span className="flex h-14 w-14 items-center justify-center rounded-full bg-white border border-ink/10 text-ink/50 group-hover:scale-110 group-hover:text-ink transition-all duration-500">
-                  <Plus className="h-7 w-7" />
-                </span>
-                <span className="mt-4 block font-serif text-2xl text-ink/70 group-hover:text-ink transition-colors">
-                  Dodaj nową sesję
-                </span>
-                <span className="mt-2 text-xs font-semibold uppercase tracking-[0.12em] text-ink/40">
-                  Zostanie dodana na końcu
-                </span>
-              </button>
-            )}
           </div>
         </div>
       </div>
 
-      {/* Session Edit Drawer */}
+      {/* Section Settings Drawer */}
+      <AdminDrawer
+        isOpen={isSectionDrawerOpen}
+        onClose={() => setIsSectionDrawerOpen(false)}
+        title="Sekcja Galeria"
+      >
+        <div className="grid gap-5">
+          <div className="grid gap-1">
+            <Label htmlFor="gallery-menu-label">Nazwa w menu</Label>
+            <Input
+              id="gallery-menu-label"
+              value={globalContent.sections.gallery.label ?? "Galeria"}
+              onChange={(e) =>
+                updateContent((draft) => {
+                  draft.sections.gallery.label = e.target.value;
+                })
+              }
+              className="rounded-full"
+            />
+          </div>
+
+          <div className="grid gap-1">
+            <Label htmlFor="gallery-eyebrow">Eyebrow (nadnagłówek)</Label>
+            <Input
+              id="gallery-eyebrow"
+              value={globalContent.sections.gallery.eyebrow ?? "galeria"}
+              onChange={(e) =>
+                updateContent((draft) => {
+                  draft.sections.gallery.eyebrow = e.target.value;
+                })
+              }
+              className="rounded-full"
+            />
+          </div>
+
+          <div className="grid gap-1">
+            <Label htmlFor="gallery-title">Tytuł sekcji</Label>
+            <Input
+              id="gallery-title"
+              value={globalContent.sections.gallery.title ?? "Sesje zdjęciowe"}
+              onChange={(e) =>
+                updateContent((draft) => {
+                  draft.sections.gallery.title = e.target.value;
+                })
+              }
+              className="rounded-xl font-serif text-lg"
+            />
+          </div>
+
+          <div className="grid gap-1">
+            <Label htmlFor="gallery-description">Wprowadzenie</Label>
+            <Textarea
+              id="gallery-description"
+              value={globalContent.sections.gallery.description ?? "Editorialowe portrety, kadry i fragmenty pracy przed obiektywem."}
+              onChange={(e) =>
+                updateContent((draft) => {
+                  draft.sections.gallery.description = e.target.value;
+                })
+              }
+              rows={3}
+              className="rounded-xl text-sm"
+            />
+          </div>
+
+          <div className="grid gap-1">
+            <Label htmlFor="gallery-action-label">Etykieta przycisku karty</Label>
+            <Input
+              id="gallery-action-label"
+              value={globalContent.sections.gallery.actionLabel ?? "Otwórz sesję"}
+              onChange={(e) =>
+                updateContent((draft) => {
+                  draft.sections.gallery.actionLabel = e.target.value;
+                })
+              }
+              className="rounded-full"
+            />
+          </div>
+
+          {/* List of sessions in drawer */}
+          <div className="border-t border-ink/10 pt-4 mt-2">
+            <div className="flex items-center justify-between mb-3">
+              <Label className="text-xs font-bold uppercase tracking-[0.1em] text-ink/40">
+                Lista sesji ({sessions.length})
+              </Label>
+              <Button variant="outline" size="sm" onClick={addSession} className="h-8 rounded-full text-xs">
+                <Plus className="h-3.5 w-3.5" /> Dodaj sesję
+              </Button>
+            </div>
+
+            <div className="grid gap-2">
+              {sessions.map((session, idx) => (
+                <div key={session.id} className="flex items-center justify-between bg-white p-2.5 border border-ink/10 rounded-xl gap-2">
+                  <div className="truncate">
+                    <p className="text-[0.62rem] font-bold uppercase text-ink/40 truncate">{session.subtitle}</p>
+                    <p className="text-xs font-serif font-bold text-ink truncate">{session.title}</p>
+                  </div>
+                  <div className="flex items-center shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => moveSession(idx, idx - 1)}
+                      disabled={idx === 0}
+                      className="flex h-7 w-7 items-center justify-center rounded-full hover:bg-ink/5 text-ink/50 disabled:opacity-30"
+                    >
+                      <ArrowUp className="h-4 w-4" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => moveSession(idx, idx + 1)}
+                      disabled={idx === sessions.length - 1}
+                      className="flex h-7 w-7 items-center justify-center rounded-full hover:bg-ink/5 text-ink/50 disabled:opacity-30"
+                    >
+                      <ArrowDown className="h-4 w-4" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => toggleSessionEnabled(idx)}
+                      className="flex h-7 w-7 items-center justify-center rounded-full hover:bg-ink/5 text-ink/50"
+                    >
+                      {session.enabled ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsSectionDrawerOpen(false);
+                        setEditingSession(session);
+                      }}
+                      className="flex h-7 w-7 items-center justify-center rounded-full bg-ink text-white hover:bg-graphite"
+                      title="Edytuj szczegóły"
+                    >
+                      <Edit className="h-3.5 w-3.5" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => deleteSession(session.id)}
+                      className="flex h-7 w-7 items-center justify-center rounded-full text-red-500 hover:bg-red-500/10"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </AdminDrawer>
+
+      {/* Individual Session Edit Drawer */}
       <AdminDrawer
         isOpen={editingSession !== null}
-        onClose={() => setEditingSession(null)}
-        title={editingSession?.title || "Sesja zdjęciowa"}
+        onClose={() => {
+          setEditingSession(null);
+          setIsSectionDrawerOpen(true); // Return to section list
+        }}
+        title={`Sesja: ${editingSession?.title || ""}`}
       >
         {editingSession && (
           <div className="grid gap-5">
-            <div className="grid gap-2">
+            <div className="grid gap-1">
               <Label>Tytuł sesji</Label>
               <Input
                 value={editingSession.title}
@@ -590,7 +578,7 @@ export function Gallery({ sessions: initialSessions }: { sessions: GallerySessio
               />
             </div>
 
-            <div className="grid gap-2">
+            <div className="grid gap-1">
               <Label>Podtytuł (np. Sesja studyjna / 2026)</Label>
               <Input
                 value={editingSession.subtitle}
@@ -599,20 +587,20 @@ export function Gallery({ sessions: initialSessions }: { sessions: GallerySessio
               />
             </div>
 
-            <div className="grid gap-2">
-              <Label>Krótki opis</Label>
+            <div className="grid gap-1">
+              <Label>Opis sesji (w modalu)</Label>
               <Textarea
                 value={editingSession.description ?? ""}
                 onChange={(e) => updateSessionField("description", e.target.value)}
                 rows={3}
-                className="rounded-2xl"
+                className="rounded-xl text-sm"
               />
             </div>
 
-            {/* Cover image field */}
+            {/* Cover Image field */}
             <div className="grid gap-3 p-4 border border-ink/10 rounded-2xl bg-white">
-              <Label className="text-xs font-bold uppercase tracking-[0.1em] text-ink/40">
-                Zdjęcie okładkowe sesji
+              <Label className="text-xs font-bold uppercase tracking-[0.15em] text-ink/40">
+                Okładka sesji zdjęciowej
               </Label>
               <div className="grid grid-cols-[100px_1fr] gap-4 items-center">
                 <div className="aspect-[4/5] overflow-hidden border border-ink/10 bg-porcelain rounded-lg">
@@ -629,7 +617,7 @@ export function Gallery({ sessions: initialSessions }: { sessions: GallerySessio
                     ) : (
                       <Upload className="h-3.5 w-3.5" />
                     )}
-                    Wyślij okładkę
+                    Wyślij plik
                     <input
                       type="file"
                       accept="image/*"
@@ -638,34 +626,30 @@ export function Gallery({ sessions: initialSessions }: { sessions: GallerySessio
                       disabled={uploadingImageId !== null}
                     />
                   </label>
+                  <span className="text-[0.6rem] text-ink/40">Zalecany pion (aspect ratio 4:5)</span>
                 </div>
               </div>
             </div>
 
-            {/* Gallery Images List & Multi-Upload */}
+            {/* Session Photos */}
             <div className="grid gap-4 p-4 border border-ink/10 rounded-2xl bg-white mt-2">
-              <div className="flex flex-col gap-2 border-b border-ink/10 pb-3">
-                <Label className="text-xs font-bold uppercase tracking-[0.1em] text-ink/40">
+              <div className="flex items-center justify-between border-b border-ink/10 pb-3">
+                <Label className="text-xs font-bold uppercase tracking-[0.15em] text-ink/40">
                   Zdjęcia w sesji ({editingSession.images.length})
                 </Label>
-                <label className="inline-flex h-9 w-full cursor-pointer items-center justify-center gap-2 rounded-full border border-ink bg-ink text-white px-4 text-xs font-bold uppercase tracking-[0.12em] transition-colors hover:bg-graphite">
-                  {uploadingImageId === "multiple" ? (
-                    <>
-                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                      Wysyłanie zdjęć...
-                    </>
+                <label className="inline-flex h-8 w-fit cursor-pointer items-center gap-1.5 rounded-full border border-ink/15 bg-white px-3 text-xs font-bold uppercase tracking-[0.08em] text-ink/60 hover:text-ink transition-colors">
+                  {uploadingImageId === "multi" ? (
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
                   ) : (
-                    <>
-                      <Upload className="h-3.5 w-3.5" />
-                      Wyślij wiele zdjęć na raz
-                    </>
+                    <Plus className="h-3.5 w-3.5" />
                   )}
+                  Dodaj zdjęcia
                   <input
                     type="file"
                     accept="image/*"
                     multiple
                     className="sr-only"
-                    onChange={addSessionImages}
+                    onChange={handleMultipleImagesUpload}
                     disabled={uploadingImageId !== null}
                   />
                 </label>
@@ -673,14 +657,14 @@ export function Gallery({ sessions: initialSessions }: { sessions: GallerySessio
 
               <div className="grid gap-3">
                 {editingSession.images.map((img, idx) => (
-                  <div key={img.id} className="grid grid-cols-[80px_1fr_auto] gap-3 items-center bg-porcelain/60 p-2 border border-ink/5 rounded-xl">
-                    <div className="aspect-square overflow-hidden border border-ink/10 bg-white rounded-lg">
+                  <div key={img.id} className="grid grid-cols-[70px_1fr_auto] gap-3 items-center bg-porcelain/60 p-2 border border-ink/5 rounded-xl">
+                    <div className="aspect-[3/4] overflow-hidden border border-ink/10 bg-white rounded-lg">
                       <img src={img.src} alt="" className="h-full w-full object-cover" />
                     </div>
-                    <div className="grid gap-1.5">
+                    <div className="grid gap-1">
                       <input
                         type="text"
-                        placeholder="Tytuł / Podpis..."
+                        placeholder="Tytuł / podpis..."
                         value={img.title ?? ""}
                         onChange={(e) => {
                           const updated = editingSession.images.map((image, i) =>
@@ -690,25 +674,21 @@ export function Gallery({ sessions: initialSessions }: { sessions: GallerySessio
                         }}
                         className="w-full bg-white border border-ink/10 rounded-full px-3 py-1 text-xs focus:outline-none focus:border-ink"
                       />
-                      <div className="flex gap-2">
-                        {/* Aspect selector */}
-                        <select
-                          value={img.aspect ?? "portrait"}
-                          onChange={(e) => {
-                            const updated = editingSession.images.map((image, i) =>
-                              i === idx ? { ...image, aspect: e.target.value as any } : image
-                            );
-                            updateSessionField("images", updated);
-                          }}
-                          className="bg-white border border-ink/10 rounded-full px-2 py-0.5 text-[0.62rem] font-bold text-ink focus:outline-none"
-                        >
-                          {aspectOptions.map((opt) => (
-                            <option key={opt.value} value={opt.value}>
-                              {opt.label}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
+                      <select
+                        value={img.aspect ?? "portrait"}
+                        onChange={(e) => {
+                          const updated = editingSession.images.map((image, i) =>
+                            i === idx ? { ...image, aspect: e.target.value } : image
+                          );
+                          updateSessionField("images", updated);
+                        }}
+                        className="w-full bg-white border border-ink/10 rounded-full px-2 py-0.5 text-[0.62rem] text-ink focus:outline-none"
+                      >
+                        <option value="portrait">Pion (3:4)</option>
+                        <option value="landscape">Poziom (4:3)</option>
+                        <option value="square">Kwadrat (1:1)</option>
+                        <option value="wide">Szeroki (16:9)</option>
+                      </select>
                     </div>
                     <div className="flex flex-col gap-1 items-center justify-center">
                       <button
@@ -716,7 +696,6 @@ export function Gallery({ sessions: initialSessions }: { sessions: GallerySessio
                         onClick={() => moveSessionImage(idx, -1)}
                         disabled={idx === 0}
                         className="flex h-6 w-6 items-center justify-center rounded-full hover:bg-ink/5 text-ink/50 disabled:opacity-30"
-                        title="Przesuń w górę"
                       >
                         <ArrowUp className="h-3.5 w-3.5" />
                       </button>
@@ -725,15 +704,20 @@ export function Gallery({ sessions: initialSessions }: { sessions: GallerySessio
                         onClick={() => moveSessionImage(idx, 1)}
                         disabled={idx === editingSession.images.length - 1}
                         className="flex h-6 w-6 items-center justify-center rounded-full hover:bg-ink/5 text-ink/50 disabled:opacity-30"
-                        title="Przesuń w dół"
                       >
                         <ArrowDown className="h-3.5 w-3.5" />
                       </button>
                       <button
                         type="button"
+                        onClick={() => toggleImageEnabled(idx)}
+                        className="flex h-6 w-6 items-center justify-center rounded-full hover:bg-ink/5 text-ink/50"
+                      >
+                        {img.enabled ? <Eye className="h-3.5 w-3.5" /> : <EyeOff className="h-3.5 w-3.5" />}
+                      </button>
+                      <button
+                        type="button"
                         onClick={() => removeSessionImage(img.id)}
-                        className="flex h-6 w-6 items-center justify-center rounded-full text-red-500 hover:bg-red-500/10 mt-1 transition-colors"
-                        title="Usuń zdjęcie"
+                        className="flex h-6 w-6 items-center justify-center rounded-full text-red-500 hover:bg-red-500/10 transition-colors"
                       >
                         <Trash2 className="h-3.5 w-3.5" />
                       </button>
@@ -807,7 +791,7 @@ export function Gallery({ sessions: initialSessions }: { sessions: GallerySessio
                 </div>
 
                 {activeSession.description && (
-                  <p className="mb-8 max-w-3xl px-4 text-lg leading-8 text-graphite/70 sm:px-6">
+                  <p className="mb-8 max-w-3xl px-4 text-lg leading-8 text-graphite/70 sm:px-6 whitespace-pre-wrap">
                     {activeSession.description}
                   </p>
                 )}
@@ -821,7 +805,7 @@ export function Gallery({ sessions: initialSessions }: { sessions: GallerySessio
                     exit={{ opacity: 0, x: sessionDirection * -56 }}
                     transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
                   >
-                    {visibleImages.map((image, imageIndex) => (
+                    {visibleImages.map((image) => (
                       <figure
                         key={image.id}
                         className="mb-5 break-inside-avoid overflow-hidden border border-ink/10 bg-white rounded-2xl shadow-sm"
@@ -843,18 +827,13 @@ export function Gallery({ sessions: initialSessions }: { sessions: GallerySessio
                         {(image.title || image.description) && (
                           <figcaption className="px-4 py-4 border-t border-ink/5">
                             {image.title && (
-                              <p className="font-serif text-2xl leading-none text-ink">
-                                {image.title}
-                              </p>
+                              <p className="font-serif text-2xl leading-none text-ink">{image.title}</p>
                             )}
                             {image.description && (
                               <p className="mt-2 text-sm leading-6 text-ink/55">
                                 {image.description}
                               </p>
                             )}
-                            <span className="mt-3 block text-[0.62rem] font-bold uppercase tracking-[0.18em] text-ink/35">
-                              {String(imageIndex + 1).padStart(2, "0")}
-                            </span>
                           </figcaption>
                         )}
                       </figure>
@@ -862,90 +841,81 @@ export function Gallery({ sessions: initialSessions }: { sessions: GallerySessio
                   </motion.div>
                 </AnimatePresence>
               </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </ModalPortal>
 
-              {/* Full Zoom Image Modal */}
-              <AnimatePresence>
-                {activeImage && (
-                  <motion.div
-                    className="fixed inset-0 z-[110] flex items-center justify-center bg-ink/88 p-4 backdrop-blur-md"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    onClick={() => setActiveImage(null)}
+      {/* Full Screen Image Modal */}
+      <ModalPortal>
+        <AnimatePresence>
+          {activeImage && (
+            <motion.div
+              className="fixed inset-0 z-[100] flex flex-col bg-ink/95 text-white select-none touch-none"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              role="dialog"
+              aria-modal="true"
+              onTouchStart={handleTouchStart}
+              onTouchEnd={handleTouchEnd}
+            >
+              <div className="flex h-16 items-center justify-between px-4 sm:px-6 border-b border-white/5">
+                <span className="text-[0.62rem] font-bold uppercase tracking-[0.2em] text-white/55">
+                  Zdjęcie {currentImageIndex + 1} z {visibleImages.length}
+                </span>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="text-white hover:bg-white/10 rounded-full"
+                    onClick={() => navigateImage("prev")}
+                    aria-label="Poprzednie zdjęcie"
                   >
-                    {/* Close Button */}
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="absolute right-5 top-5 z-[130] text-white hover:bg-white/10 rounded-full h-10 w-10 bg-black/20"
-                      onClick={(event) => {
-                        event.stopPropagation();
-                        setActiveImage(null);
-                      }}
-                      aria-label="Zamknij zdjęcie"
-                    >
-                      <X className="h-5 w-5" />
-                    </Button>
+                    <ChevronLeft className="h-5 w-5" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="text-white hover:bg-white/10 rounded-full"
+                    onClick={() => navigateImage("next")}
+                    aria-label="Następne zdjęcie"
+                  >
+                    <ChevronRight className="h-5 w-5" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="text-white hover:bg-white/10 rounded-full"
+                    onClick={() => setActiveImage(null)}
+                    aria-label="Zamknij podgląd"
+                  >
+                    <X className="h-5 w-5" />
+                  </Button>
+                </div>
+              </div>
 
-                    {/* Left arrow navigation */}
-                    <button
-                      type="button"
-                      className="absolute left-4 top-1/2 -translate-y-1/2 z-[120] hidden sm:flex h-12 w-12 items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20 transition-colors border border-white/10 shadow-lg cursor-pointer"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        navigateImage("prev");
-                      }}
-                      aria-label="Poprzednie zdjęcie"
-                    >
-                      <ChevronLeft className="h-6 w-6" />
-                    </button>
-
-                    {/* Right arrow navigation */}
-                    <button
-                      type="button"
-                      className="absolute right-4 top-1/2 -translate-y-1/2 z-[120] hidden sm:flex h-12 w-12 items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20 transition-colors border border-white/10 shadow-lg cursor-pointer"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        navigateImage("next");
-                      }}
-                      aria-label="Następne zdjęcie"
-                    >
-                      <ChevronRight className="h-6 w-6" />
-                    </button>
-
-                    <motion.div
-                      layoutId={`session-image-${activeImage.id}`}
-                      className="max-h-[85vh] w-full max-w-5xl bg-black rounded-3xl shadow-[0_24px_50px_rgba(0,0,0,0.5)] border border-white/10 relative overflow-hidden"
-                      onClick={(event) => event.stopPropagation()}
-                      onTouchStart={handleTouchStart}
-                      onTouchEnd={handleTouchEnd}
-                    >
-                      <div className="rounded-3xl overflow-hidden bg-black flex items-center justify-center min-h-[40vh]">
-                        <AnimatePresence mode="wait" initial={false}>
-                          <motion.img
-                            key={activeImage.id}
-                            src={activeImage.src}
-                            alt={activeImage.alt}
-                            initial={{ opacity: 0, scale: 0.97 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            exit={{ opacity: 0, scale: 0.97 }}
-                            transition={{ duration: 0.22, ease: "easeOut" }}
-                            className="max-h-[85vh] max-w-full object-contain rounded-3xl"
-                            draggable={false}
-                          />
-                        </AnimatePresence>
-                      </div>
-
-                      {/* Image index counter */}
-                      {activeImageIndex !== -1 && (
-                        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10 rounded-full bg-black/60 px-3 py-1 text-[0.62rem] font-bold uppercase tracking-[0.2em] text-white/80 border border-white/5 backdrop-blur-sm">
-                          {activeImageIndex + 1} / {visibleImages.length}
-                        </div>
-                      )}
-                    </motion.div>
+              <div className="flex-1 flex items-center justify-center p-4 relative" ref={modalImageRef}>
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={activeImage.id}
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.95 }}
+                    transition={{ duration: 0.28, ease: "easeOut" }}
+                    className="max-h-[82vh] max-w-full flex flex-col items-center"
+                  >
+                    <img
+                      src={activeImage.src}
+                      alt={activeImage.alt}
+                      className="max-h-[75vh] max-w-full rounded-lg object-contain shadow-2xl border border-white/5"
+                    />
+                    {activeImage.title && (
+                      <p className="mt-4 font-serif text-2xl text-white/90 text-center">{activeImage.title}</p>
+                    )}
                   </motion.div>
-                )}
-              </AnimatePresence>
+                </AnimatePresence>
+              </div>
             </motion.div>
           )}
         </AnimatePresence>

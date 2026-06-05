@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState, ChangeEvent } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Play, X, Upload, Loader2 } from "lucide-react";
+import { Play, X, Upload, Loader2, Edit } from "lucide-react";
 import type { ShowreelContent } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { CinematicImage } from "@/components/site/cinematic-image";
@@ -12,6 +12,10 @@ import { SectionReveal } from "@/components/site/section-reveal";
 import { useAdminEdit } from "@/components/admin/admin-edit-context";
 import { uploadImageFile } from "@/lib/firebase/content";
 import { cn } from "@/lib/utils";
+import { AdminDrawer } from "@/components/admin/admin-drawer";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 
 function getEmbeddableUrl(url: string) {
   if (url.includes("youtube.com/watch")) {
@@ -48,6 +52,7 @@ export function Showreel({ content: initialContent }: { content: ShowreelContent
   const [open, setOpen] = useState(false);
   const [isVideoLoading, setIsVideoLoading] = useState(true);
   const [isUploading, setIsUploading] = useState(false);
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
   const videoUrl = useMemo(() => getEmbeddableUrl(content.videoUrl), [content.videoUrl]);
   const isMp4 = videoUrl.toLowerCase().endsWith(".mp4");
@@ -57,7 +62,6 @@ export function Showreel({ content: initialContent }: { content: ShowreelContent
       return;
     }
 
-    // Reset video loading state when opening
     setIsVideoLoading(true);
 
     const handleKey = (event: KeyboardEvent) => {
@@ -95,31 +99,45 @@ export function Showreel({ content: initialContent }: { content: ShowreelContent
     <SectionReveal
       id="showreel"
       className={cn(
-        "relative bg-white py-24 transition-opacity duration-300",
+        "relative bg-white py-24 transition-all duration-300 group/section",
+        editMode && "hover:ring-1 hover:ring-ink/20",
         editMode && !isSectionEnabled && "opacity-60 border-2 border-dashed border-ink/15 bg-ink/[0.01]"
       )}
     >
-      {/* Section Visibility Toggle for Admin */}
+      {/* Control overlay for Admin */}
       {editMode && (
-        <div className="absolute top-6 right-4 z-20 flex items-center gap-3 bg-porcelain border border-ink/10 px-4 py-2 shadow-sm rounded-full backdrop-blur-md">
-          <span className="text-[0.62rem] font-bold uppercase tracking-[0.14em] text-ink/65">
-            Sekcja Showreel (Wideo)
-          </span>
+        <div className="absolute top-6 right-4 z-20 flex items-center gap-2">
+          {/* Section Visibility Toggle */}
+          <div className="flex items-center gap-3 bg-porcelain/90 border border-ink/10 px-4 py-2 shadow-sm rounded-full backdrop-blur-md">
+            <span className="text-[0.62rem] font-bold uppercase tracking-[0.14em] text-ink/65">
+              Sekcja Showreel (Wideo)
+            </span>
+            <button
+              type="button"
+              onClick={() =>
+                updateContent((draft) => {
+                  draft.sections.showreel.enabled = !draft.sections.showreel.enabled;
+                })
+              }
+              className={cn(
+                "rounded-full px-2.5 py-0.5 text-[0.62rem] font-bold uppercase tracking-[0.1em] border transition-colors",
+                isSectionEnabled
+                  ? "border-emerald-500 bg-emerald-500 text-white"
+                  : "border-ink/15 bg-white text-ink/45 hover:border-ink hover:text-ink"
+              )}
+            >
+              {isSectionEnabled ? "Aktywna" : "Ukryta"}
+            </button>
+          </div>
+
+          {/* Edit Drawer Button */}
           <button
             type="button"
-            onClick={() =>
-              updateContent((draft) => {
-                draft.sections.showreel.enabled = !draft.sections.showreel.enabled;
-              })
-            }
-            className={cn(
-              "rounded-full px-2.5 py-0.5 text-[0.62rem] font-bold uppercase tracking-[0.1em] border transition-colors",
-              isSectionEnabled
-                ? "border-emerald-500 bg-emerald-500 text-white"
-                : "border-ink/15 bg-white text-ink/45 hover:border-ink hover:text-ink"
-            )}
+            onClick={() => setIsDrawerOpen(true)}
+            className="flex h-9 items-center gap-1.5 rounded-full border border-ink/15 bg-white px-4 text-xs font-bold uppercase tracking-[0.12em] text-ink/70 hover:border-ink hover:text-ink shadow-sm transition-all"
           >
-            {isSectionEnabled ? "Aktywna" : "Ukryta"}
+            <Edit className="h-3.5 w-3.5" />
+            Edytuj
           </button>
         </div>
       )}
@@ -173,101 +191,113 @@ export function Showreel({ content: initialContent }: { content: ShowreelContent
           </div>
 
           <div className="max-w-xl lg:pl-8 space-y-6">
-            {editMode ? (
-              <div className="grid gap-4 bg-porcelain p-4 border border-ink/10 rounded-2xl">
-                <div className="grid gap-1">
-                  <span className="text-[0.55rem] font-bold uppercase tracking-[0.14em] text-ink/30">
-                    Eyebrow (nadnagłówek):
-                  </span>
-                  <input
-                    type="text"
-                    value={content.eyebrow}
-                    onChange={(e) =>
-                      updateContent((draft) => {
-                        draft.showreel.eyebrow = e.target.value;
-                      })
-                    }
-                    className="w-full bg-white border border-ink/10 rounded-full px-4 py-2 text-xs font-bold uppercase tracking-[0.2em] text-ink focus:outline-none focus:border-ink"
-                  />
-                </div>
-                <div className="grid gap-1">
-                  <span className="text-[0.55rem] font-bold uppercase tracking-[0.14em] text-ink/30">
-                    Tytuł sekcji:
-                  </span>
-                  <input
-                    type="text"
-                    value={content.title}
-                    onChange={(e) =>
-                      updateContent((draft) => {
-                        draft.showreel.title = e.target.value;
-                      })
-                    }
-                    className="w-full bg-white border border-ink/10 rounded-xl px-4 py-2 font-serif text-2xl text-ink focus:outline-none focus:border-ink"
-                  />
-                </div>
-                <div className="grid gap-1">
-                  <span className="text-[0.55rem] font-bold uppercase tracking-[0.14em] text-ink/30">
-                    Opis showreela:
-                  </span>
-                  <textarea
-                    value={content.description}
-                    onChange={(e) =>
-                      updateContent((draft) => {
-                        draft.showreel.description = e.target.value;
-                      })
-                    }
-                    rows={3}
-                    className="w-full bg-white border border-ink/10 rounded-xl px-4 py-2 text-sm text-ink focus:outline-none focus:border-ink resize-none"
-                  />
-                </div>
-                <div className="grid gap-1">
-                  <span className="text-[0.55rem] font-bold uppercase tracking-[0.14em] text-ink/30">
-                    Link do filmu (MP4 / YouTube / Vimeo):
-                  </span>
-                  <input
-                    type="text"
-                    value={content.videoUrl}
-                    onChange={(e) =>
-                      updateContent((draft) => {
-                        draft.showreel.videoUrl = e.target.value;
-                      })
-                    }
-                    className="w-full bg-white border border-ink/10 rounded-full px-4 py-2 text-xs font-bold text-ink focus:outline-none focus:border-ink"
-                  />
-                </div>
-                <div className="grid gap-1">
-                  <span className="text-[0.55rem] font-bold uppercase tracking-[0.14em] text-ink/30">
-                    Tekst przycisku:
-                  </span>
-                  <input
-                    type="text"
-                    value={content.buttonText}
-                    onChange={(e) =>
-                      updateContent((draft) => {
-                        draft.showreel.buttonText = e.target.value;
-                      })
-                    }
-                    className="w-full bg-white border border-ink/10 rounded-full px-4 py-2 text-xs font-bold uppercase tracking-[0.12em] text-ink focus:outline-none focus:border-ink"
-                  />
-                </div>
-              </div>
-            ) : (
-              <>
-                <span className="eyebrow">{content.eyebrow}</span>
-                <h2 className="mt-5 font-serif text-5xl font-medium leading-none text-ink sm:text-7xl">
-                  {content.title}
-                </h2>
-                <p className="mt-6 text-lg leading-8 text-graphite/75">{content.description}</p>
-                <div className="mt-9">
-                  <MagneticButton onClick={() => setOpen(true)}>
-                    {content.buttonText}
-                  </MagneticButton>
-                </div>
-              </>
-            )}
+            <span className="eyebrow">{content.eyebrow}</span>
+            <h2 className="mt-5 font-serif text-5xl font-medium leading-none text-ink sm:text-7xl">
+              {content.title}
+            </h2>
+            <p className="mt-6 text-lg leading-8 text-graphite/75">{content.description}</p>
+            <div className="mt-9">
+              <MagneticButton onClick={() => setOpen(true)}>
+                {content.buttonText}
+              </MagneticButton>
+            </div>
           </div>
         </div>
       </div>
+
+      {/* Edit Drawer */}
+      <AdminDrawer
+        isOpen={isDrawerOpen}
+        onClose={() => setIsDrawerOpen(false)}
+        title="Sekcja Showreel (Wideo)"
+      >
+        <div className="grid gap-5">
+          <div className="grid gap-1">
+            <Label htmlFor="showreel-menu-label">Nazwa w menu</Label>
+            <Input
+              id="showreel-menu-label"
+              value={globalContent.sections.showreel.label ?? "Showreel"}
+              onChange={(e) =>
+                updateContent((draft) => {
+                  draft.sections.showreel.label = e.target.value;
+                })
+              }
+              className="rounded-full"
+            />
+          </div>
+
+          <div className="grid gap-1">
+            <Label htmlFor="showreel-eyebrow">Eyebrow (nadnagłówek)</Label>
+            <Input
+              id="showreel-eyebrow"
+              value={content.eyebrow}
+              onChange={(e) =>
+                updateContent((draft) => {
+                  draft.showreel.eyebrow = e.target.value;
+                })
+              }
+              className="rounded-full"
+            />
+          </div>
+
+          <div className="grid gap-1">
+            <Label htmlFor="showreel-title">Tytuł sekcji</Label>
+            <Input
+              id="showreel-title"
+              value={content.title}
+              onChange={(e) =>
+                updateContent((draft) => {
+                  draft.showreel.title = e.target.value;
+                })
+              }
+              className="rounded-xl font-serif text-lg"
+            />
+          </div>
+
+          <div className="grid gap-1">
+            <Label htmlFor="showreel-desc">Opis</Label>
+            <Textarea
+              id="showreel-desc"
+              value={content.description}
+              onChange={(e) =>
+                updateContent((draft) => {
+                  draft.showreel.description = e.target.value;
+                })
+              }
+              rows={4}
+              className="rounded-xl text-sm"
+            />
+          </div>
+
+          <div className="grid gap-1">
+            <Label htmlFor="showreel-video-url">Link do filmu (MP4 / YouTube / Vimeo)</Label>
+            <Input
+              id="showreel-video-url"
+              value={content.videoUrl}
+              onChange={(e) =>
+                updateContent((draft) => {
+                  draft.showreel.videoUrl = e.target.value;
+                })
+              }
+              className="rounded-full text-xs font-mono"
+            />
+          </div>
+
+          <div className="grid gap-1">
+            <Label htmlFor="showreel-btn-text">Tekst przycisku</Label>
+            <Input
+              id="showreel-btn-text"
+              value={content.buttonText}
+              onChange={(e) =>
+                updateContent((draft) => {
+                  draft.showreel.buttonText = e.target.value;
+                })
+              }
+              className="rounded-full"
+            />
+          </div>
+        </div>
+      </AdminDrawer>
 
       <ModalPortal>
         <AnimatePresence>
@@ -298,7 +328,6 @@ export function Showreel({ content: initialContent }: { content: ShowreelContent
                     <X className="h-5 w-5" />
                   </Button>
 
-                  {/* Video loading spinner */}
                   {isVideoLoading && (
                     <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/90 z-20">
                       <Loader2 className="h-8 w-8 animate-spin text-white mb-2" />

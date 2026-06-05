@@ -25,8 +25,8 @@ export function ActressPortfolio() {
 
   return (
     <motion.main
-      className={motion.main.name}
-      style={{ paddingTop: isAdmin ? "3.5rem" : "0px" }}
+      className="relative"
+      style={{ paddingTop: isAdmin ? "5.5rem" : "0px" }}
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.65, ease: "easeOut" }}

@@ -34,15 +34,15 @@ export function AdminBar() {
   }
 
   return (
-    <div className="fixed top-0 left-0 right-0 z-[100] h-14 bg-ink border-b border-ink/80 text-white flex items-center justify-between px-2 sm:px-6 shadow-[0_4px_30px_rgba(0,0,0,0.15)] select-none">
+    <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[100] h-14 w-[calc(100%-2rem)] max-w-5xl bg-ink/92 backdrop-blur-xl border border-white/10 text-white flex items-center justify-between px-3 sm:px-6 shadow-[0_16px_50px_rgba(0,0,0,0.35)] rounded-full select-none transition-all duration-300">
       {/* Left section: status logo (hidden on small mobile screens to save space) */}
       <div className="hidden min-[440px]:flex items-center gap-2.5">
-        <span className="inline-flex h-2 w-2 animate-pulse rounded-full bg-emerald-500 shrink-0" />
-        <span className="hidden sm:inline-block text-[0.68rem] font-bold uppercase tracking-[0.24em] text-porcelain/80">
+        <span className="inline-flex h-2 w-2 rounded-full bg-emerald-400 shrink-0 shadow-[0_0_10px_rgba(52,211,153,0.6)]" />
+        <span className="hidden sm:inline-block text-[0.62rem] font-bold uppercase tracking-[0.24em] text-porcelain/90">
           Studio Treści
         </span>
         <span className={cn(
-          "text-[0.62rem] font-medium border-l border-white/10 pl-2.5 ml-0.5 transition-colors duration-300",
+          "text-[0.58rem] font-semibold border-l border-white/10 pl-2.5 ml-0.5 transition-colors duration-300 uppercase tracking-wider",
           autosaveStatus === "saving" && "text-amber-400 animate-pulse",
           autosaveStatus === "saved" && "text-emerald-400",
           autosaveStatus === "error" && "text-red-400 font-bold",
@@ -50,9 +50,9 @@ export function AdminBar() {
           autosaveStatus === "idle" && !hasUnsavedEdits && "text-white/40"
         )}>
           {autosaveStatus === "saving" && "Zapisywanie..."}
-          {autosaveStatus === "saved" && "Zapisano automatycznie"}
-          {autosaveStatus === "error" && "Błąd autozapisu!"}
-          {autosaveStatus === "idle" && hasUnsavedEdits && "Niezapisane zmiany"}
+          {autosaveStatus === "saved" && "Zapisano"}
+          {autosaveStatus === "error" && "Błąd zapisu!"}
+          {autosaveStatus === "idle" && hasUnsavedEdits && "Niezapisane"}
           {autosaveStatus === "idle" && !hasUnsavedEdits && "Zapisano"}
         </span>
       </div>
@@ -196,7 +196,7 @@ export function AdminBar() {
 
         {/* History Dropdown Panel */}
         {showHistory && (
-          <div className="absolute right-0 top-12 z-50 w-72 max-h-96 overflow-y-auto bg-ink border border-white/10 rounded-xl p-3 shadow-xl text-white">
+          <div className="absolute right-0 top-16 z-50 w-72 max-h-96 overflow-y-auto bg-ink border border-white/10 rounded-xl p-3 shadow-xl text-white">
             <div className="flex items-center justify-between border-b border-white/10 pb-2 mb-2">
               <span className="text-[0.62rem] font-bold uppercase tracking-[0.12em] text-white/50">
                 Wersje (Max 10)

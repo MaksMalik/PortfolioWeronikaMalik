@@ -13,6 +13,8 @@ export type SectionSettings = {
   eyebrow?: string;
   title?: string;
   description?: string;
+  label?: string;
+  actionLabel?: string;
 };
 
 export type HeroContent = {
@@ -91,6 +93,13 @@ export type ContactContent = {
   location: string;
   representation: string;
   socials: SocialLink[];
+  formNameLabel?: string;
+  formEmailLabel?: string;
+  formSubjectLabel?: string;
+  formMessageLabel?: string;
+  formButtonText?: string;
+  footerCopyrightName?: string;
+  footerDesignerTag?: string;
 };
 
 export type SiteContent = {

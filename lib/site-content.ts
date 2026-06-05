@@ -1,17 +1,17 @@
 import type { SiteContent } from "@/lib/types";
 
-export const SITE_CONTENT_SCHEMA_VERSION = 3;
+export const SITE_CONTENT_SCHEMA_VERSION = 4;
 
 export const siteContent: SiteContent = {
   schemaVersion: SITE_CONTENT_SCHEMA_VERSION,
   sections: {
-    hero: { enabled: true },
-    about: { enabled: true },
-    portfolio: { enabled: true, eyebrow: "portfolio", title: "Wybrane role" },
-    showreel: { enabled: true },
-    gallery: { enabled: true, eyebrow: "galeria", title: "Sesje zdjęciowe", description: "Editorialowe portrety, kadry i fragmenty pracy przed obiektywem." },
-    press: { enabled: true, eyebrow: "prasa", title: "W mediach" },
-    contact: { enabled: true }
+    hero: { enabled: true, label: "Start" },
+    about: { enabled: true, label: "O mnie" },
+    portfolio: { enabled: true, eyebrow: "portfolio", title: "Wybrane role", label: "Role", actionLabel: "Czytaj więcej" },
+    showreel: { enabled: true, label: "Showreel" },
+    gallery: { enabled: true, eyebrow: "galeria", title: "Sesje zdjęciowe", description: "Editorialowe portrety, kadry i fragmenty pracy przed obiektywem.", label: "Galeria", actionLabel: "Otwórz sesję" },
+    press: { enabled: true, eyebrow: "prasa", title: "W mediach", label: "Prasa" },
+    contact: { enabled: true, label: "Kontakt" }
   },
   hero: {
     monogram: "WM",
@@ -316,6 +316,13 @@ export const siteContent: SiteContent = {
     phone: "+48 501 234 567",
     location: "Warszawa / Londyn",
     representation: "Northline Talent Agency",
+    formNameLabel: "Imię i nazwisko",
+    formEmailLabel: "Email",
+    formSubjectLabel: "Temat",
+    formMessageLabel: "Wiadomość",
+    formButtonText: "Wyślij wiadomość",
+    footerCopyrightName: "Weronika Malik",
+    footerDesignerTag: "Projekt i realizacja",
     socials: [
       {
         id: "instagram",

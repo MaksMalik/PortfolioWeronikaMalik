@@ -7,14 +7,19 @@ import { MagneticButton } from "@/components/site/magnetic-button";
 import { SectionHeading, SectionReveal } from "@/components/site/section-reveal";
 import { useAdminEdit } from "@/components/admin/admin-edit-context";
 import { uploadImageFile } from "@/lib/firebase/content";
-import { Upload, Loader2 } from "lucide-react";
+import { Upload, Loader2, Edit } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { AdminDrawer } from "@/components/admin/admin-drawer";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 
 export function About({ content: initialContent }: { content: AboutContent }) {
   const { editMode, updateContent, content: globalContent } = useAdminEdit();
   const content = editMode ? globalContent.about : initialContent;
 
   const [isUploading, setIsUploading] = useState(false);
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
   const handleImageUpload = async (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -41,31 +46,45 @@ export function About({ content: initialContent }: { content: AboutContent }) {
     <SectionReveal
       id="about"
       className={cn(
-        "relative border-y border-ink/10 bg-white py-24 transition-opacity duration-300",
+        "relative border-y border-ink/10 bg-white py-24 transition-all duration-300 group/section",
+        editMode && "hover:ring-1 hover:ring-ink/20",
         editMode && !isSectionEnabled && "opacity-60 border-2 border-dashed border-ink/15 bg-ink/[0.01]"
       )}
     >
-      {/* Section Visibility Toggle for Admin */}
+      {/* Control overlay for Admin */}
       {editMode && (
-        <div className="absolute top-6 right-4 z-20 flex items-center gap-3 bg-porcelain border border-ink/10 px-4 py-2 shadow-sm rounded-full backdrop-blur-md">
-          <span className="text-[0.62rem] font-bold uppercase tracking-[0.14em] text-ink/65">
-            Sekcja O mnie
-          </span>
+        <div className="absolute top-6 right-4 z-20 flex items-center gap-2">
+          {/* Section Visibility Toggle */}
+          <div className="flex items-center gap-3 bg-porcelain/90 border border-ink/10 px-4 py-2 shadow-sm rounded-full backdrop-blur-md">
+            <span className="text-[0.62rem] font-bold uppercase tracking-[0.14em] text-ink/65">
+              Sekcja O mnie
+            </span>
+            <button
+              type="button"
+              onClick={() =>
+                updateContent((draft) => {
+                  draft.sections.about.enabled = !draft.sections.about.enabled;
+                })
+              }
+              className={cn(
+                "rounded-full px-2.5 py-0.5 text-[0.62rem] font-bold uppercase tracking-[0.1em] border transition-colors",
+                isSectionEnabled
+                  ? "border-emerald-500 bg-emerald-500 text-white"
+                  : "border-ink/15 bg-white text-ink/45 hover:border-ink hover:text-ink"
+              )}
+            >
+              {isSectionEnabled ? "Aktywna" : "Ukryta"}
+            </button>
+          </div>
+
+          {/* Edit Drawer Button */}
           <button
             type="button"
-            onClick={() =>
-              updateContent((draft) => {
-                draft.sections.about.enabled = !draft.sections.about.enabled;
-              })
-            }
-            className={cn(
-              "rounded-full px-2.5 py-0.5 text-[0.62rem] font-bold uppercase tracking-[0.1em] border transition-colors",
-              isSectionEnabled
-                ? "border-emerald-500 bg-emerald-500 text-white"
-                : "border-ink/15 bg-white text-ink/45 hover:border-ink hover:text-ink"
-            )}
+            onClick={() => setIsDrawerOpen(true)}
+            className="flex h-9 items-center gap-1.5 rounded-full border border-ink/15 bg-white px-4 text-xs font-bold uppercase tracking-[0.12em] text-ink/70 hover:border-ink hover:text-ink shadow-sm transition-all"
           >
-            {isSectionEnabled ? "Aktywna" : "Ukryta"}
+            <Edit className="h-3.5 w-3.5" />
+            Edytuj
           </button>
         </div>
       )}
@@ -105,87 +124,97 @@ export function About({ content: initialContent }: { content: AboutContent }) {
         )}
 
         <div className="max-w-2xl space-y-6">
-          {editMode ? (
-            <div className="grid gap-4 bg-porcelain/50 p-4 border border-ink/5 rounded-2xl">
-              <div className="grid gap-1">
-                <span className="text-[0.55rem] font-bold uppercase tracking-[0.14em] text-ink/30">
-                  Eyebrow (nadnagłówek):
-                </span>
-                <input
-                  type="text"
-                  value={content.eyebrow}
-                  onChange={(e) =>
-                    updateContent((draft) => {
-                      draft.about.eyebrow = e.target.value;
-                    })
-                  }
-                  className="w-full bg-white border border-ink/10 rounded-full px-4 py-2 text-xs font-bold uppercase tracking-[0.2em] text-ink focus:outline-none focus:border-ink"
-                />
-              </div>
-
-              <div className="grid gap-1">
-                <span className="text-[0.55rem] font-bold uppercase tracking-[0.14em] text-ink/30">
-                  Tytuł sekcji:
-                </span>
-                <input
-                  type="text"
-                  value={content.title}
-                  onChange={(e) =>
-                    updateContent((draft) => {
-                      draft.about.title = e.target.value;
-                    })
-                  }
-                  className="w-full bg-white border border-ink/10 rounded-xl px-4 py-2 font-serif text-2xl text-ink focus:outline-none focus:border-ink"
-                />
-              </div>
-
-              <div className="grid gap-1">
-                <span className="text-[0.55rem] font-bold uppercase tracking-[0.14em] text-ink/30">
-                  Treść opisu:
-                </span>
-                <textarea
-                  value={content.body}
-                  onChange={(e) =>
-                    updateContent((draft) => {
-                      draft.about.body = e.target.value;
-                    })
-                  }
-                  rows={6}
-                  className="w-full bg-white border border-ink/10 rounded-xl px-4 py-3 text-sm leading-relaxed text-ink focus:outline-none focus:border-ink"
-                />
-              </div>
-
-              <div className="grid gap-1">
-                <span className="text-[0.55rem] font-bold uppercase tracking-[0.14em] text-ink/30">
-                  Tekst przycisku:
-                </span>
-                <input
-                  type="text"
-                  value={content.buttonText}
-                  onChange={(e) =>
-                    updateContent((draft) => {
-                      draft.about.buttonText = e.target.value;
-                    })
-                  }
-                  className="w-full bg-white border border-ink/10 rounded-full px-4 py-2 text-xs font-bold uppercase tracking-[0.12em] text-ink focus:outline-none focus:border-ink"
-                />
-              </div>
-            </div>
-          ) : (
-            <>
-              <SectionHeading eyebrow={content.eyebrow} title={content.title} />
-              <p className="mt-8 text-lg leading-8 text-graphite/80 sm:text-xl sm:leading-9">
-                {content.body}
-              </p>
-              <div className="mt-10">
-                <MagneticButton href="#contact" variant="outline">
-                  {content.buttonText}
-                </MagneticButton>
-              </div>
-            </>
-          )}
+          <SectionHeading eyebrow={content.eyebrow} title={content.title} />
+          <p className="mt-8 text-lg leading-8 text-graphite/80 sm:text-xl sm:leading-9 whitespace-pre-wrap">
+            {content.body}
+          </p>
+          <div className="mt-10">
+            <MagneticButton href="#contact" variant="outline">
+              {content.buttonText}
+            </MagneticButton>
+          </div>
         </div>
       </div>
+
+      {/* Edit Drawer */}
+      <AdminDrawer
+        isOpen={isDrawerOpen}
+        onClose={() => setIsDrawerOpen(false)}
+        title="Sekcja O mnie"
+      >
+        <div className="grid gap-5">
+          <div className="grid gap-1">
+            <Label htmlFor="about-menu-label">Nazwa w menu</Label>
+            <Input
+              id="about-menu-label"
+              value={globalContent.sections.about.label ?? "O mnie"}
+              onChange={(e) =>
+                updateContent((draft) => {
+                  draft.sections.about.label = e.target.value;
+                })
+              }
+              className="rounded-full"
+            />
+          </div>
+
+          <div className="grid gap-1">
+            <Label htmlFor="about-eyebrow">Eyebrow (nadnagłówek)</Label>
+            <Input
+              id="about-eyebrow"
+              value={content.eyebrow}
+              onChange={(e) =>
+                updateContent((draft) => {
+                  draft.about.eyebrow = e.target.value;
+                })
+              }
+              className="rounded-full"
+            />
+          </div>
+
+          <div className="grid gap-1">
+            <Label htmlFor="about-title">Tytuł sekcji</Label>
+            <Input
+              id="about-title"
+              value={content.title}
+              onChange={(e) =>
+                updateContent((draft) => {
+                  draft.about.title = e.target.value;
+                })
+              }
+              className="rounded-xl font-serif text-lg"
+            />
+          </div>
+
+          <div className="grid gap-1">
+            <Label htmlFor="about-body">Treść opisu</Label>
+            <Textarea
+              id="about-body"
+              value={content.body}
+              onChange={(e) =>
+                updateContent((draft) => {
+                  draft.about.body = e.target.value;
+                })
+              }
+              rows={8}
+              className="rounded-xl text-sm"
+            />
+          </div>
+
+          <div className="grid gap-1">
+            <Label htmlFor="about-btn-text">Tekst przycisku</Label>
+            <Input
+              id="about-btn-text"
+              value={content.buttonText}
+              onChange={(e) =>
+                updateContent((draft) => {
+                  draft.about.buttonText = e.target.value;
+                })
+              }
+              className="rounded-full"
+            />
+          </div>
+        </div>
+      </AdminDrawer>
     </SectionReveal>
   );
 }

@@ -18,13 +18,13 @@ export function Header({ monogram }: { monogram: string }) {
   });
 
   const activeNavItems = [
-    { label: "Start", href: "#home", enabled: content.sections.hero.enabled },
-    { label: "O mnie", href: "#about", enabled: content.sections.about.enabled },
-    { label: "Role", href: "#work", enabled: content.sections.portfolio.enabled },
-    { label: "Showreel", href: "#showreel", enabled: content.sections.showreel.enabled },
-    { label: "Galeria", href: "#gallery", enabled: content.sections.gallery.enabled },
-    { label: "Prasa", href: "#press", enabled: content.sections.press.enabled },
-    { label: "Kontakt", href: "#contact", enabled: content.sections.contact.enabled }
+    { label: content.sections.hero.label ?? "Start", href: "#home", enabled: content.sections.hero.enabled },
+    { label: content.sections.about.label ?? "O mnie", href: "#about", enabled: content.sections.about.enabled },
+    { label: content.sections.portfolio.label ?? "Role", href: "#work", enabled: content.sections.portfolio.enabled },
+    { label: content.sections.showreel.label ?? "Showreel", href: "#showreel", enabled: content.sections.showreel.enabled },
+    { label: content.sections.gallery.label ?? "Galeria", href: "#gallery", enabled: content.sections.gallery.enabled },
+    { label: content.sections.press.label ?? "Prasa", href: "#press", enabled: content.sections.press.enabled },
+    { label: content.sections.contact.label ?? "Kontakt", href: "#contact", enabled: content.sections.contact.enabled }
   ].filter((item) => item.enabled);
 
   return (

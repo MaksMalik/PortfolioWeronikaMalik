@@ -37,6 +37,7 @@ export function PortfolioHighlights({ projects: initialProjects }: { projects: P
 
   const [activeProject, setActiveProject] = useState<PortfolioProject | null>(null);
   const [editingProject, setEditingProject] = useState<PortfolioProject | null>(null);
+  const [isSectionDrawerOpen, setIsSectionDrawerOpen] = useState(false);
   const [uploadingImageId, setUploadingImageId] = useState<string | null>(null);
 
   const railRef = useRef<HTMLDivElement>(null);
@@ -119,6 +120,7 @@ export function PortfolioHighlights({ projects: initialProjects }: { projects: P
     updateContent((draft) => {
       draft.portfolio.push(newProj);
     });
+    setIsSectionDrawerOpen(false);
     setEditingProject(newProj); // Open editing immediately
   };
 
@@ -202,82 +204,59 @@ export function PortfolioHighlights({ projects: initialProjects }: { projects: P
     <SectionReveal
       id="work"
       className={cn(
-        "relative bg-porcelain py-24 transition-opacity duration-300",
+        "relative bg-porcelain py-24 transition-all duration-300 group/section",
+        editMode && "hover:ring-1 hover:ring-ink/20",
         editMode && !isSectionEnabled && "opacity-60 border-2 border-dashed border-ink/15 bg-ink/[0.01]"
       )}
     >
-      {/* Section Visibility Toggle for Admin */}
+      {/* Control overlay for Admin */}
       {editMode && (
-        <div className="absolute top-6 right-4 z-20 flex items-center gap-3 bg-white border border-ink/10 px-4 py-2 shadow-sm rounded-full backdrop-blur-md">
-          <span className="text-[0.62rem] font-bold uppercase tracking-[0.14em] text-ink/65">
-            Sekcja Portfolio (Wybrane role)
-          </span>
+        <div className="absolute top-6 right-4 z-20 flex items-center gap-2">
+          {/* Section Visibility Toggle */}
+          <div className="flex items-center gap-3 bg-white border border-ink/10 px-4 py-2 shadow-sm rounded-full backdrop-blur-md">
+            <span className="text-[0.62rem] font-bold uppercase tracking-[0.14em] text-ink/65">
+              Sekcja Portfolio (Wybrane role)
+            </span>
+            <button
+              type="button"
+              onClick={() =>
+                updateContent((draft) => {
+                  draft.sections.portfolio.enabled = !draft.sections.portfolio.enabled;
+                })
+              }
+              className={cn(
+                "rounded-full px-2.5 py-0.5 text-[0.62rem] font-bold uppercase tracking-[0.1em] border transition-colors",
+                isSectionEnabled
+                  ? "border-emerald-500 bg-emerald-500 text-white"
+                  : "border-ink/15 bg-white text-ink/45 hover:border-ink hover:text-ink"
+              )}
+            >
+              {isSectionEnabled ? "Aktywna" : "Ukryta"}
+            </button>
+          </div>
+
+          {/* Edit Drawer Button */}
           <button
             type="button"
-            onClick={() =>
-              updateContent((draft) => {
-                draft.sections.portfolio.enabled = !draft.sections.portfolio.enabled;
-              })
-            }
-            className={cn(
-              "rounded-full px-2.5 py-0.5 text-[0.62rem] font-bold uppercase tracking-[0.1em] border transition-colors",
-              isSectionEnabled
-                ? "border-emerald-500 bg-emerald-500 text-white"
-                : "border-ink/15 bg-white text-ink/45 hover:border-ink hover:text-ink"
-            )}
+            onClick={() => setIsSectionDrawerOpen(true)}
+            className="flex h-9 items-center gap-1.5 rounded-full border border-ink/15 bg-white px-4 text-xs font-bold uppercase tracking-[0.12em] text-ink/70 hover:border-ink hover:text-ink shadow-sm transition-all"
           >
-            {isSectionEnabled ? "Aktywna" : "Ukryta"}
+            <Edit className="h-3.5 w-3.5" />
+            Edytuj
           </button>
         </div>
       )}
 
       <div className="section-shell">
         <div className="flex flex-col justify-between gap-8 md:flex-row md:items-end w-full">
-          {editMode ? (
-            <div className="grid gap-4 bg-white/70 p-4 border border-ink/10 rounded-2xl w-full">
-              <div className="grid gap-2 sm:grid-cols-2">
-                <div className="grid gap-1">
-                  <span className="text-[0.55rem] font-bold uppercase tracking-[0.1em] text-ink/30">
-                    Portfolio Eyebrow (nadnagłówek):
-                  </span>
-                  <input
-                    type="text"
-                    value={globalContent.sections.portfolio.eyebrow ?? "portfolio"}
-                    onChange={(e) =>
-                      updateContent((draft) => {
-                        draft.sections.portfolio.eyebrow = e.target.value;
-                      })
-                    }
-                    className="w-full bg-white border border-ink/10 rounded-full px-4 py-1.5 text-xs font-bold uppercase tracking-[0.2em] text-ink focus:outline-none"
-                  />
-                </div>
-                <div className="grid gap-1">
-                  <span className="text-[0.55rem] font-bold uppercase tracking-[0.1em] text-ink/30">
-                    Portfolio Tytuł:
-                  </span>
-                  <input
-                    type="text"
-                    value={globalContent.sections.portfolio.title ?? "Wybrane role"}
-                    onChange={(e) =>
-                      updateContent((draft) => {
-                        draft.sections.portfolio.title = e.target.value;
-                      })
-                    }
-                    className="w-full bg-white border border-ink/10 rounded-xl px-4 py-1.5 font-serif text-lg text-ink focus:outline-none"
-                  />
-                </div>
-              </div>
-            </div>
-          ) : (
-            <SectionHeading
-              eyebrow={globalContent.sections.portfolio.eyebrow ?? "portfolio"}
-              title={globalContent.sections.portfolio.title ?? "Wybrane role"}
-            />
-          )}
+          <SectionHeading
+            eyebrow={globalContent.sections.portfolio.eyebrow ?? "portfolio"}
+            title={globalContent.sections.portfolio.title ?? "Wybrane role"}
+          />
         </div>
 
         <div className="relative mt-12">
-          {projects.length > 1 && (
+          {projects.filter(p => editMode || p.enabled).length > 1 && (
             <div className="pointer-events-none absolute inset-y-0 left-0 right-0 z-10 hidden items-center justify-between px-2 md:flex">
               <Button
                 type="button"
@@ -307,13 +286,13 @@ export function PortfolioHighlights({ projects: initialProjects }: { projects: P
             className="no-scrollbar grid auto-cols-[84%] grid-flow-col gap-5 overflow-x-auto scroll-smooth pt-3 pb-7 -mt-3 [scroll-snap-type:x_mandatory] sm:auto-cols-[52%] lg:auto-cols-[36%]"
             onWheel={handleRailWheel}
           >
-            {projects.map((project, index) => (
+            {projects.filter(p => editMode || p.enabled).map((project, index) => (
               <div key={project.id} className="relative group scroll-ml-4 [scroll-snap-align:start]">
                 <motion.button
                   type="button"
                   className={cn(
                     "w-full group border border-ink/10 bg-white text-left transition-shadow duration-500 hover:shadow-editorial rounded-2xl flex flex-col h-full",
-                    !project.enabled && "opacity-50"
+                    !project.enabled && "opacity-50 border-dashed"
                   )}
                   onClick={() => !editMode && setActiveProject(project)}
                   aria-label={`Czytaj więcej o roli ${project.title}`}
@@ -332,7 +311,7 @@ export function PortfolioHighlights({ projects: initialProjects }: { projects: P
                   )}
                   <div className="relative overflow-hidden p-6 flex-1 flex flex-col justify-between w-full">
                     <div className="absolute inset-x-6 top-0 h-px bg-ink/10" />
-                    <div className="transition-transform duration-500 group-hover:-translate-y-1">
+                    <div>
                       <p className="text-[0.66rem] font-bold uppercase tracking-[0.2em] text-ink/45">
                         {project.type} / {project.role}
                       </p>
@@ -345,97 +324,166 @@ export function PortfolioHighlights({ projects: initialProjects }: { projects: P
                       </div>
                       {!editMode && (
                         <span className="mt-6 inline-flex border-b border-ink pb-1 text-xs font-bold uppercase tracking-[0.18em] text-ink">
-                          Czytaj więcej
+                          {globalContent.sections.portfolio.actionLabel ?? "Czytaj więcej"}
                         </span>
                       )}
-                      {editMode && !project.enabled && (
-                        <span className="mt-4 inline-flex items-center gap-1 rounded bg-ink/5 px-2 py-0.5 text-[0.6rem] font-bold uppercase tracking-[0.1em] text-ink/40">
+                      {!project.enabled && (
+                        <span className="mt-4 inline-flex items-center gap-1 rounded bg-ink/5 px-2 py-0.5 text-[0.6rem] font-bold uppercase tracking-[0.1em] text-ink/40 w-fit">
                           Ukryty
                         </span>
                       )}
                     </div>
                   </div>
                 </motion.button>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
 
-                {/* Admin overlays for reordering, visible, editing */}
-                {editMode && (
-                  <div className="absolute top-3 right-3 z-30 flex flex-wrap gap-1 bg-white/95 border border-ink/10 p-1 rounded-full shadow-[0_4px_20px_rgba(16,16,16,0.08)] backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+      {/* Section Settings Drawer */}
+      <AdminDrawer
+        isOpen={isSectionDrawerOpen}
+        onClose={() => setIsSectionDrawerOpen(false)}
+        title="Sekcja Portfolio"
+      >
+        <div className="grid gap-5">
+          <div className="grid gap-1">
+            <Label htmlFor="portfolio-menu-label">Nazwa w menu</Label>
+            <Input
+              id="portfolio-menu-label"
+              value={globalContent.sections.portfolio.label ?? "Role"}
+              onChange={(e) =>
+                updateContent((draft) => {
+                  draft.sections.portfolio.label = e.target.value;
+                })
+              }
+              className="rounded-full"
+            />
+          </div>
+
+          <div className="grid gap-1">
+            <Label htmlFor="portfolio-eyebrow">Eyebrow (nadnagłówek)</Label>
+            <Input
+              id="portfolio-eyebrow"
+              value={globalContent.sections.portfolio.eyebrow ?? "portfolio"}
+              onChange={(e) =>
+                updateContent((draft) => {
+                  draft.sections.portfolio.eyebrow = e.target.value;
+                })
+              }
+              className="rounded-full"
+            />
+          </div>
+
+          <div className="grid gap-1">
+            <Label htmlFor="portfolio-title">Tytuł sekcji</Label>
+            <Input
+              id="portfolio-title"
+              value={globalContent.sections.portfolio.title ?? "Wybrane role"}
+              onChange={(e) =>
+                updateContent((draft) => {
+                  draft.sections.portfolio.title = e.target.value;
+                })
+              }
+              className="rounded-xl font-serif text-lg"
+            />
+          </div>
+
+          <div className="grid gap-1">
+            <Label htmlFor="portfolio-action-label">Etykieta przycisku karty</Label>
+            <Input
+              id="portfolio-action-label"
+              value={globalContent.sections.portfolio.actionLabel ?? "Czytaj więcej"}
+              onChange={(e) =>
+                updateContent((draft) => {
+                  draft.sections.portfolio.actionLabel = e.target.value;
+                })
+              }
+              className="rounded-full"
+            />
+          </div>
+
+          {/* List of projects in drawer */}
+          <div className="border-t border-ink/10 pt-4 mt-2">
+            <div className="flex items-center justify-between mb-3">
+              <Label className="text-xs font-bold uppercase tracking-[0.1em] text-ink/40">
+                Lista projektów ({projects.length})
+              </Label>
+              <Button variant="outline" size="sm" onClick={addProject} className="h-8 rounded-full text-xs">
+                <Plus className="h-3.5 w-3.5" /> Dodaj projekt
+              </Button>
+            </div>
+
+            <div className="grid gap-2">
+              {projects.map((project, idx) => (
+                <div key={project.id} className="flex items-center justify-between bg-white p-2.5 border border-ink/10 rounded-xl gap-2">
+                  <div className="truncate">
+                    <p className="text-[0.62rem] font-bold uppercase text-ink/40 truncate">{project.type} ({project.year})</p>
+                    <p className="text-xs font-serif font-bold text-ink truncate">{project.title}</p>
+                  </div>
+                  <div className="flex items-center shrink-0">
                     <button
                       type="button"
-                      onClick={() => moveProject(index, index - 1)}
-                      className="flex h-8 w-8 items-center justify-center rounded-full hover:bg-ink/5 text-ink/60 hover:text-ink transition-colors"
-                      title="Przesuń wyżej"
+                      onClick={() => moveProject(idx, idx - 1)}
+                      disabled={idx === 0}
+                      className="flex h-7 w-7 items-center justify-center rounded-full hover:bg-ink/5 text-ink/50 disabled:opacity-30"
                     >
                       <ArrowUp className="h-4 w-4" />
                     </button>
                     <button
                       type="button"
-                      onClick={() => moveProject(index, index + 1)}
-                      className="flex h-8 w-8 items-center justify-center rounded-full hover:bg-ink/5 text-ink/60 hover:text-ink transition-colors"
-                      title="Przesuń niżej"
+                      onClick={() => moveProject(idx, idx + 1)}
+                      disabled={idx === projects.length - 1}
+                      className="flex h-7 w-7 items-center justify-center rounded-full hover:bg-ink/5 text-ink/50 disabled:opacity-30"
                     >
                       <ArrowDown className="h-4 w-4" />
                     </button>
                     <button
                       type="button"
-                      onClick={() => toggleProjectEnabled(index)}
-                      className="flex h-8 w-8 items-center justify-center rounded-full hover:bg-ink/5 text-ink/60 hover:text-ink transition-colors"
-                      title={project.enabled ? "Ukryj" : "Pokaż"}
+                      onClick={() => toggleProjectEnabled(idx)}
+                      className="flex h-7 w-7 items-center justify-center rounded-full hover:bg-ink/5 text-ink/50"
                     >
                       {project.enabled ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
                     </button>
                     <button
                       type="button"
-                      onClick={() => setEditingProject(project)}
-                      className="flex h-8 w-8 items-center justify-center rounded-full bg-ink text-white hover:bg-graphite transition-colors"
+                      onClick={() => {
+                        setIsSectionDrawerOpen(false);
+                        setEditingProject(project);
+                      }}
+                      className="flex h-7 w-7 items-center justify-center rounded-full bg-ink text-white hover:bg-graphite"
                       title="Edytuj szczegóły"
                     >
-                      <Edit className="h-4 w-4" />
+                      <Edit className="h-3.5 w-3.5" />
                     </button>
                     <button
                       type="button"
                       onClick={() => deleteProject(project.id)}
-                      className="flex h-8 w-8 items-center justify-center rounded-full hover:bg-red-500/10 text-red-500 transition-colors"
-                      title="Usuń projekt"
+                      className="flex h-7 w-7 items-center justify-center rounded-full text-red-500 hover:bg-red-500/10"
                     >
                       <Trash2 className="h-4 w-4" />
                     </button>
                   </div>
-                )}
-              </div>
-            ))}
-
-            {/* Add Project card in edit mode */}
-            {editMode && (
-              <button
-                type="button"
-                onClick={addProject}
-                className="group border-2 border-dashed border-ink/20 hover:border-ink/40 bg-ink/[0.01] hover:bg-ink/[0.03] transition-all duration-300 rounded-2xl min-h-[380px] min-w-[280px] flex flex-col items-center justify-center p-6 text-center cursor-pointer [scroll-snap-align:start]"
-              >
-                <span className="flex h-14 w-14 items-center justify-center rounded-full bg-white border border-ink/10 text-ink/50 group-hover:scale-110 group-hover:text-ink transition-all duration-500">
-                  <Plus className="h-7 w-7" />
-                </span>
-                <span className="mt-4 block font-serif text-2xl text-ink/70 group-hover:text-ink transition-colors">
-                  Dodaj nowy projekt
-                </span>
-                <span className="mt-2 text-xs font-semibold uppercase tracking-[0.12em] text-ink/40">
-                  Zostanie dodany na końcu
-                </span>
-              </button>
-            )}
+                </div>
+              ))}
+            </div>
           </div>
         </div>
-      </div>
+      </AdminDrawer>
 
-      {/* Slide-out Edit Drawer */}
+      {/* Individual Project Edit Drawer */}
       <AdminDrawer
         isOpen={editingProject !== null}
-        onClose={() => setEditingProject(null)}
-        title={editingProject?.title || "Projekt"}
+        onClose={() => {
+          setEditingProject(null);
+          setIsSectionDrawerOpen(true); // Return to section list
+        }}
+        title={`Projekt: ${editingProject?.title || ""}`}
       >
         {editingProject && (
           <div className="grid gap-5">
-            <div className="grid gap-2">
+            <div className="grid gap-1">
               <Label>Tytuł projektu</Label>
               <Input
                 value={editingProject.title}
@@ -444,7 +492,7 @@ export function PortfolioHighlights({ projects: initialProjects }: { projects: P
               />
             </div>
 
-            <div className="grid gap-2">
+            <div className="grid gap-1">
               <Label>Typ (np. Film fabularny, Serial TV)</Label>
               <Input
                 value={editingProject.type}
@@ -453,59 +501,62 @@ export function PortfolioHighlights({ projects: initialProjects }: { projects: P
               />
             </div>
 
-            <div className="grid gap-2">
-              <Label>Rola</Label>
-              <Input
-                value={editingProject.role}
-                onChange={(e) => updateProjectField("role", e.target.value)}
-                className="rounded-full"
-              />
+            <div className="grid grid-cols-2 gap-2">
+              <div className="grid gap-1">
+                <Label>Rola (np. Rola główna)</Label>
+                <Input
+                  value={editingProject.role}
+                  onChange={(e) => updateProjectField("role", e.target.value)}
+                  className="rounded-full text-xs"
+                />
+              </div>
+              <div className="grid gap-1">
+                <Label>Rok produkcji</Label>
+                <Input
+                  value={editingProject.year}
+                  onChange={(e) => updateProjectField("year", e.target.value)}
+                  className="rounded-full text-xs"
+                />
+              </div>
             </div>
 
-            <div className="grid gap-2">
-              <Label>Rok</Label>
-              <Input
-                value={editingProject.year}
-                onChange={(e) => updateProjectField("year", e.target.value)}
-                className="rounded-full"
-              />
-            </div>
-
-            <div className="grid gap-2">
-              <Label>Krótki opis (na kafelku)</Label>
-              <Input
+            <div className="grid gap-1">
+              <Label>Krótki opis (na karcie)</Label>
+              <Textarea
                 value={editingProject.description}
                 onChange={(e) => updateProjectField("description", e.target.value)}
-                className="rounded-full"
+                rows={2}
+                className="rounded-xl text-sm"
               />
             </div>
 
-            <div className="grid gap-2">
-              <Label>Szczegółowy opis (w modalu)</Label>
+            <div className="grid gap-1">
+              <Label>Szczegóły roli (w modalu)</Label>
               <Textarea
-                value={editingProject.details ?? ""}
+                value={editingProject.details || ""}
                 onChange={(e) => updateProjectField("details", e.target.value)}
-                rows={5}
-                className="rounded-2xl"
+                rows={4}
+                className="rounded-xl text-sm"
               />
             </div>
 
-            <div className="grid gap-2">
-              <Label>Nazwa linku (np. Filmweb)</Label>
-              <Input
-                value={editingProject.linkLabel ?? ""}
-                onChange={(e) => updateProjectField("linkLabel", e.target.value)}
-                className="rounded-full"
-              />
-            </div>
-
-            <div className="grid gap-2">
-              <Label>Adres URL linku</Label>
-              <Input
-                value={editingProject.linkUrl ?? ""}
-                onChange={(e) => updateProjectField("linkUrl", e.target.value)}
-                className="rounded-full"
-              />
+            <div className="grid grid-cols-2 gap-2">
+              <div className="grid gap-1">
+                <Label>Etykieta linku (np. Filmweb)</Label>
+                <Input
+                  value={editingProject.linkLabel || ""}
+                  onChange={(e) => updateProjectField("linkLabel", e.target.value)}
+                  className="rounded-full text-xs"
+                />
+              </div>
+              <div className="grid gap-1">
+                <Label>Adres URL linku</Label>
+                <Input
+                  value={editingProject.linkUrl || ""}
+                  onChange={(e) => updateProjectField("linkUrl", e.target.value)}
+                  className="rounded-full text-xs"
+                />
+              </div>
             </div>
 
             {/* Main Image field */}
@@ -594,7 +645,6 @@ export function PortfolioHighlights({ projects: initialProjects }: { projects: P
                         onClick={() => moveDetailImage(idx, -1)}
                         disabled={idx === 0}
                         className="flex h-6 w-6 items-center justify-center rounded-full hover:bg-ink/5 text-ink/50 disabled:opacity-30"
-                        title="Przesuń w górę"
                       >
                         <ArrowUp className="h-3.5 w-3.5" />
                       </button>
@@ -603,7 +653,6 @@ export function PortfolioHighlights({ projects: initialProjects }: { projects: P
                         onClick={() => moveDetailImage(idx, 1)}
                         disabled={idx === (editingProject.images ?? []).length - 1}
                         className="flex h-6 w-6 items-center justify-center rounded-full hover:bg-ink/5 text-ink/50 disabled:opacity-30"
-                        title="Przesuń w dół"
                       >
                         <ArrowDown className="h-3.5 w-3.5" />
                       </button>
@@ -611,7 +660,6 @@ export function PortfolioHighlights({ projects: initialProjects }: { projects: P
                         type="button"
                         onClick={() => removeDetailImage(img.id)}
                         className="flex h-6 w-6 items-center justify-center rounded-full text-red-500 hover:bg-red-500/10 mt-1 transition-colors"
-                        title="Usuń kadr"
                       >
                         <Trash2 className="h-3.5 w-3.5" />
                       </button>
@@ -644,98 +692,98 @@ export function PortfolioHighlights({ projects: initialProjects }: { projects: P
                 transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
               >
                 <div className="rounded-3xl overflow-hidden bg-porcelain">
-                <div className="sticky top-0 z-20 mb-8 border-b border-ink/10 bg-porcelain px-4 py-4 shadow-[0_16px_50px_rgba(16,16,16,0.04)] sm:px-6">
-                  <div className="mx-auto flex max-w-6xl items-center justify-between gap-4">
-                    <div>
-                      <p className="text-xs font-bold uppercase tracking-[0.22em] text-ink/45">
-                        {activeProject.type} / {activeProject.role} / {activeProject.year}
-                      </p>
-                      <h2 className="font-serif text-4xl leading-none sm:text-6xl text-ink">
-                        {activeProject.title}
-                      </h2>
-                    </div>
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      className="rounded-full"
-                      onClick={() => setActiveProject(null)}
-                      aria-label="Zamknij szczegóły roli"
-                    >
-                      <X className="h-5 w-5" />
-                    </Button>
-                  </div>
-                </div>
-
-                <div className="grid gap-8 px-6 pb-10 sm:px-8 lg:grid-cols-[0.92fr_1.08fr]">
-                  {activeProject.image.enabled && (
-                    <CinematicImage
-                      src={activeProject.image.src}
-                      alt={activeProject.image.alt}
-                      className="aspect-[4/5] border border-ink/10 rounded-2xl overflow-hidden"
-                    />
-                  )}
-
-                  <div className="flex flex-col justify-center">
-                    <p className="font-serif text-3xl leading-tight text-graphite sm:text-4xl">
-                      {activeProject.description}
-                    </p>
-                    {activeProject.details && (
-                      <p className="mt-7 text-lg leading-8 text-graphite/70">
-                        {activeProject.details}
-                      </p>
-                    )}
-                    {activeProject.linkUrl && (
+                  <div className="sticky top-0 z-20 mb-8 border-b border-ink/10 bg-porcelain px-4 py-4 shadow-[0_16px_50px_rgba(16,16,16,0.04)] sm:px-6">
+                    <div className="mx-auto flex max-w-6xl items-center justify-between gap-4">
+                      <div>
+                        <p className="text-xs font-bold uppercase tracking-[0.22em] text-ink/45">
+                          {activeProject.type} / {activeProject.role} / {activeProject.year}
+                        </p>
+                        <h2 className="font-serif text-4xl leading-none sm:text-6xl text-ink">
+                          {activeProject.title}
+                        </h2>
+                      </div>
                       <Button
-                        asChild
-                        className="mt-8 rounded-full border border-ink bg-ink text-white hover:bg-transparent hover:text-ink transition-colors font-bold uppercase tracking-[0.16em] h-auto px-6 py-3.5 text-xs w-fit"
+                        variant="outline"
+                        size="icon"
+                        className="rounded-full"
+                        onClick={() => setActiveProject(null)}
+                        aria-label="Zamknij szczegóły roli"
                       >
-                        <a
-                          href={activeProject.linkUrl}
-                          target="_blank"
-                          rel="noreferrer"
-                        >
-                          {activeProject.linkLabel || "Zobacz więcej"}
-                          <ExternalLink className="h-4 w-4 ml-2" />
-                        </a>
+                        <X className="h-5 w-5" />
                       </Button>
-                    )}
+                    </div>
                   </div>
-                </div>
 
-                {(activeProject.images ?? []).filter((image) => image.enabled).length > 0 && (
-                  <div className="mt-10 border-t border-ink/10 pt-10 grid gap-5 px-6 pb-10 sm:grid-cols-2 sm:px-8 lg:grid-cols-3">
-                    {(activeProject.images ?? [])
-                      .filter((image) => image.enabled)
-                      .map((image) => (
-                        <figure key={image.id} className="border border-ink/10 bg-white rounded-2xl overflow-hidden shadow-sm">
-                          <CinematicImage
-                            src={image.src}
-                            alt={image.alt}
-                            className={cn(
-                              "w-full",
-                              image.aspect === "wide"
-                                ? "aspect-video"
-                                : image.aspect === "square"
-                                ? "aspect-square"
-                                : "aspect-[4/5]"
-                            )}
-                          />
-                          {(image.title || image.description) && (
-                            <figcaption className="p-4 border-t border-ink/5">
-                              {image.title && (
-                                <p className="font-serif text-2xl leading-none text-ink">{image.title}</p>
-                              )}
-                              {image.description && (
-                                <p className="mt-2 text-sm leading-6 text-ink/55">
-                                  {image.description}
-                                </p>
-                              )}
-                            </figcaption>
-                          )}
-                        </figure>
-                      ))}
+                  <div className="grid gap-8 px-6 pb-10 sm:px-8 lg:grid-cols-[0.92fr_1.08fr]">
+                    {activeProject.image.enabled && (
+                      <CinematicImage
+                        src={activeProject.image.src}
+                        alt={activeProject.image.alt}
+                        className="aspect-[4/5] border border-ink/10 rounded-2xl overflow-hidden"
+                      />
+                    )}
+
+                    <div className="flex flex-col justify-center">
+                      <p className="font-serif text-3xl leading-tight text-graphite sm:text-4xl">
+                        {activeProject.description}
+                      </p>
+                      {activeProject.details && (
+                        <p className="mt-7 text-lg leading-8 text-graphite/70 whitespace-pre-wrap">
+                          {activeProject.details}
+                        </p>
+                      )}
+                      {activeProject.linkUrl && (
+                        <Button
+                          asChild
+                          className="mt-8 rounded-full border border-ink bg-ink text-white hover:bg-transparent hover:text-ink transition-colors font-bold uppercase tracking-[0.16em] h-auto px-6 py-3.5 text-xs w-fit"
+                        >
+                          <a
+                            href={activeProject.linkUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                          >
+                            {activeProject.linkLabel || "Zobacz więcej"}
+                            <ExternalLink className="h-4 w-4 ml-2" />
+                          </a>
+                        </Button>
+                      )}
+                    </div>
                   </div>
-                )}
+
+                  {(activeProject.images ?? []).filter((image) => image.enabled).length > 0 && (
+                    <div className="mt-10 border-t border-ink/10 pt-10 grid gap-5 px-6 pb-10 sm:grid-cols-2 sm:px-8 lg:grid-cols-3">
+                      {(activeProject.images ?? [])
+                        .filter((image) => image.enabled)
+                        .map((image) => (
+                          <figure key={image.id} className="border border-ink/10 bg-white rounded-2xl overflow-hidden shadow-sm">
+                            <CinematicImage
+                              src={image.src}
+                              alt={image.alt}
+                              className={cn(
+                                "w-full",
+                                image.aspect === "wide"
+                                  ? "aspect-video"
+                                  : image.aspect === "square"
+                                  ? "aspect-square"
+                                  : "aspect-[4/5]"
+                              )}
+                            />
+                            {(image.title || image.description) && (
+                              <figcaption className="p-4 border-t border-ink/5">
+                                {image.title && (
+                                  <p className="font-serif text-2xl leading-none text-ink">{image.title}</p>
+                                )}
+                                {image.description && (
+                                  <p className="mt-2 text-sm leading-6 text-ink/55">
+                                    {image.description}
+                                  </p>
+                                )}
+                              </figcaption>
+                            )}
+                          </figure>
+                        ))}
+                    </div>
+                  )}
                 </div>
               </motion.div>
             </motion.div>
