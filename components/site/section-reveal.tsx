@@ -103,7 +103,7 @@ export function SectionHeading({
         {eyebrow}
       </motion.span>
       <motion.h2
-        className="font-serif text-5xl font-medium leading-none text-ink sm:text-6xl lg:text-7xl"
+        className="font-serif text-4xl font-medium leading-none text-ink sm:text-6xl lg:text-7xl"
         variants={{
           hidden: { opacity: 0, y: 34 },
           visible: { opacity: 1, y: 0 }

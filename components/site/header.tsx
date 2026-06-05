@@ -6,6 +6,7 @@ import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useAdminEdit } from "@/components/admin/admin-edit-context";
+import { useBodyScrollLock } from "@/components/site/use-body-scroll-lock";
 
 export function Header({ monogram }: { monogram: string }) {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -13,6 +14,7 @@ export function Header({ monogram }: { monogram: string }) {
   const [activeHref, setActiveHref] = useState("#home");
   const { scrollY } = useScroll();
   const { content } = useAdminEdit();
+  useBodyScrollLock(isOpen);
 
   useMotionValueEvent(scrollY, "change", (latest) => {
     setIsScrolled(latest > 18);
@@ -183,25 +185,25 @@ export function Header({ monogram }: { monogram: string }) {
 
       <AnimatePresence>
         {isOpen && (
-          <motion.nav
-            className="max-h-[calc(100svh-5rem)] overflow-hidden overflow-y-auto border-t border-ink/10 bg-porcelain px-6 lg:hidden"
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: "auto" }}
-            exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
+          <motion.div
+            className="fixed inset-0 z-40 flex flex-col justify-between bg-porcelain/95 px-8 pt-28 pb-10 backdrop-blur-2xl lg:hidden h-svh w-screen"
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
           >
-            <div className="flex flex-col gap-4 py-5">
+            <div className="flex flex-col gap-6 pt-8 overflow-y-auto no-scrollbar">
               {activeNavItems.map((item, index) => (
                 <motion.a
                   key={item.href}
                   href={item.href}
-                  initial={{ opacity: 0, x: -12 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -12 }}
-                  transition={{ delay: index * 0.04, duration: 0.35, ease: "easeOut" }}
+                  initial={{ opacity: 0, y: 15 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 15 }}
+                  transition={{ delay: index * 0.05, duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
                   className={cn(
-                    "text-sm font-semibold uppercase tracking-[0.2em] transition-colors",
-                    activeHref === item.href ? "text-ink" : "text-ink/62"
+                    "font-serif text-4xl font-medium tracking-wide transition-colors",
+                    activeHref === item.href ? "text-ink" : "text-ink/45"
                   )}
                   aria-current={activeHref === item.href ? "page" : undefined}
                   onClick={(event) => handleNavClick(event, item.href)}
@@ -211,17 +213,31 @@ export function Header({ monogram }: { monogram: string }) {
               ))}
               <motion.a
                 href="/admin"
-                initial={{ opacity: 0, x: -12 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -12 }}
-                transition={{ delay: activeNavItems.length * 0.04, duration: 0.35, ease: "easeOut" }}
-                className="text-sm font-semibold uppercase tracking-[0.2em] text-ink/60"
+                initial={{ opacity: 0, y: 15 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 15 }}
+                transition={{ delay: activeNavItems.length * 0.05, duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
+                className="font-serif text-4xl font-medium tracking-wide text-ink/30"
                 onClick={() => setIsOpen(false)}
               >
                 Panel
               </motion.a>
             </div>
-          </motion.nav>
+
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ delay: 0.3, duration: 0.5 }}
+              className="border-t border-ink/10 pt-6 flex flex-col gap-2 text-[0.62rem] font-bold uppercase tracking-[0.2em] text-ink/40"
+            >
+              <span>{monogram} — Weronika Malik</span>
+              <div className="flex justify-between items-center">
+                <span>Warszawa / Londyn</span>
+                <span>© {new Date().getFullYear()}</span>
+              </div>
+            </motion.div>
+          </motion.div>
         )}
       </AnimatePresence>
     </motion.header>
