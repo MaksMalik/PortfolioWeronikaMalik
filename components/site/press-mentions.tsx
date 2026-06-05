@@ -131,7 +131,7 @@ export function PressMentions({ mentions: initialMentions }: { mentions: PressMe
                   !mention.enabled && "opacity-45 border-dashed"
                 )}
               >
-                <blockquote className="font-serif text-3xl leading-tight text-ink">
+                <blockquote className="font-serif text-2xl leading-tight text-ink sm:text-3xl">
                   &quot;{mention.quote}&quot;
                 </blockquote>
                 <figcaption className="mt-8 text-xs font-bold uppercase tracking-[0.22em] text-ink/55">

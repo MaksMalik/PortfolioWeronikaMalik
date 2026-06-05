@@ -160,17 +160,46 @@ export function Hero({ content: initialContent }: { content: HeroContent }) {
 
           <motion.div
             className="mt-8 max-w-xl space-y-7"
-            initial={{ opacity: 0, y: 28 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.72, duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
+            initial="hidden"
+            animate="visible"
+            variants={{
+              hidden: {},
+              visible: {
+                transition: {
+                  staggerChildren: 0.16
+                }
+              }
+            }}
           >
-            <p className="text-xs font-bold uppercase tracking-[0.26em] text-ink/55">
+            <motion.p
+              className="text-xs font-bold uppercase tracking-[0.26em] text-ink/55"
+              variants={{
+                hidden: { opacity: 0, y: 14, filter: "blur(4px)" },
+                visible: { opacity: 1, y: 0, filter: "blur(0px)" }
+              }}
+              transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+            >
               {content.tagline}
-            </p>
-            <p className="font-serif text-2xl leading-tight text-graphite sm:text-4xl">
+            </motion.p>
+            <motion.p
+              className="font-serif text-2xl leading-tight text-graphite sm:text-4xl"
+              variants={{
+                hidden: { opacity: 0, y: 20, filter: "blur(6px)" },
+                visible: { opacity: 1, y: 0, filter: "blur(0px)" }
+              }}
+              transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
+            >
               {content.quote}
-            </p>
-            <MagneticButton href="#work">{content.buttonText}</MagneticButton>
+            </motion.p>
+            <motion.div
+              variants={{
+                hidden: { opacity: 0, y: 12 },
+                visible: { opacity: 1, y: 0 }
+              }}
+              transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+            >
+              <MagneticButton href="#work">{content.buttonText}</MagneticButton>
+            </motion.div>
           </motion.div>
         </motion.div>
       </div>
