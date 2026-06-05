@@ -105,25 +105,29 @@ export function AdminEditProvider({ children }: { children: React.ReactNode }) {
   const [editMode, setEditMode] = useState(false);
   const [previewTarget, setPreviewTarget] = useState<ContentTarget>("live");
   
-  // Initialize content: on the server always use siteContent defaults.
-  // On the client, immediately use localStorage cache if available — this is
-  // safe because we add suppressHydrationWarning to image elements, so React
-  // won't complain about the src mismatch between SSR and client.
-  const [content, setContent] = useState<SiteContent>(() => {
-    if (typeof window === "undefined") return cloneContent(siteContent);
-    return getCachedContent() ?? cloneContent(siteContent);
-  });
+  // Initialize content: on both server and client, start with siteContent defaults to prevent hydration mismatch!
+  // We will load the cached content in useEffect after hydration is complete.
+  const [content, setContent] = useState<SiteContent>(() => cloneContent(siteContent));
   
   const [isSaving, setIsSaving] = useState(false);
   const [savedAt, setSavedAt] = useState<string | null>(null);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
-  const [hasBackup, setHasBackup] = useState(() => {
-    if (typeof window === "undefined") {
-      return false;
-    }
+  const [hasBackup, setHasBackup] = useState(false);
 
-    return Boolean(localStorage.getItem("strona_aktorska_draft_backup"));
-  });
+  // Load local cache and backup flag on client mount to prevent hydration mismatches
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const cached = getCachedContent();
+      if (cached) {
+        setContent(cached);
+      }
+      
+      const backupExists = Boolean(localStorage.getItem("strona_aktorska_draft_backup"));
+      if (backupExists) {
+        setHasBackup(true);
+      }
+    }
+  }, []);
   const [historyVersions, setHistoryVersions] = useState<ContentVersion[]>([]);
   const [autosaveStatus, setAutosaveStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
   const [hasUnsavedEdits, setHasUnsavedEdits] = useState(false);
