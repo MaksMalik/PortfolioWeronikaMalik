@@ -80,7 +80,6 @@ export function ActressPortfolio() {
   ];
 
   const renderedSections = sectionsConfig.filter((sec) => editMode || sec.enabled);
-  const hasHero = renderedSections.some((sec) => sec.id === "hero");
 
   let nonHeroIndex = 0;
 
@@ -101,11 +100,7 @@ export function ActressPortfolio() {
         let bgClass = "bg-white";
         
         if (sec.id !== "hero") {
-          if (hasHero) {
-            bgClass = nonHeroIndex % 2 === 0 ? "bg-porcelain" : "bg-white";
-          } else {
-            bgClass = nonHeroIndex % 2 === 0 ? "bg-white" : "bg-porcelain";
-          }
+          bgClass = nonHeroIndex % 2 === 0 ? "bg-porcelain" : "bg-white";
           nonHeroIndex++;
         }
         
