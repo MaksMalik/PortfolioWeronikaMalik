@@ -31,6 +31,7 @@ export function About({ content: initialContent }: { content: AboutContent }) {
       updateContent((draft) => {
         draft.about.image.src = url;
         draft.about.image.alt = file.name.replace(/\.[^.]+$/, "");
+        draft.about.image.enabled = true;
       });
     } catch (error) {
       console.error(error);
@@ -89,8 +90,20 @@ export function About({ content: initialContent }: { content: AboutContent }) {
         </div>
       )}
 
-      <div className="section-shell grid items-center gap-12 lg:grid-cols-[0.88fr_1.12fr]">
-        {content.image.enabled && (
+      <div className="section-shell grid items-center gap-12 lg:grid-cols-[1.12fr_0.88fr]">
+        <div className="max-w-2xl space-y-6">
+          <SectionHeading eyebrow={content.eyebrow} title={content.title} />
+          <p className="mt-8 text-lg leading-8 text-graphite/80 sm:text-xl sm:leading-9 whitespace-pre-wrap">
+            {content.body}
+          </p>
+          <div className="mt-10">
+            <MagneticButton href="#contact" variant="outline">
+              {content.buttonText}
+            </MagneticButton>
+          </div>
+        </div>
+
+        {(content.image.src && content.image.enabled !== false) && (
           <div className="ornament-line pl-5 pt-5">
             <div className="relative group rounded-3xl overflow-hidden border border-ink/10 shadow-editorial">
               <CinematicImage
@@ -122,18 +135,6 @@ export function About({ content: initialContent }: { content: AboutContent }) {
             </div>
           </div>
         )}
-
-        <div className="max-w-2xl space-y-6">
-          <SectionHeading eyebrow={content.eyebrow} title={content.title} />
-          <p className="mt-8 text-lg leading-8 text-graphite/80 sm:text-xl sm:leading-9 whitespace-pre-wrap">
-            {content.body}
-          </p>
-          <div className="mt-10">
-            <MagneticButton href="#contact" variant="outline">
-              {content.buttonText}
-            </MagneticButton>
-          </div>
-        </div>
       </div>
 
       {/* Edit Drawer */}

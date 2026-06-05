@@ -74,15 +74,6 @@ export function Gallery({ sessions: initialSessions }: { sessions: GallerySessio
     return () => window.removeEventListener("keydown", handleKey);
   }, [activeIndex, activeImage, visibleImages]);
 
-  const handleRailWheel = (event: React.WheelEvent<HTMLDivElement>) => {
-    if (!railRef.current || Math.abs(event.deltaY) < Math.abs(event.deltaX)) {
-      return;
-    }
-
-    event.preventDefault();
-    railRef.current.scrollBy({ left: event.deltaY, behavior: "smooth" });
-  };
-
   const scrollRail = (direction: -1 | 1) => {
     railRef.current?.scrollBy({
       left: direction * (railRef.current.clientWidth * 0.82),
@@ -344,8 +335,7 @@ export function Gallery({ sessions: initialSessions }: { sessions: GallerySessio
 
           <div
             ref={railRef}
-            className="no-scrollbar grid auto-cols-[84%] grid-flow-col gap-5 overflow-x-auto scroll-smooth pt-3 pb-7 -mt-3 [scroll-snap-type:x_mandatory] sm:auto-cols-[52%] lg:auto-cols-[36%]"
-            onWheel={handleRailWheel}
+            className="no-scrollbar grid auto-cols-[84%] grid-flow-col gap-5 overflow-x-auto scroll-smooth pt-12 pb-20 -mt-12 -mb-16 [scroll-snap-type:x_mandatory] sm:auto-cols-[52%] lg:auto-cols-[36%]"
           >
             {sessions.filter(s => editMode || s.enabled).map((session, index) => {
               const cover = coverFor(session);
@@ -365,10 +355,10 @@ export function Gallery({ sessions: initialSessions }: { sessions: GallerySessio
                       }
                     }}
                     aria-label={`Otwórz sesję ${session.title}`}
-                    initial={{ opacity: 0, y: 32 }}
+                    initial={{ opacity: 0, y: 12 }}
                     whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true, amount: 0.25 }}
-                    transition={{ delay: index * 0.1, duration: 0.75, ease: [0.22, 1, 0.36, 1] }}
+                    viewport={{ once: true, amount: 0.05 }}
+                    transition={{ delay: index * 0.03, duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
                     whileHover={editMode ? {} : { y: -8 }}
                   >
                     <CinematicImage

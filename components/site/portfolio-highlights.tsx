@@ -55,15 +55,6 @@ export function PortfolioHighlights({ projects: initialProjects }: { projects: P
     return () => window.removeEventListener("keydown", handleKey);
   }, [activeProject]);
 
-  const handleRailWheel = (event: React.WheelEvent<HTMLDivElement>) => {
-    if (!railRef.current || Math.abs(event.deltaY) < Math.abs(event.deltaX)) {
-      return;
-    }
-
-    event.preventDefault();
-    railRef.current.scrollBy({ left: event.deltaY, behavior: "smooth" });
-  };
-
   const scrollRail = (direction: -1 | 1) => {
     railRef.current?.scrollBy({
       left: direction * (railRef.current.clientWidth * 0.82),
@@ -283,8 +274,7 @@ export function PortfolioHighlights({ projects: initialProjects }: { projects: P
 
           <div
             ref={railRef}
-            className="no-scrollbar grid auto-cols-[84%] grid-flow-col gap-5 overflow-x-auto scroll-smooth pt-3 pb-7 -mt-3 [scroll-snap-type:x_mandatory] sm:auto-cols-[52%] lg:auto-cols-[36%]"
-            onWheel={handleRailWheel}
+            className="no-scrollbar grid auto-cols-[84%] grid-flow-col gap-5 overflow-x-auto scroll-smooth pt-12 pb-20 -mt-12 -mb-16 [scroll-snap-type:x_mandatory] sm:auto-cols-[52%] lg:auto-cols-[36%]"
           >
             {projects.filter(p => editMode || p.enabled).map((project, index) => (
               <div key={project.id} className="relative group scroll-ml-4 [scroll-snap-align:start]">
@@ -296,13 +286,13 @@ export function PortfolioHighlights({ projects: initialProjects }: { projects: P
                   )}
                   onClick={() => !editMode && setActiveProject(project)}
                   aria-label={`Czytaj więcej o roli ${project.title}`}
-                  initial={{ opacity: 0, y: 34 }}
+                  initial={{ opacity: 0, y: 12 }}
                   whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true, amount: 0.25 }}
-                  transition={{ delay: index * 0.12, duration: 0.75, ease: [0.22, 1, 0.36, 1] }}
+                  viewport={{ once: true, amount: 0.05 }}
+                  transition={{ delay: index * 0.03, duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
                   whileHover={editMode ? {} : { y: -10 }}
                 >
-                  {project.image.enabled && (
+                  {(project.image.src && project.image.enabled !== false) && (
                     <CinematicImage
                       src={project.image.src}
                       alt={project.image.alt}
@@ -715,7 +705,7 @@ export function PortfolioHighlights({ projects: initialProjects }: { projects: P
                   </div>
 
                   <div className="grid gap-8 px-6 pb-10 sm:px-8 lg:grid-cols-[0.92fr_1.08fr]">
-                    {activeProject.image.enabled && (
+                  {(activeProject.image.src && activeProject.image.enabled !== false) && (
                       <CinematicImage
                         src={activeProject.image.src}
                         alt={activeProject.image.alt}

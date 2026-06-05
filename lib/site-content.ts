@@ -316,11 +316,6 @@ export const siteContent: SiteContent = {
     phone: "+48 501 234 567",
     location: "Warszawa / Londyn",
     representation: "Northline Talent Agency",
-    formNameLabel: "Imię i nazwisko",
-    formEmailLabel: "Email",
-    formSubjectLabel: "Temat",
-    formMessageLabel: "Wiadomość",
-    formButtonText: "Wyślij wiadomość",
     footerCopyrightName: "Weronika Malik",
     footerDesignerTag: "Projekt i realizacja",
     socials: [

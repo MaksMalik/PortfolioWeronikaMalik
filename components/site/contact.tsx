@@ -30,14 +30,7 @@ export function Contact({ content: initialContent }: { content: ContactContent }
   const { editMode, updateContent, content: globalContent } = useAdminEdit();
   const content = editMode ? globalContent.contact : initialContent;
 
-  const [sent, setSent] = useState(false);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    setSent(true);
-    event.currentTarget.reset();
-  };
 
   const isSectionEnabled = globalContent.sections.contact.enabled;
 
@@ -139,79 +132,89 @@ export function Contact({ content: initialContent }: { content: ContactContent }
       )}
 
       <div className="section-shell">
-        <div className="grid gap-12 border-t border-ink/10 pt-14 lg:grid-cols-[0.92fr_1.08fr]">
-          <div>
-            <SectionHeading eyebrow={content.eyebrow} title={content.heading} />
-            <p className="mt-7 max-w-xl text-lg leading-8 text-graphite/75 whitespace-pre-wrap">
-              {content.intro}
-            </p>
-
-            <div className="mt-10 grid gap-4 text-sm text-ink/70">
-              <a className="flex items-center gap-3 hover:text-ink w-fit" href={`mailto:${content.email}`}>
-                <Mail className="h-4 w-4" />
-                {content.email}
-              </a>
-              <a className="flex items-center gap-3 hover:text-ink w-fit" href={`tel:${content.phone}`}>
-                <Phone className="h-4 w-4" />
-                {content.phone}
-              </a>
-              <p className="flex items-center gap-3">
-                <MapPin className="h-4 w-4" />
-                {content.location}
+        <div className="grid gap-16 border-t border-ink/10 pt-16 lg:grid-cols-[1fr_1fr]">
+          <div className="flex flex-col justify-between">
+            <div>
+              <SectionHeading eyebrow={content.eyebrow} title={content.heading} />
+              <p className="mt-7 max-w-xl text-lg leading-8 text-graphite/75 whitespace-pre-wrap">
+                {content.intro}
               </p>
-              {content.representation && (
-                <p className="border-l border-ink/15 pl-4 font-serif text-2xl text-ink">
-                  {content.representation}
-                </p>
-              )}
             </div>
 
             {/* Social Links List */}
-            <div className="mt-10 flex flex-wrap gap-3">
+            <div className="mt-12 flex flex-wrap gap-3">
               {content.socials.filter((social) => social.enabled).map((social) => (
                 <a
                   key={social.id}
                   href={social.url}
                   target="_blank"
                   rel="noreferrer"
-                  className="inline-flex items-center gap-2 rounded-full border border-ink/15 px-4 py-2 text-xs font-bold uppercase tracking-[0.18em] text-ink/65 transition-colors hover:border-ink hover:text-ink"
+                  className="inline-flex items-center gap-2 rounded-full border border-ink/12 bg-white px-5 py-2.5 text-xs font-bold uppercase tracking-[0.18em] text-ink/65 transition-all hover:border-ink hover:text-ink hover:shadow-sm"
                 >
                   {socialIcon(social.label)}
                   {social.label}
-                  <ExternalLink className="h-3 w-3" />
+                  <ExternalLink className="h-3.5 w-3.5 opacity-60" />
                 </a>
               ))}
             </div>
           </div>
 
-          <form className="grid gap-5 bg-white p-5 shadow-[0_20px_70px_rgba(16,16,16,0.06)] sm:p-8 rounded-3xl border border-ink/10" onSubmit={handleSubmit}>
-            <div className="grid gap-2">
-              <Label htmlFor="name">{content.formNameLabel ?? "Imię i nazwisko"}</Label>
-              <Input id="name" name="name" required className="rounded-full" />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="email">{content.formEmailLabel ?? "Email"}</Label>
-              <Input id="email" name="email" type="email" required className="rounded-full" />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="subject">{content.formSubjectLabel ?? "Temat"}</Label>
-              <Input id="subject" name="subject" required className="rounded-full" />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="message">{content.formMessageLabel ?? "Wiadomość"}</Label>
-              <Textarea id="message" name="message" required className="rounded-2xl" />
-            </div>
-            <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center">
-              <Button type="submit" className="min-w-44">
-                {content.formButtonText ?? "Wyślij wiadomość"}
-              </Button>
-              {sent && (
-                <p className="text-sm text-ink/55">
-                  Wiadomość została przygotowana lokalnie w wersji demonstracyjnej.
-                </p>
+          <div className="flex flex-col justify-center space-y-10 lg:border-l lg:border-ink/10 lg:pl-16">
+            <div className="space-y-8">
+              {content.email && (
+                <div className="group/item">
+                  <span className="text-[0.62rem] font-bold uppercase tracking-[0.2em] text-ink/40 block mb-1">
+                    Napisz bezpośrednio
+                  </span>
+                  <a
+                    href={`mailto:${content.email}`}
+                    className="text-2xl font-serif text-ink hover:text-ink/60 transition-colors inline-flex items-center gap-2.5 w-fit"
+                  >
+                    {content.email}
+                    <Mail className="h-4.5 w-4.5 text-ink/40 group-hover/item:translate-x-1 transition-transform" />
+                  </a>
+                </div>
+              )}
+
+              {content.phone && (
+                <div className="group/item">
+                  <span className="text-[0.62rem] font-bold uppercase tracking-[0.2em] text-ink/40 block mb-1">
+                    Zadzwoń
+                  </span>
+                  <a
+                    href={`tel:${content.phone}`}
+                    className="text-2xl font-serif text-ink hover:text-ink/60 transition-colors inline-flex items-center gap-2.5 w-fit"
+                  >
+                    {content.phone}
+                    <Phone className="h-4.5 w-4.5 text-ink/40 group-hover/item:translate-x-1 transition-transform" />
+                  </a>
+                </div>
+              )}
+
+              {content.location && (
+                <div>
+                  <span className="text-[0.62rem] font-bold uppercase tracking-[0.2em] text-ink/40 block mb-1">
+                    Baza / Lokalizacja
+                  </span>
+                  <p className="text-xl font-serif text-ink inline-flex items-center gap-2.5">
+                    {content.location}
+                    <MapPin className="h-4.5 w-4.5 text-ink/40" />
+                  </p>
+                </div>
               )}
             </div>
-          </form>
+
+            {content.representation && (
+              <div className="relative overflow-hidden rounded-2xl border border-ink/10 bg-white p-6 shadow-sm">
+                <span className="text-[0.62rem] font-bold uppercase tracking-[0.2em] text-ink/40 block mb-2">
+                  Reprezentacja / Agent
+                </span>
+                <h4 className="font-serif text-2xl text-ink font-medium">
+                  {content.representation}
+                </h4>
+              </div>
+            )}
+          </div>
         </div>
 
         <footer className="mt-16 border-t border-ink/10 py-8">
@@ -316,54 +319,7 @@ export function Contact({ content: initialContent }: { content: ContactContent }
             </div>
           </div>
 
-          {/* Form Labels Customization */}
-          <div className="border-t border-ink/10 pt-4 mt-2">
-            <Label className="text-xs font-bold uppercase tracking-[0.15em] text-ink/40 block mb-3">
-              Etykiety formularza kontaktowego
-            </Label>
-            <div className="grid gap-3">
-              <div className="grid gap-1">
-                <span className="text-[0.55rem] font-bold text-ink/30 uppercase">Pole Imię:</span>
-                <Input
-                  value={content.formNameLabel ?? "Imię i nazwisko"}
-                  onChange={(e) => updateContactField("formNameLabel", e.target.value)}
-                  className="rounded-full text-xs"
-                />
-              </div>
-              <div className="grid gap-1">
-                <span className="text-[0.55rem] font-bold text-ink/30 uppercase">Pole Email:</span>
-                <Input
-                  value={content.formEmailLabel ?? "Email"}
-                  onChange={(e) => updateContactField("formEmailLabel", e.target.value)}
-                  className="rounded-full text-xs"
-                />
-              </div>
-              <div className="grid gap-1">
-                <span className="text-[0.55rem] font-bold text-ink/30 uppercase">Pole Temat:</span>
-                <Input
-                  value={content.formSubjectLabel ?? "Temat"}
-                  onChange={(e) => updateContactField("formSubjectLabel", e.target.value)}
-                  className="rounded-full text-xs"
-                />
-              </div>
-              <div className="grid gap-1">
-                <span className="text-[0.55rem] font-bold text-ink/30 uppercase">Pole Wiadomość:</span>
-                <Input
-                  value={content.formMessageLabel ?? "Wiadomość"}
-                  onChange={(e) => updateContactField("formMessageLabel", e.target.value)}
-                  className="rounded-full text-xs"
-                />
-              </div>
-              <div className="grid gap-1">
-                <span className="text-[0.55rem] font-bold text-ink/30 uppercase">Tekst przycisku formularza:</span>
-                <Input
-                  value={content.formButtonText ?? "Wyślij wiadomość"}
-                  onChange={(e) => updateContactField("formButtonText", e.target.value)}
-                  className="rounded-full text-xs"
-                />
-              </div>
-            </div>
-          </div>
+
 
           {/* Footer Copyright Customization */}
           <div className="border-t border-ink/10 pt-4 mt-2">

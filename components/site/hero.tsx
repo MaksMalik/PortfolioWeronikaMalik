@@ -39,6 +39,7 @@ export function Hero({ content: initialContent }: { content: HeroContent }) {
       updateContent((draft) => {
         draft.hero.image.src = url;
         draft.hero.image.alt = file.name.replace(/\.[^.]+$/, "");
+        draft.hero.image.enabled = true;
       });
     } catch (error) {
       console.error(error);
@@ -101,7 +102,7 @@ export function Hero({ content: initialContent }: { content: HeroContent }) {
       )}
 
       <div className="section-shell grid min-h-[calc(80svh-6rem)] items-center gap-10 pb-6 lg:grid-cols-[0.92fr_1.08fr] lg:gap-16">
-        {content.image.enabled && (
+        {(content.image.src && content.image.enabled !== false) && (
           <motion.div
             style={{ y: imageY }}
             className="h-[54svh] min-h-[380px] lg:h-[64svh]"

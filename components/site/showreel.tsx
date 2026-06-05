@@ -84,6 +84,7 @@ export function Showreel({ content: initialContent }: { content: ShowreelContent
       updateContent((draft) => {
         draft.showreel.thumbnail.src = url;
         draft.showreel.thumbnail.alt = file.name.replace(/\.[^.]+$/, "");
+        draft.showreel.thumbnail.enabled = true;
       });
     } catch (error) {
       console.error(error);
@@ -152,7 +153,7 @@ export function Showreel({ content: initialContent }: { content: ShowreelContent
               aria-label="Odtwórz showreel"
               disabled={editMode}
             >
-              {content.thumbnail.enabled && (
+              {(content.thumbnail.src && content.thumbnail.enabled !== false) && (
                 <CinematicImage
                   src={content.thumbnail.src}
                   alt={content.thumbnail.alt}

@@ -92,12 +92,7 @@ export type ContactContent = {
   phone: string;
   location: string;
   representation: string;
-  socials: SocialLink[];
-  formNameLabel?: string;
-  formEmailLabel?: string;
-  formSubjectLabel?: string;
-  formMessageLabel?: string;
-  formButtonText?: string;
+  socials: { id: string; enabled: boolean; label: string; url: string }[];
   footerCopyrightName?: string;
   footerDesignerTag?: string;
 };
