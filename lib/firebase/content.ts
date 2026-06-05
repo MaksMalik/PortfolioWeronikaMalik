@@ -13,7 +13,8 @@ import {
   type FirestoreError,
   type Unsubscribe
 } from "firebase/firestore";
-import { firebaseAuth, firebaseDb } from "@/lib/firebase/client";
+import { firebaseAuth, firebaseDb, firebaseStorage } from "@/lib/firebase/client";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { SITE_CONTENT_SCHEMA_VERSION, siteContent } from "@/lib/site-content";
 import type { SiteContent, ContentVersion } from "@/lib/types";
 import { cloneContent } from "@/lib/utils";
@@ -167,18 +168,20 @@ export async function uploadImageFile(file: File, folder: string): Promise<strin
 
   const compressed = await compressImageFile(file);
 
-  return new Promise<string>((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      if (typeof reader.result === "string") {
-        resolve(reader.result);
-      } else {
-        reject(new Error("Nie udało się przekonwertować obrazu do formatu Base64."));
-      }
-    };
-    reader.onerror = () => reject(new Error("Błąd podczas odczytu pliku obrazu."));
-    reader.readAsDataURL(compressed.blob);
-  });
+  const timestamp = Date.now();
+  const extension = compressed.extension;
+  const storageRef = ref(
+    firebaseStorage,
+    `uploads/${folder}/${timestamp}-${Math.random().toString(36).slice(2)}.${extension}`
+  );
+
+  try {
+    const snapshot = await uploadBytes(storageRef, compressed.blob);
+    const downloadURL = await getDownloadURL(snapshot.ref);
+    return downloadURL;
+  } catch (error) {
+    throw new Error("Błąd przesyłania obrazu: " + (error instanceof Error ? error.message : String(error)));
+  }
 }
 
 export function versionsCollectionRef() {
