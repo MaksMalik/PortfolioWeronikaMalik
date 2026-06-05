@@ -13,8 +13,7 @@ import {
   type FirestoreError,
   type Unsubscribe
 } from "firebase/firestore";
-import { firebaseAuth, firebaseDb, firebaseStorage } from "@/lib/firebase/client";
-import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { firebaseAuth, firebaseDb } from "@/lib/firebase/client";
 import { SITE_CONTENT_SCHEMA_VERSION, siteContent } from "@/lib/site-content";
 import type { SiteContent, ContentVersion } from "@/lib/types";
 import { cloneContent } from "@/lib/utils";
@@ -22,11 +21,21 @@ import { cloneContent } from "@/lib/utils";
 const SITE_CONTENT_COLLECTION = "siteContent";
 export type ContentTarget = "live" | "preview";
 
+// Main doc stores everything except image-heavy arrays (gallery + portfolio images).
+// Those get their own sub-documents to stay under Firestore's 1MB limit.
 function contentDocRef(target: ContentTarget = "live") {
   return doc(
     firebaseDb,
     SITE_CONTENT_COLLECTION,
     target === "live" ? "eliana-loren" : "eliana-loren-preview"
+  );
+}
+
+function imagesDocRef(target: ContentTarget = "live") {
+  return doc(
+    firebaseDb,
+    SITE_CONTENT_COLLECTION,
+    target === "live" ? "eliana-loren-images" : "eliana-loren-preview-images"
   );
 }
 
@@ -74,38 +83,128 @@ function parseContentPayload(payload: unknown) {
   return cloneContent(siteContent);
 }
 
+// Split content: heavy image data (gallery images, portfolio images) goes to
+// a separate doc to stay under Firestore's 1MB per-document limit.
+function splitContent(content: SiteContent) {
+  const light = cloneContent(content);
+  // Strip image arrays from gallery sessions and portfolio projects
+  light.gallery = light.gallery.map((s) => ({ ...s, images: [] }));
+  light.portfolio = light.portfolio.map((p) => ({ ...p, images: [] }));
+
+  const images = {
+    galleryImages: content.gallery.map((s) => ({ id: s.id, images: s.images ?? [] })),
+    portfolioImages: content.portfolio.map((p) => ({ id: p.id, images: p.images ?? [] })),
+    // Hero, about, showreel thumbnails stay in main doc (single images, small)
+  };
+
+  return { light, images };
+}
+
+function mergeImageData(
+  content: SiteContent,
+  images: { galleryImages: { id: string; images: SiteContent["gallery"][0]["images"] }[]; portfolioImages: { id: string; images: SiteContent["portfolio"][0]["images"] }[] } | null
+): SiteContent {
+  if (!images) return content;
+  const merged = cloneContent(content);
+  merged.gallery = merged.gallery.map((s) => {
+    const found = images.galleryImages?.find((g) => g.id === s.id);
+    return found ? { ...s, images: found.images } : s;
+  });
+  merged.portfolio = merged.portfolio.map((p) => {
+    const found = images.portfolioImages?.find((pi) => pi.id === p.id);
+    return found ? { ...p, images: found.images } : p;
+  });
+  return merged;
+}
+
 export function subscribeSiteContent(
   onContent: (content: SiteContent) => void,
   onError?: (error: FirestoreError) => void,
   target: ContentTarget = "live"
 ): Unsubscribe {
-  return onSnapshot(
+  let lightContent: SiteContent | null = null;
+  let imageData: { galleryImages: { id: string; images: SiteContent["gallery"][0]["images"] }[]; portfolioImages: { id: string; images: SiteContent["portfolio"][0]["images"] }[] } | null = null;
+
+  const emit = () => {
+    if (lightContent) {
+      onContent(mergeImageData(lightContent, imageData));
+    }
+  };
+
+  const unsubMain = onSnapshot(
     contentDocRef(target),
     (snapshot) => {
-      onContent(snapshot.exists() ? parseContentPayload(snapshot.data()) : cloneContent(siteContent));
+      lightContent = snapshot.exists() ? parseContentPayload(snapshot.data()) : cloneContent(siteContent);
+      emit();
     },
     (error) => {
       onError?.(error);
-      onContent(cloneContent(siteContent));
+      lightContent = cloneContent(siteContent);
+      emit();
     }
   );
+
+  const unsubImages = onSnapshot(
+    imagesDocRef(target),
+    (snapshot) => {
+      if (snapshot.exists()) {
+        const data = snapshot.data();
+        imageData = {
+          galleryImages: data.galleryImages ?? [],
+          portfolioImages: data.portfolioImages ?? [],
+        };
+      } else {
+        imageData = null;
+      }
+      emit();
+    },
+    () => {
+      imageData = null;
+      emit();
+    }
+  );
+
+  return () => {
+    unsubMain();
+    unsubImages();
+  };
 }
 
 export async function fetchSiteContent(target: ContentTarget = "live") {
-  const snapshot = await getDoc(contentDocRef(target));
-  return snapshot.exists() ? parseContentPayload(snapshot.data()) : cloneContent(siteContent);
+  const [mainSnap, imagesSnap] = await Promise.all([
+    getDoc(contentDocRef(target)),
+    getDoc(imagesDocRef(target)),
+  ]);
+  const light = mainSnap.exists() ? parseContentPayload(mainSnap.data()) : cloneContent(siteContent);
+  const images = imagesSnap.exists()
+    ? (imagesSnap.data() as { galleryImages: { id: string; images: SiteContent["gallery"][0]["images"] }[]; portfolioImages: { id: string; images: SiteContent["portfolio"][0]["images"] }[] })
+    : null;
+  return mergeImageData(light, images);
 }
 
 export async function saveSiteContent(content: SiteContent, target: ContentTarget = "live") {
-  await setDoc(
-    contentDocRef(target),
-    {
-      content: cloneContent(content),
-      schemaVersion: SITE_CONTENT_SCHEMA_VERSION,
-      updatedAt: serverTimestamp()
-    },
-    { merge: true }
-  );
+  const { light, images } = splitContent(content);
+
+  await Promise.all([
+    setDoc(
+      contentDocRef(target),
+      {
+        content: light,
+        schemaVersion: SITE_CONTENT_SCHEMA_VERSION,
+        updatedAt: serverTimestamp(),
+      },
+      { merge: true }
+    ),
+    setDoc(
+      imagesDocRef(target),
+      {
+        galleryImages: images.galleryImages,
+        portfolioImages: images.portfolioImages,
+        updatedAt: serverTimestamp(),
+      },
+      { merge: false }
+    ),
+  ]);
 }
 
 async function compressImageFile(file: File) {
@@ -123,7 +222,7 @@ async function compressImageFile(file: File) {
       img.src = imageUrl;
     });
 
-    const maxSize = 2400;
+    const maxSize = 1200;
     const scale = Math.min(1, maxSize / Math.max(image.width, image.height));
     const width = Math.round(image.width * scale);
     const height = Math.round(image.height * scale);
@@ -139,7 +238,7 @@ async function compressImageFile(file: File) {
     context.drawImage(image, 0, 0, width, height);
 
     const blob = await new Promise<Blob | null>((resolve) => {
-      canvas.toBlob(resolve, "image/webp", 0.92);
+      canvas.toBlob(resolve, "image/webp", 0.82);
     });
 
     return {
@@ -168,20 +267,18 @@ export async function uploadImageFile(file: File, folder: string): Promise<strin
 
   const compressed = await compressImageFile(file);
 
-  const timestamp = Date.now();
-  const extension = compressed.extension;
-  const storageRef = ref(
-    firebaseStorage,
-    `uploads/${folder}/${timestamp}-${Math.random().toString(36).slice(2)}.${extension}`
-  );
-
-  try {
-    const snapshot = await uploadBytes(storageRef, compressed.blob);
-    const downloadURL = await getDownloadURL(snapshot.ref);
-    return downloadURL;
-  } catch (error) {
-    throw new Error("Błąd przesyłania obrazu: " + (error instanceof Error ? error.message : String(error)));
-  }
+  return new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      if (typeof reader.result === "string") {
+        resolve(reader.result);
+      } else {
+        reject(new Error("Nie udało się przekonwertować obrazu."));
+      }
+    };
+    reader.onerror = () => reject(new Error("Błąd odczytu pliku."));
+    reader.readAsDataURL(compressed.blob);
+  });
 }
 
 export function versionsCollectionRef() {
