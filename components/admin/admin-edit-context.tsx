@@ -105,9 +105,14 @@ export function AdminEditProvider({ children }: { children: React.ReactNode }) {
   const [editMode, setEditMode] = useState(false);
   const [previewTarget, setPreviewTarget] = useState<ContentTarget>("live");
   
-  // Always initialize with siteContent defaults — identical on server and client.
-  // Cache is applied after hydration in a useEffect to avoid SSR/client mismatch.
-  const [content, setContent] = useState<SiteContent>(() => cloneContent(siteContent));
+  // Initialize content: on the server always use siteContent defaults.
+  // On the client, immediately use localStorage cache if available — this is
+  // safe because we add suppressHydrationWarning to image elements, so React
+  // won't complain about the src mismatch between SSR and client.
+  const [content, setContent] = useState<SiteContent>(() => {
+    if (typeof window === "undefined") return cloneContent(siteContent);
+    return getCachedContent() ?? cloneContent(siteContent);
+  });
   
   const [isSaving, setIsSaving] = useState(false);
   const [savedAt, setSavedAt] = useState<string | null>(null);
@@ -131,16 +136,6 @@ export function AdminEditProvider({ children }: { children: React.ReactNode }) {
   const isAdmin = user?.email?.toLowerCase() === ADMIN_EMAIL.toLowerCase();
   const pathname = usePathname();
   const isPreviewPage = pathname === "/preview";
-
-  // Apply localStorage cache immediately after hydration — eliminates placeholder flash
-  // without causing SSR/client mismatch (state init is always siteContent on both sides).
-  useEffect(() => {
-    const cached = getCachedContent();
-    if (cached) {
-      setContent(cached);
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // run once after mount only
 
   // Listen to Auth State
   useEffect(() => {

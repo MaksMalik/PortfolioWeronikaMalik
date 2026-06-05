@@ -27,7 +27,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="pl" className={`${display.variable} ${sans.variable}`}>
-      <body>
+      <body suppressHydrationWarning>
         <AdminEditProvider>
           {children}
         </AdminEditProvider>
