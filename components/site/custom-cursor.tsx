@@ -12,7 +12,7 @@ export function CustomCursor() {
   const y = useMotionValue(-80);
   const springX = useSpring(x, { stiffness: 980, damping: 42, mass: 0.18 });
   const springY = useSpring(y, { stiffness: 980, damping: 42, mass: 0.18 });
-  const [mode, setMode] = useState<"default" | "action" | "image">("default");
+  const [mode, setMode] = useState<"default" | "action" | "image" | "play">("default");
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
@@ -31,11 +31,21 @@ export function CustomCursor() {
       setVisible(true);
 
       const target = event.target as HTMLElement | null;
+      const isShowreel = Boolean(target?.closest("#showreel .cinematicImage, #showreel button"));
       const isAction = Boolean(
         target?.closest("a, button, input, textarea, label, [role='button']")
       );
       const isImage = Boolean(target?.closest(".cinematicImage, .imageReveal"));
-      setMode(isAction ? "action" : isImage ? "image" : "default");
+
+      if (isShowreel) {
+        setMode("play");
+      } else if (isAction) {
+        setMode("action");
+      } else if (isImage) {
+        setMode("image");
+      } else {
+        setMode("default");
+      }
     };
 
     const handleLeave = () => setVisible(false);
@@ -61,7 +71,18 @@ export function CustomCursor() {
       style={{ x: springX, y: springY }}
       aria-hidden="true"
     >
-      <span />
+      <span className="relative flex h-full w-full items-center justify-center">
+        {mode === "image" && (
+          <span className="text-[0.44rem] font-bold uppercase tracking-[0.2em] text-white">
+            Zobacz
+          </span>
+        )}
+        {mode === "play" && (
+          <span className="text-[0.44rem] font-bold uppercase tracking-[0.22em] text-white pl-[2px]">
+            Play
+          </span>
+        )}
+      </span>
     </motion.div>
   );
 }

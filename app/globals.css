@@ -276,9 +276,10 @@ body.is-edit-mode * {
   width: 54px;
 }
 
-.customCursor.is-image {
-  height: 68px;
-  width: 68px;
+.customCursor.is-image,
+.customCursor.is-play {
+  height: 72px;
+  width: 72px;
 }
 
 @media (pointer: fine) {
