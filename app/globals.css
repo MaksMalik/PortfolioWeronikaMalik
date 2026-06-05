@@ -138,6 +138,41 @@
 html {
   scroll-behavior: smooth;
   background: var(--background);
+  scrollbar-width: thin;
+  scrollbar-color: rgba(16, 16, 16, 0.22) var(--background);
+}
+
+.dark html {
+  scrollbar-color: rgba(248, 247, 244, 0.22) var(--background);
+}
+
+/* Stylizacja paska przewijania dla Chrome, Safari, Edge */
+::-webkit-scrollbar {
+  width: 9px;
+  height: 9px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--background);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(16, 16, 16, 0.22);
+  border-radius: 99px;
+  border: 2px solid var(--background);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(16, 16, 16, 0.45);
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: rgba(248, 247, 244, 0.22);
+  border-color: var(--background);
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: rgba(248, 247, 244, 0.45);
 }
 
 body {
