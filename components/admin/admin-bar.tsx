@@ -1,0 +1,255 @@
+"use client";
+
+import { useState } from "react";
+import { useAdminEdit } from "./admin-edit-context";
+import { Eye, EyeOff, Save, Rocket, LogOut, Loader2, History, Trash2, Clock } from "lucide-react";
+import { cn } from "@/lib/utils";
+
+export function AdminBar() {
+  const {
+    isAdmin,
+    editMode,
+    setEditMode,
+    previewTarget,
+    setPreviewTarget,
+    isSaving,
+    saveDraft,
+    publishLive,
+    logout,
+    hasBackup,
+    restoreBackup,
+    clearBackup,
+    historyVersions,
+    restoreVersion,
+    deleteVersion,
+    createVersionCheckpoint,
+    autosaveStatus,
+    hasUnsavedEdits
+  } = useAdminEdit();
+
+  const [showHistory, setShowHistory] = useState(false);
+
+  if (!isAdmin) {
+    return null;
+  }
+
+  return (
+    <div className="fixed top-0 left-0 right-0 z-[100] h-14 bg-ink border-b border-ink/80 text-white flex items-center justify-between px-2 sm:px-6 shadow-[0_4px_30px_rgba(0,0,0,0.15)] select-none">
+      {/* Left section: status logo (hidden on small mobile screens to save space) */}
+      <div className="hidden min-[440px]:flex items-center gap-2.5">
+        <span className="inline-flex h-2 w-2 animate-pulse rounded-full bg-emerald-500 shrink-0" />
+        <span className="hidden sm:inline-block text-[0.68rem] font-bold uppercase tracking-[0.24em] text-porcelain/80">
+          Studio Treści
+        </span>
+        <span className={cn(
+          "text-[0.62rem] font-medium border-l border-white/10 pl-2.5 ml-0.5 transition-colors duration-300",
+          autosaveStatus === "saving" && "text-amber-400 animate-pulse",
+          autosaveStatus === "saved" && "text-emerald-400",
+          autosaveStatus === "error" && "text-red-400 font-bold",
+          autosaveStatus === "idle" && hasUnsavedEdits && "text-amber-400/80",
+          autosaveStatus === "idle" && !hasUnsavedEdits && "text-white/40"
+        )}>
+          {autosaveStatus === "saving" && "Zapisywanie..."}
+          {autosaveStatus === "saved" && "Zapisano automatycznie"}
+          {autosaveStatus === "error" && "Błąd autozapisu!"}
+          {autosaveStatus === "idle" && hasUnsavedEdits && "Niezapisane zmiany"}
+          {autosaveStatus === "idle" && !hasUnsavedEdits && "Zapisano"}
+        </span>
+      </div>
+
+      {/* Middle section: Backup recovery / Toggles */}
+      <div className="flex items-center gap-2">
+        {/* Autosave recovery notification */}
+        {hasBackup && (
+          <div className="flex items-center gap-1 bg-amber-500/10 border border-amber-500/25 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-full text-[0.62rem] font-bold text-amber-400 shrink-0">
+            <Clock className="h-3 w-3 sm:hidden text-amber-400" />
+            <span className="hidden sm:inline">Kopia robocza</span>
+            <button
+              type="button"
+              onClick={restoreBackup}
+              className="underline hover:text-white cursor-pointer ml-1 font-extrabold uppercase text-[0.58rem]"
+            >
+              Przywróć
+            </button>
+            <button
+              type="button"
+              onClick={clearBackup}
+              className="underline hover:text-white cursor-pointer ml-1 text-white/50 text-[0.58rem]"
+            >
+              Odrzuć
+            </button>
+          </div>
+        )}
+
+        {/* Toggle Edit Mode */}
+        <button
+          type="button"
+          onClick={() => {
+            if (!editMode) {
+              setPreviewTarget("preview");
+            }
+            setEditMode(!editMode);
+          }}
+          className={cn(
+            "inline-flex h-9 items-center gap-1.5 rounded-full border px-2.5 sm:px-4 text-xs font-bold uppercase tracking-[0.12em] transition-all duration-300 shrink-0",
+            editMode
+              ? "border-emerald-500/35 bg-emerald-500/10 text-emerald-400"
+              : "border-white/15 bg-white/5 text-white/70 hover:border-white/30 hover:text-white"
+          )}
+          title={editMode ? "Wyłącz edycję" : "Włącz edycję"}
+        >
+          {editMode ? <Eye className="h-3.5 w-3.5 shrink-0" /> : <EyeOff className="h-3.5 w-3.5 shrink-0" />}
+          <span className="hidden sm:inline">{editMode ? "Edycja: Wł" : "Edycja: Wył"}</span>
+        </button>
+
+        {/* Preview Target selector - only when edit mode is OFF */}
+        {!editMode && (
+          <div className="hidden sm:flex items-center rounded-full border border-white/10 bg-white/5 p-0.5 shrink-0">
+            <button
+              type="button"
+              onClick={() => setPreviewTarget("live")}
+              className={cn(
+                "rounded-full px-3 py-1 text-[0.62rem] font-bold uppercase tracking-[0.1em] transition-all duration-300",
+                previewTarget === "live"
+                  ? "bg-white text-ink shadow-sm"
+                  : "text-white/60 hover:text-white"
+              )}
+            >
+              Live
+            </button>
+            <button
+              type="button"
+              onClick={() => setPreviewTarget("preview")}
+              className={cn(
+                "rounded-full px-3 py-1 text-[0.62rem] font-bold uppercase tracking-[0.1em] transition-all duration-300",
+                previewTarget === "preview"
+                  ? "bg-white text-ink shadow-sm"
+                  : "text-white/60 hover:text-white"
+              )}
+            >
+              Szkic
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* Right section: Save / Publish / Versions / Logout */}
+      <div className="flex items-center gap-1.5 sm:gap-2 relative">
+        {editMode && (
+          <button
+            type="button"
+            onClick={saveDraft}
+            disabled={isSaving}
+            className="inline-flex h-9 items-center justify-center gap-1.5 rounded-full border border-white/15 bg-white/5 px-2.5 sm:px-4 text-xs font-bold uppercase tracking-[0.12em] text-white/80 transition-all hover:bg-white/10 hover:text-white disabled:opacity-40 shrink-0"
+            title="Zapisz jako szkic roboczy"
+          >
+            {isSaving ? (
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+            ) : (
+              <Save className="h-3.5 w-3.5" />
+            )}
+            <span className="hidden sm:inline">Szkic</span>
+          </button>
+        )}
+
+        <button
+          type="button"
+          onClick={() => setShowHistory((prev) => !prev)}
+          className={cn(
+            "inline-flex h-9 items-center justify-center gap-1.5 rounded-full border px-2.5 sm:px-4 text-xs font-bold uppercase tracking-[0.12em] transition-all shrink-0",
+            showHistory
+              ? "border-emerald-500 bg-emerald-500/10 text-emerald-400"
+              : "border-white/15 bg-white/5 text-white/80 hover:bg-white/10 hover:text-white"
+          )}
+          title="Historia wersji"
+        >
+          <History className="h-3.5 w-3.5" />
+          <span className="hidden sm:inline">Wersje</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={publishLive}
+          disabled={isSaving || previewTarget === "live"}
+          className={cn(
+            "inline-flex h-9 items-center justify-center gap-1.5 rounded-full bg-white px-2.5 sm:px-4 text-xs font-bold uppercase tracking-[0.12em] text-ink transition-all hover:bg-porcelain shrink-0",
+            (isSaving || previewTarget === "live") && "opacity-40 cursor-not-allowed"
+          )}
+          title={previewTarget === "live" ? "Przełącz na widok Szkic, aby opublikować zmiany" : "Opublikuj na żywo dla wszystkich użytkowników"}
+        >
+          {isSaving ? (
+            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+          ) : (
+            <Rocket className="h-3.5 w-3.5" />
+          )}
+          <span className="hidden sm:inline">Publikuj</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={logout}
+          className="flex h-9 w-9 items-center justify-center rounded-full border border-white/15 bg-white/5 text-white/70 hover:border-white/30 hover:bg-red-500/10 hover:text-red-400 transition-all shrink-0"
+          title="Wyloguj się"
+        >
+          <LogOut className="h-4 w-4" />
+        </button>
+
+        {/* History Dropdown Panel */}
+        {showHistory && (
+          <div className="absolute right-0 top-12 z-50 w-72 max-h-96 overflow-y-auto bg-ink border border-white/10 rounded-xl p-3 shadow-xl text-white">
+            <div className="flex items-center justify-between border-b border-white/10 pb-2 mb-2">
+              <span className="text-[0.62rem] font-bold uppercase tracking-[0.12em] text-white/50">
+                Wersje (Max 10)
+              </span>
+              <button
+                type="button"
+                onClick={() => {
+                  if (confirm("Czy na pewno chcesz utworzyć ręczny punkt kontrolny?")) {
+                    createVersionCheckpoint("manual");
+                  }
+                }}
+                className="text-[0.58rem] font-extrabold uppercase text-emerald-400 hover:text-emerald-300"
+              >
+                Utwórz punkt
+              </button>
+            </div>
+            {historyVersions.length === 0 ? (
+              <p className="text-[0.68rem] text-white/40 text-center py-4">Brak zapisanych wersji.</p>
+            ) : (
+              <div className="grid gap-1">
+                {historyVersions.map((ver) => (
+                  <div
+                    key={ver.id}
+                    className="flex items-center justify-between gap-2 p-1.5 rounded-lg hover:bg-white/5 text-[0.68rem]"
+                  >
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (confirm(`Czy przywrócić wersję: ${ver.label}? Obecne niezapisane zmiany zostaną nadpisane.`)) {
+                          restoreVersion(ver.id);
+                          setShowHistory(false);
+                        }
+                      }}
+                      className="flex-1 text-left font-medium text-white hover:text-emerald-300 truncate"
+                      title="Przywróć tę wersję"
+                    >
+                      {ver.label}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => deleteVersion(ver.id)}
+                      className="text-red-400 hover:text-red-300 px-1"
+                      title="Usuń"
+                    >
+                      <Trash2 className="h-3 w-3" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}

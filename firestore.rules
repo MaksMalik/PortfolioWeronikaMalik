@@ -1,0 +1,23 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isAdmin() {
+      return request.auth != null
+        && request.auth.token.email == "maksymilian.malik@gmail.com";
+    }
+
+    match /siteContent/{document} {
+      allow read: if true;
+      allow create, update, delete: if isAdmin();
+
+      match /versions/{versionId} {
+        allow read, write: if isAdmin();
+      }
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

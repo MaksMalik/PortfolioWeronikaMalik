@@ -1,0 +1,118 @@
+export type SiteImage = {
+  id: string;
+  enabled: boolean;
+  src: string;
+  alt: string;
+  title?: string;
+  description?: string;
+  aspect?: "portrait" | "landscape" | "square" | "wide";
+};
+
+export type SectionSettings = {
+  enabled: boolean;
+};
+
+export type HeroContent = {
+  monogram: string;
+  name: string;
+  tagline: string;
+  quote: string;
+  buttonText: string;
+  image: SiteImage;
+};
+
+export type AboutContent = {
+  eyebrow: string;
+  title: string;
+  body: string;
+  buttonText: string;
+  image: SiteImage;
+};
+
+export type PortfolioProject = {
+  id: string;
+  enabled: boolean;
+  title: string;
+  type: string;
+  role: string;
+  year: string;
+  description: string;
+  details?: string;
+  linkLabel?: string;
+  linkUrl?: string;
+  image: SiteImage;
+  images: SiteImage[];
+};
+
+export type ShowreelContent = {
+  eyebrow: string;
+  title: string;
+  description: string;
+  buttonText: string;
+  thumbnail: SiteImage;
+  videoUrl: string;
+};
+
+export type PressMention = {
+  id: string;
+  enabled: boolean;
+  quote: string;
+  outlet: string;
+  author: string;
+};
+
+export type GallerySession = {
+  id: string;
+  enabled: boolean;
+  title: string;
+  subtitle: string;
+  description?: string;
+  cover: SiteImage;
+  images: SiteImage[];
+};
+
+export type SocialLink = {
+  id: string;
+  enabled: boolean;
+  label: string;
+  url: string;
+};
+
+export type ContactContent = {
+  eyebrow: string;
+  heading: string;
+  intro: string;
+  email: string;
+  phone: string;
+  location: string;
+  representation: string;
+  socials: SocialLink[];
+};
+
+export type SiteContent = {
+  schemaVersion: number;
+  sections: {
+    hero: SectionSettings;
+    about: SectionSettings;
+    portfolio: SectionSettings;
+    showreel: SectionSettings;
+    gallery: SectionSettings;
+    press: SectionSettings;
+    contact: SectionSettings;
+  };
+  hero: HeroContent;
+  about: AboutContent;
+  portfolio: PortfolioProject[];
+  showreel: ShowreelContent;
+  gallery: GallerySession[];
+  press: PressMention[];
+  contact: ContactContent;
+};
+
+export type ContentVersion = {
+  id: string;
+  timestamp: number;
+  type: "autosave" | "draft" | "live" | "manual";
+  label: string;
+  content: SiteContent;
+};

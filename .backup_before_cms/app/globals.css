@@ -1,0 +1,309 @@
+@import "tailwindcss";
+@config "../tailwind.config.ts";
+
+:root {
+  --background: #f8f7f4;
+  --foreground: #101010;
+  --card: #ffffff;
+  --card-foreground: #101010;
+  --muted: #ecebe7;
+  --muted-foreground: #6e6a64;
+  --border: #d8d5cf;
+  --input: #d8d5cf;
+  --ring: #101010;
+  --radius: 0.5rem;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  background: var(--background);
+}
+
+body {
+  margin: 0;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(248, 247, 244, 0.96)),
+    var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans), Arial, sans-serif;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+button,
+input,
+textarea {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+::selection {
+  background: #101010;
+  color: #ffffff;
+}
+
+.imageReveal {
+  position: relative;
+  overflow: hidden;
+  background: #dedbd4;
+}
+
+.imageReveal:not(.cinematicImage) img {
+  filter: grayscale(100%);
+  transform: scale(1);
+  transition:
+    filter 900ms ease,
+    transform 900ms ease,
+    opacity 600ms ease;
+}
+
+.imageReveal:not(.cinematicImage):hover img,
+.group:hover .imageReveal:not(.cinematicImage) img {
+  filter: grayscale(0%);
+  transform: scale(1.04);
+}
+
+.imageReveal:not(.cinematicImage)::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    120deg,
+    rgba(255, 255, 255, 0.18),
+    transparent 45%,
+    rgba(0, 0, 0, 0.12)
+  );
+  opacity: 0;
+  transition: opacity 700ms ease;
+  pointer-events: none;
+}
+
+.imageReveal:not(.cinematicImage):hover::after,
+.group:hover .imageReveal:not(.cinematicImage)::after {
+  opacity: 1;
+}
+
+.cinematicImage {
+  --reveal-x: 50%;
+  --reveal-y: 50%;
+  --tilt-x: 0deg;
+  --tilt-y: 0deg;
+  isolation: isolate;
+  transform: perspective(1100px) rotateX(0deg) rotateY(0deg);
+  transition:
+    box-shadow 700ms ease,
+    transform 700ms ease;
+}
+
+.cinematicImage:hover,
+.group:hover .cinematicImage {
+  transform: perspective(1100px) rotateX(var(--tilt-x)) rotateY(var(--tilt-y));
+}
+
+.cinematicImageBase,
+.cinematicImageColor {
+  position: absolute;
+  inset: 0;
+  height: 100%;
+  width: 100%;
+  object-fit: cover;
+  transform: scale(1);
+  will-change: filter, opacity, transform;
+  transition:
+    filter 900ms ease,
+    opacity 600ms ease,
+    transform 900ms ease;
+}
+
+.cinematicImageBase {
+  z-index: 1;
+  filter: grayscale(100%) contrast(1.02);
+}
+
+.cinematicImageColor {
+  z-index: 2;
+  opacity: 0;
+  filter: saturate(1.04) contrast(1.02);
+  -webkit-mask-image: radial-gradient(
+    circle 170px at var(--reveal-x) var(--reveal-y),
+    rgba(0, 0, 0, 1) 0%,
+    rgba(0, 0, 0, 0.96) 34%,
+    rgba(0, 0, 0, 0.55) 58%,
+    rgba(0, 0, 0, 0) 100%
+  );
+  mask-image: radial-gradient(
+    circle 170px at var(--reveal-x) var(--reveal-y),
+    rgba(0, 0, 0, 1) 0%,
+    rgba(0, 0, 0, 0.96) 34%,
+    rgba(0, 0, 0, 0.55) 58%,
+    rgba(0, 0, 0, 0) 100%
+  );
+}
+
+.cinematicImage:hover .cinematicImageBase,
+.group:hover .cinematicImage .cinematicImageBase {
+  filter: grayscale(70%) contrast(1.04) saturate(0.98);
+  transform: scale(1.025);
+}
+
+.cinematicImage:hover .cinematicImageColor,
+.group:hover .cinematicImage .cinematicImageColor {
+  opacity: 1;
+  transform: scale(1.045);
+}
+
+.cinematicImageVeil {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  background:
+    radial-gradient(
+      circle 190px at var(--reveal-x) var(--reveal-y),
+      rgba(255, 255, 255, 0.22),
+      rgba(255, 255, 255, 0.07) 46%,
+      transparent 72%
+    ),
+    linear-gradient(120deg, rgba(255, 255, 255, 0.12), transparent 48%, rgba(0, 0, 0, 0.1));
+  opacity: 0;
+  transition:
+    opacity 520ms ease;
+  pointer-events: none;
+}
+
+.cinematicImage:hover .cinematicImageVeil,
+.group:hover .cinematicImage .cinematicImageVeil {
+  opacity: 1;
+}
+
+.customCursor {
+  position: fixed;
+  left: -19px;
+  top: -19px;
+  z-index: 100;
+  display: none;
+  height: 38px;
+  width: 38px;
+  pointer-events: none;
+  opacity: 0;
+  mix-blend-mode: difference;
+  transition:
+    height 240ms ease,
+    opacity 240ms ease,
+    width 240ms ease;
+}
+
+.customCursor span {
+  position: absolute;
+  inset: 0;
+  border: 1px solid rgba(255, 255, 255, 0.92);
+  border-radius: 999px;
+}
+
+.customCursor span::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  height: 4px;
+  width: 4px;
+  border-radius: 999px;
+  background: #ffffff;
+  transform: translate(-50%, -50%);
+}
+
+.customCursor.isVisible {
+  opacity: 1;
+}
+
+.customCursor.is-action {
+  height: 54px;
+  width: 54px;
+}
+
+.customCursor.is-image {
+  height: 68px;
+  width: 68px;
+}
+
+@media (pointer: fine) {
+  .customCursor {
+    display: block;
+  }
+
+  body.has-custom-cursor,
+  body.has-custom-cursor * {
+    cursor: none !important;
+  }
+}
+
+.section-shell {
+  width: min(1180px, calc(100% - 32px));
+  margin-inline: auto;
+}
+
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: #6e6a64;
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.eyebrow::before {
+  content: "";
+  display: inline-block;
+  width: 2.5rem;
+  height: 1px;
+  background: #b8b8b8;
+}
+
+.ornament-line {
+  position: relative;
+}
+
+.ornament-line::before,
+.ornament-line::after {
+  content: "";
+  position: absolute;
+  background: #c8c4bb;
+  opacity: 0.75;
+}
+
+.ornament-line::before {
+  left: 0;
+  top: 0;
+  width: 1px;
+  height: 4rem;
+}
+
+.ornament-line::after {
+  left: 0;
+  top: 0;
+  width: 4rem;
+  height: 1px;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}

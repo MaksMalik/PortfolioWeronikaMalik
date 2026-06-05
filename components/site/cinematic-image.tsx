@@ -1,0 +1,150 @@
+"use client";
+
+import { useRef, useEffect, useCallback } from "react";
+import { useInView } from "framer-motion";
+import { cn } from "@/lib/utils";
+
+type CinematicImageProps = {
+  src: string;
+  alt: string;
+  className?: string;
+  imageClassName?: string;
+  children?: React.ReactNode;
+};
+
+export function CinematicImage({
+  src,
+  alt,
+  className,
+  imageClassName,
+  children
+}: CinematicImageProps) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const colorRef = useRef<HTMLImageElement>(null);
+  const revealAnim = useRef<Animation | null>(null);
+
+  const isInView = useInView(containerRef, {
+    margin: "-10% 0px -10% 0px",
+    once: false
+  });
+
+  /* ── Circle-reveal animation (desktop / fine-pointer only) ──── */
+  useEffect(() => {
+    const container = containerRef.current;
+    const color = colorRef.current;
+    if (!container || !color) return;
+
+    // Skip JS animations on touch devices — mobile uses CSS opacity via in-view-mobile
+    if (window.matchMedia("(pointer: coarse)").matches) return;
+
+    // If this image is inside a .group card, listen on that so hovering
+    // the card text area also triggers the reveal.
+    const hoverTarget =
+      (container.closest(".group") as HTMLElement | null) ?? container;
+
+    const calcMaxRadius = (x: number, y: number, w: number, h: number) =>
+      Math.ceil(Math.hypot(Math.max(x, w - x), Math.max(y, h - y)));
+
+    const onEnter = (e: MouseEvent) => {
+      const rect = container.getBoundingClientRect();
+      const x = Math.round(e.clientX - rect.left);
+      const y = Math.round(e.clientY - rect.top);
+      const r = calcMaxRadius(x, y, rect.width, rect.height);
+
+      revealAnim.current?.cancel();
+      revealAnim.current = color.animate(
+        [
+          { clipPath: `circle(0px at ${x}px ${y}px)` },
+          { clipPath: `circle(${r}px at ${x}px ${y}px)` }
+        ],
+        {
+          duration: 1200,
+          easing: "cubic-bezier(0.16, 1, 0.3, 1)",
+          fill: "forwards"
+        }
+      );
+    };
+
+    const onLeave = (e: MouseEvent) => {
+      const rect = container.getBoundingClientRect();
+      const x = Math.round(e.clientX - rect.left);
+      const y = Math.round(e.clientY - rect.top);
+      const r = calcMaxRadius(x, y, rect.width, rect.height);
+
+      revealAnim.current?.cancel();
+      revealAnim.current = color.animate(
+        [
+          { clipPath: `circle(${r}px at ${x}px ${y}px)` },
+          { clipPath: `circle(0px at ${x}px ${y}px)` }
+        ],
+        {
+          duration: 650,
+          easing: "cubic-bezier(0.65, 0, 0.35, 1)",
+          fill: "forwards"
+        }
+      );
+    };
+
+    hoverTarget.addEventListener("mouseenter", onEnter);
+    hoverTarget.addEventListener("mouseleave", onLeave);
+
+    return () => {
+      hoverTarget.removeEventListener("mouseenter", onEnter);
+      hoverTarget.removeEventListener("mouseleave", onLeave);
+      revealAnim.current?.cancel();
+    };
+  }, []);
+
+  /* ── 3D tilt + spotlight follow (direct image hover only) ───── */
+  const handleMouseMove = useCallback(
+    (e: React.MouseEvent<HTMLDivElement>) => {
+      const el = containerRef.current;
+      if (!el) return;
+      const rect = el.getBoundingClientRect();
+      const nx = (e.clientX - rect.left) / rect.width - 0.5;
+      const ny = (e.clientY - rect.top) / rect.height - 0.5;
+      el.style.setProperty("--tilt-x", `${ny * -5}deg`);
+      el.style.setProperty("--tilt-y", `${nx * 5}deg`);
+      el.style.setProperty("--spot-x", `${e.clientX - rect.left}px`);
+      el.style.setProperty("--spot-y", `${e.clientY - rect.top}px`);
+    },
+    []
+  );
+
+  const handleMouseLeave = useCallback(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    el.style.setProperty("--tilt-x", "0deg");
+    el.style.setProperty("--tilt-y", "0deg");
+  }, []);
+
+  return (
+    <div
+      ref={containerRef}
+      className={cn(
+        "cinematicImage imageReveal",
+        isInView && "in-view-mobile",
+        className
+      )}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+    >
+      <img
+        src={src}
+        alt={alt}
+        className={cn("cinematicImageBase", imageClassName)}
+        draggable={false}
+      />
+      <img
+        ref={colorRef}
+        src={src}
+        alt=""
+        aria-hidden="true"
+        className={cn("cinematicImageColor", imageClassName)}
+        draggable={false}
+      />
+      <span className="cinematicImageVeil" aria-hidden="true" />
+      {children}
+    </div>
+  );
+}
