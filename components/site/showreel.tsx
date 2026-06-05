@@ -87,7 +87,7 @@ export function Showreel({ content: initialContent }: { content: ShowreelContent
   useBodyScrollLock(open);
 
   // Fallback to default thumbnail if src is empty
-  const thumbnailSrc = ytThumbUrl || (content.thumbnail?.src ?? "https://images.unsplash.com/photo-1524250502761-1ac6f2e30d43?auto=format&fit=crop&w=1400&q=85");
+  const thumbnailSrc = ytThumbUrl || content.thumbnail?.src || "https://images.unsplash.com/photo-1524250502761-1ac6f2e30d43?auto=format&fit=crop&w=1400&q=85";
 
   useEffect(() => {
     if (!open) {
@@ -190,15 +190,11 @@ export function Showreel({ content: initialContent }: { content: ShowreelContent
               aria-label="Odtwórz showreel"
               disabled={editMode}
             >
-              {thumbnailSrc ? (
-                <img
-                  src={thumbnailSrc}
-                  alt={content.thumbnail.alt}
-                  className="absolute inset-0 h-full w-full object-cover rounded-3xl"
-                />
-              ) : (
-                <div className="absolute inset-0 rounded-3xl bg-porcelain" />
-              )}
+              <img
+                src={thumbnailSrc}
+                alt={content.thumbnail.alt || "Showreel thumbnail"}
+                className="absolute inset-0 h-full w-full object-cover rounded-3xl"
+              />
               <span className="absolute inset-0 bg-ink/0 transition-colors duration-700 group-hover:bg-ink/18" />
               {!editMode && (
                 <span className="absolute left-1/2 top-1/2 flex h-20 w-20 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-white/70 bg-white/18 text-white backdrop-blur-sm transition-transform duration-500 group-hover:scale-110">
