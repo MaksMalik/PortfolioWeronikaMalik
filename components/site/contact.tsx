@@ -183,97 +183,99 @@ export function Contact({ content: initialContent }: { content: ContactContent }
             </div>
 
             {/* Social Links List */}
-            <div className="mt-10 grid gap-2 sm:grid-cols-3 lg:max-w-xl">
+            <div className="mt-12 space-y-4 lg:max-w-md">
               {content.socials.filter((social) => social.enabled).map((social, index) => (
                 <motion.a
                   key={social.id}
                   href={social.url}
                   target="_blank"
                   rel="noreferrer"
-                  className="group inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-full border border-ink/12 bg-white px-4 py-2.5 text-[0.68rem] font-bold uppercase tracking-[0.16em] text-ink/65 transition-all hover:border-ink hover:text-ink hover:shadow-sm"
-                  initial={{ opacity: 0, y: 18 }}
+                  className="group flex items-center justify-between border-b border-ink/10 pb-3.5 text-xs font-bold uppercase tracking-[0.2em] text-ink/65 transition-colors hover:text-ink"
+                  initial={{ opacity: 0, y: 12 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true, amount: 0.35, margin: "0px 0px -10% 0px" }}
-                  transition={{ delay: 0.18 + index * 0.07, duration: 0.62, ease: [0.22, 1, 0.36, 1] }}
+                  transition={{ delay: 0.14 + index * 0.06, duration: 0.52, ease: [0.22, 1, 0.36, 1] }}
                 >
-                  {socialIcon(social.label)}
-                  {social.label}
-                  <ExternalLink className="h-3.5 w-3.5 opacity-60 group-hover:opacity-100 transition-opacity" />
+                  <span className="flex items-center gap-3">
+                    {socialIcon(social.label)}
+                    {social.label}
+                  </span>
+                  <ExternalLink className="h-3.5 w-3.5 opacity-40 group-hover:opacity-100 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all duration-300" />
                 </motion.a>
               ))}
             </div>
           </div>
 
-          <div className="flex flex-col justify-center space-y-8 lg:border-l lg:border-ink/10 lg:pl-14">
-            <div className="space-y-7">
+          <div className="flex flex-col justify-center lg:border-l lg:border-ink/10 lg:pl-16">
+            <div className="divide-y divide-ink/10 border-y border-ink/10">
               {content.email && (
-                <RevealBlock delay={0.08} x={24} y={18} className="group/item">
-                  <span className="text-[0.62rem] font-bold uppercase tracking-[0.2em] text-ink/40 block mb-1">
+                <div className="py-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 group/item">
+                  <span className="text-[0.62rem] font-bold uppercase tracking-[0.22em] text-ink/45">
                     Napisz bezpośrednio
                   </span>
                   <a
                     href={`mailto:${content.email}`}
-                    className="inline-flex max-w-full items-center gap-2.5 break-all font-serif text-xl text-ink transition-colors hover:text-ink/60 sm:text-2xl"
+                    className="inline-flex items-center gap-2.5 break-all font-serif text-lg text-ink transition-colors hover:text-ink/60 sm:text-xl"
                   >
                     {content.email}
-                    <Mail className="h-4.5 w-4.5 text-ink/40 group-hover/item:translate-x-1 transition-transform" />
+                    <Mail className="h-4 w-4 text-ink/45 group-hover/item:translate-x-1 transition-transform duration-300" />
                   </a>
-                </RevealBlock>
+                </div>
               )}
 
               {content.phone && (
-                <RevealBlock delay={0.16} x={24} y={18} className="group/item">
-                  <span className="text-[0.62rem] font-bold uppercase tracking-[0.2em] text-ink/40 block mb-1">
+                <div className="py-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 group/item">
+                  <span className="text-[0.62rem] font-bold uppercase tracking-[0.22em] text-ink/45">
                     Zadzwoń
                   </span>
                   {showPhone || editMode ? (
                     <a
                       href={`tel:${content.phone.replace(/\s+/g, "")}`}
-                      className="inline-flex w-fit items-center gap-2.5 font-serif text-xl text-ink transition-colors hover:text-ink/60 sm:text-2xl"
+                      className="inline-flex items-center gap-2.5 font-serif text-lg text-ink transition-colors hover:text-ink/60 sm:text-xl"
                     >
                       {content.phone}
-                      <Phone className="h-4.5 w-4.5 text-ink/40 group-hover/item:translate-x-1 transition-transform" />
+                      <Phone className="h-4 w-4 text-ink/45 group-hover/item:translate-x-1 transition-transform duration-300" />
                     </a>
                   ) : (
                     <button
                       type="button"
                       onClick={() => setShowPhone(true)}
-                      className="inline-flex w-fit items-center gap-2.5 font-serif text-xl text-ink transition-colors hover:text-ink/60 sm:text-2xl cursor-pointer text-left focus:outline-none"
+                      className="inline-flex items-center gap-2.5 font-serif text-lg text-ink transition-colors hover:text-ink/60 sm:text-xl cursor-pointer text-left focus:outline-none"
                     >
                       <span className="blur-[4px] select-none tracking-wider opacity-60">
                         {content.phone.substring(0, 4)} ••• ••• •••
                       </span>
-                      <span className="text-xs font-sans font-bold uppercase tracking-[0.1em] text-ink/50 bg-ink/5 px-2.5 py-1 rounded-full group-hover/item:bg-ink/10 transition-colors ml-1.5 shrink-0">
+                      <span className="text-[0.6rem] font-sans font-bold uppercase tracking-[0.1em] text-ink/50 bg-ink/5 px-2.5 py-1 rounded-full group-hover/item:bg-ink/10 transition-colors ml-1.5 shrink-0">
                         Pokaż numer
                       </span>
                     </button>
                   )}
-                </RevealBlock>
+                </div>
               )}
 
               {content.location && (
-                <RevealBlock delay={0.24} x={24} y={18}>
-                  <span className="text-[0.62rem] font-bold uppercase tracking-[0.2em] text-ink/40 block mb-1">
+                <div className="py-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                  <span className="text-[0.62rem] font-bold uppercase tracking-[0.22em] text-ink/45">
                     Baza / Lokalizacja
                   </span>
-                  <p className="inline-flex items-center gap-2.5 font-serif text-xl text-ink sm:text-2xl">
+                  <p className="inline-flex items-center gap-2.5 font-serif text-lg text-ink sm:text-xl">
                     {content.location}
-                    <MapPin className="h-4.5 w-4.5 text-ink/40" />
+                    <MapPin className="h-4 w-4 text-ink/45" />
                   </p>
-                </RevealBlock>
+                </div>
+              )}
+
+              {content.representation && (
+                <div className="py-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                  <span className="text-[0.62rem] font-bold uppercase tracking-[0.22em] text-ink/45">
+                    Reprezentacja / Agent
+                  </span>
+                  <h4 className="font-serif text-lg font-medium text-ink sm:text-xl">
+                    {content.representation}
+                  </h4>
+                </div>
               )}
             </div>
-
-            {content.representation && (
-              <RevealBlock delay={0.32} x={24} y={18} className="relative overflow-hidden rounded-lg border border-ink/10 bg-white p-5 shadow-sm sm:p-6">
-                <span className="text-[0.62rem] font-bold uppercase tracking-[0.2em] text-ink/40 block mb-2">
-                  Reprezentacja / Agent
-                </span>
-                <h4 className="font-serif text-2xl font-medium text-ink sm:text-3xl">
-                  {content.representation}
-                </h4>
-              </RevealBlock>
-            )}
           </div>
         </div>
 
