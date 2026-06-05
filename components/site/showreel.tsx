@@ -190,12 +190,14 @@ export function Showreel({ content: initialContent }: { content: ShowreelContent
               aria-label="Odtwórz showreel"
               disabled={editMode}
             >
-              {thumbnailSrc && (
-                <CinematicImage
+              {thumbnailSrc ? (
+                <img
                   src={thumbnailSrc}
                   alt={content.thumbnail.alt}
-                  className="absolute inset-0 rounded-3xl"
+                  className="absolute inset-0 h-full w-full object-cover rounded-3xl"
                 />
+              ) : (
+                <div className="absolute inset-0 rounded-3xl bg-porcelain" />
               )}
               <span className="absolute inset-0 bg-ink/0 transition-colors duration-700 group-hover:bg-ink/18" />
               {!editMode && (
