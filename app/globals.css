@@ -450,14 +450,8 @@ body.is-edit-mode * {
   content: "";
   display: inline-block;
   width: 4.5rem;
-  height: 1.75rem;
-  background: 
-    radial-gradient(circle 2px at 0.875rem 50%, var(--foreground) 100%, transparent),
-    radial-gradient(circle 13px at 0.875rem 50%, transparent 90%, var(--foreground) 91%, var(--foreground) 98%, transparent 100%),
-    linear-gradient(to right, transparent 1.75rem, var(--border) 1.75rem);
-  background-repeat: no-repeat;
-  background-size: 1.75rem 1.75rem, 1.75rem 1.75rem, 100% 1px;
-  background-position: left center, left center, left center;
+  height: 1px;
+  background: var(--border);
   flex-shrink: 0;
 }
 
@@ -479,19 +473,6 @@ body.is-edit-mode * {
   width: 1.5rem;
   height: 1px;
   background: var(--border);
-  flex-shrink: 0;
-}
-
-.eyebrow-ornament-only {
-  display: inline-block;
-  width: 1.75rem;
-  height: 1.75rem;
-  background: 
-    radial-gradient(circle 2px at 50% 50%, var(--foreground) 100%, transparent),
-    radial-gradient(circle 13px at 50% 50%, transparent 90%, var(--foreground) 91%, var(--foreground) 98%, transparent 100%);
-  background-repeat: no-repeat;
-  background-size: 1.75rem 1.75rem;
-  background-position: center;
   flex-shrink: 0;
 }
 

@@ -433,13 +433,7 @@ export function Showreel({ content: initialContent, bgClass }: { content: Showre
           </div>
         ) : (
           // Single video layout: Default fallback
-          <div className="relative">
-            {/* Ozdobne luksusowe kółko z kropką w lewym górnym rogu sekcji, w linii z lewą krawędzią zawartości na PC */}
-            <div className="absolute left-0 top-0 z-10 hidden lg:block">
-              <div className="eyebrow-ornament-only" />
-            </div>
-
-            <div className="grid items-center gap-10 border-y border-ink/10 py-10 lg:grid-cols-[1.1fr_0.9fr]">
+          <div className="grid items-center gap-10 border-y border-ink/10 py-10 lg:grid-cols-[1.1fr_0.9fr]">
             <RevealBlock className="relative group aspect-video w-full rounded-3xl overflow-hidden shadow-editorial" x={-28} y={12}>
               <button
                 type="button"
@@ -495,7 +489,6 @@ export function Showreel({ content: initialContent, bgClass }: { content: Showre
                 </MagneticButton>
               </RevealBlock>
             </div>
-          </div>
           </div>
         )}
       </div>
