@@ -87,7 +87,7 @@ export function Showreel({ content: initialContent }: { content: ShowreelContent
   useBodyScrollLock(open);
 
   // Fallback to default thumbnail if src is empty
-  const thumbnailSrc = ytThumbUrl || (content.thumbnail?.src ?? "");
+  const thumbnailSrc = ytThumbUrl || (content.thumbnail?.src ?? "https://images.unsplash.com/photo-1524250502761-1ac6f2e30d43?auto=format&fit=crop&w=1400&q=85");
 
   useEffect(() => {
     if (!open) {
