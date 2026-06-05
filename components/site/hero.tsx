@@ -130,21 +130,36 @@ export function Hero({ content: initialContent }: { content: HeroContent }) {
           >
             <span className="h-px w-16 bg-silver" />
             {editMode ? (
-              <div className="flex items-center gap-2">
-                <span className="text-[0.55rem] uppercase text-ink/40">Monogram:</span>
-                <input
-                  type="text"
-                  value={content.monogram}
-                  onChange={(e) =>
-                    updateContent((draft) => {
-                      draft.hero.monogram = e.target.value.toUpperCase();
-                    })
-                  }
-                  className="w-12 bg-transparent border-b border-ink/15 text-center text-[0.66rem] font-bold uppercase tracking-[0.24em] text-ink focus:outline-none focus:border-ink"
-                />
+              <div className="flex flex-wrap items-center gap-4">
+                <div className="flex items-center gap-2">
+                  <span className="text-[0.55rem] uppercase text-ink/40">Monogram:</span>
+                  <input
+                    type="text"
+                    value={content.monogram}
+                    onChange={(e) =>
+                      updateContent((draft) => {
+                        draft.hero.monogram = e.target.value.toUpperCase();
+                      })
+                    }
+                    className="w-12 bg-transparent border-b border-ink/15 text-center text-[0.66rem] font-bold uppercase tracking-[0.24em] text-ink focus:outline-none focus:border-ink"
+                  />
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-[0.55rem] uppercase text-ink/40">Tagline:</span>
+                  <input
+                    type="text"
+                    value={content.monogramTagline ?? "film / teatr / głos"}
+                    onChange={(e) =>
+                      updateContent((draft) => {
+                        draft.hero.monogramTagline = e.target.value;
+                      })
+                    }
+                    className="w-32 bg-transparent border-b border-ink/15 text-[0.66rem] font-bold uppercase tracking-[0.24em] text-ink focus:outline-none focus:border-ink"
+                  />
+                </div>
               </div>
             ) : (
-              <span>film / teatr / głos</span>
+              <span>{content.monogramTagline ?? "film / teatr / głos"}</span>
             )}
           </motion.div>
 

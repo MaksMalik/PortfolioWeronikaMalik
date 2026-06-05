@@ -10,10 +10,14 @@ export type SiteImage = {
 
 export type SectionSettings = {
   enabled: boolean;
+  eyebrow?: string;
+  title?: string;
+  description?: string;
 };
 
 export type HeroContent = {
   monogram: string;
+  monogramTagline?: string;
   name: string;
   tagline: string;
   quote: string;

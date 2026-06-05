@@ -1,20 +1,21 @@
 import type { SiteContent } from "@/lib/types";
 
-export const SITE_CONTENT_SCHEMA_VERSION = 2;
+export const SITE_CONTENT_SCHEMA_VERSION = 3;
 
 export const siteContent: SiteContent = {
   schemaVersion: SITE_CONTENT_SCHEMA_VERSION,
   sections: {
     hero: { enabled: true },
     about: { enabled: true },
-    portfolio: { enabled: true },
+    portfolio: { enabled: true, eyebrow: "portfolio", title: "Wybrane role" },
     showreel: { enabled: true },
-    gallery: { enabled: true },
-    press: { enabled: true },
+    gallery: { enabled: true, eyebrow: "galeria", title: "Sesje zdjęciowe", description: "Editorialowe portrety, kadry i fragmenty pracy przed obiektywem." },
+    press: { enabled: true, eyebrow: "prasa", title: "W mediach" },
     contact: { enabled: true }
   },
   hero: {
     monogram: "WM",
+    monogramTagline: "film / teatr / głos",
     name: "WERONIKA MALIK",
     tagline: "Aktorka / Performerka / Opowiadaczka",
     quote: "Nie gram postaci. Wchodzę w ich pamięć, gest i oddech.",

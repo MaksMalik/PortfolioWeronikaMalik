@@ -37,11 +37,28 @@ function parseContentPayload(payload: unknown) {
     "content" in payload &&
     (payload as { content?: unknown }).content
   ) {
-    const content = (payload as { content: SiteContent }).content;
+    const content = (payload as { content: any }).content;
 
-    if (content.schemaVersion === SITE_CONTENT_SCHEMA_VERSION) {
-      return content;
-    }
+    // Merge content with siteContent defaults to handle missing schema fields gracefully without losing user data!
+    const merged = cloneContent(siteContent);
+    
+    const mergeDeep = (target: any, source: any) => {
+      if (!source) return;
+      Object.keys(source).forEach((key) => {
+        if (source[key] && typeof source[key] === "object" && !Array.isArray(source[key])) {
+          if (!target[key]) target[key] = {};
+          mergeDeep(target[key], source[key]);
+        } else {
+          target[key] = source[key];
+        }
+      });
+    };
+    
+    mergeDeep(merged, content);
+    
+    // Always force schemaVersion to current version
+    merged.schemaVersion = SITE_CONTENT_SCHEMA_VERSION;
+    return merged;
   }
 
   return cloneContent(siteContent);

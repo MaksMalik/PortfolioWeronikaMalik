@@ -348,12 +348,67 @@ export function Gallery({ sessions: initialSessions }: { sessions: GallerySessio
       )}
 
       <div className="section-shell">
-        <div className="flex flex-col justify-between gap-8 md:flex-row md:items-end">
-          <SectionHeading eyebrow="galeria" title="Sesje zdjęciowe" />
-          {!editMode && (
-            <p className="max-w-sm text-sm leading-7 text-ink/55">
-              Editorialowe portrety, kadry i fragmenty pracy przed obiektywem.
-            </p>
+        <div className="flex flex-col justify-between gap-8 md:flex-row md:items-end w-full">
+          {editMode ? (
+            <div className="grid gap-4 bg-white/70 p-4 border border-ink/10 rounded-2xl w-full">
+              <div className="grid gap-2 sm:grid-cols-2">
+                <div className="grid gap-1">
+                  <span className="text-[0.55rem] font-bold uppercase tracking-[0.1em] text-ink/30">
+                    Galeria Eyebrow (nadnagłówek):
+                  </span>
+                  <input
+                    type="text"
+                    value={globalContent.sections.gallery.eyebrow ?? "galeria"}
+                    onChange={(e) =>
+                      updateContent((draft) => {
+                        draft.sections.gallery.eyebrow = e.target.value;
+                      })
+                    }
+                    className="w-full bg-white border border-ink/10 rounded-full px-4 py-1.5 text-xs font-bold uppercase tracking-[0.2em] text-ink focus:outline-none"
+                  />
+                </div>
+                <div className="grid gap-1">
+                  <span className="text-[0.55rem] font-bold uppercase tracking-[0.1em] text-ink/30">
+                    Galeria Tytuł:
+                  </span>
+                  <input
+                    type="text"
+                    value={globalContent.sections.gallery.title ?? "Sesje zdjęciowe"}
+                    onChange={(e) =>
+                      updateContent((draft) => {
+                        draft.sections.gallery.title = e.target.value;
+                      })
+                    }
+                    className="w-full bg-white border border-ink/10 rounded-xl px-4 py-1.5 font-serif text-lg text-ink focus:outline-none"
+                  />
+                </div>
+              </div>
+              <div className="grid gap-1">
+                <span className="text-[0.55rem] font-bold uppercase tracking-[0.1em] text-ink/30">
+                  Galeria Wprowadzenie:
+                </span>
+                <textarea
+                  value={globalContent.sections.gallery.description ?? "Editorialowe portrety, kadry i fragmenty pracy przed obiektywem."}
+                  onChange={(e) =>
+                    updateContent((draft) => {
+                      draft.sections.gallery.description = e.target.value;
+                    })
+                  }
+                  rows={2}
+                  className="w-full bg-white border border-ink/10 rounded-xl px-4 py-1.5 text-xs text-ink focus:outline-none resize-none"
+                />
+              </div>
+            </div>
+          ) : (
+            <>
+              <SectionHeading
+                eyebrow={globalContent.sections.gallery.eyebrow ?? "galeria"}
+                title={globalContent.sections.gallery.title ?? "Sesje zdjęciowe"}
+              />
+              <p className="max-w-sm text-sm leading-7 text-ink/55">
+                {globalContent.sections.gallery.description ?? "Editorialowe portrety, kadry i fragmenty pracy przed obiektywem."}
+              </p>
+            </>
           )}
         </div>
 

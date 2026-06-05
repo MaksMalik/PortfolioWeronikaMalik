@@ -5,25 +5,27 @@ import { motion, useScroll, useMotionValueEvent, AnimatePresence } from "framer-
 import { Menu, Plus, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-
-const navItems = [
-  { label: "Start", href: "#home" },
-  { label: "O mnie", href: "#about" },
-  { label: "Role", href: "#work" },
-  { label: "Showreel", href: "#showreel" },
-  { label: "Galeria", href: "#gallery" },
-  { label: "Prasa", href: "#press" },
-  { label: "Kontakt", href: "#contact" }
-];
+import { useAdminEdit } from "@/components/admin/admin-edit-context";
 
 export function Header({ monogram }: { monogram: string }) {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const { scrollY } = useScroll();
+  const { content } = useAdminEdit();
 
   useMotionValueEvent(scrollY, "change", (latest) => {
     setIsScrolled(latest > 18);
   });
+
+  const activeNavItems = [
+    { label: "Start", href: "#home", enabled: content.sections.hero.enabled },
+    { label: "O mnie", href: "#about", enabled: content.sections.about.enabled },
+    { label: "Role", href: "#work", enabled: content.sections.portfolio.enabled },
+    { label: "Showreel", href: "#showreel", enabled: content.sections.showreel.enabled },
+    { label: "Galeria", href: "#gallery", enabled: content.sections.gallery.enabled },
+    { label: "Prasa", href: "#press", enabled: content.sections.press.enabled },
+    { label: "Kontakt", href: "#contact", enabled: content.sections.contact.enabled }
+  ].filter((item) => item.enabled);
 
   return (
     <motion.header
@@ -49,7 +51,7 @@ export function Header({ monogram }: { monogram: string }) {
         </a>
 
         <nav className="hidden items-center gap-5 lg:flex" aria-label="Główna nawigacja">
-          {navItems.map((item) => (
+          {activeNavItems.map((item) => (
             <a
               key={item.href}
               href={item.href}
@@ -93,7 +95,7 @@ export function Header({ monogram }: { monogram: string }) {
             transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
           >
             <div className="flex flex-col gap-4 py-5">
-              {navItems.map((item, index) => (
+              {activeNavItems.map((item, index) => (
                 <motion.a
                   key={item.href}
                   href={item.href}
@@ -112,7 +114,7 @@ export function Header({ monogram }: { monogram: string }) {
                 initial={{ opacity: 0, x: -12 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -12 }}
-                transition={{ delay: navItems.length * 0.04, duration: 0.35, ease: "easeOut" }}
+                transition={{ delay: activeNavItems.length * 0.04, duration: 0.35, ease: "easeOut" }}
                 className="text-sm font-semibold uppercase tracking-[0.2em] text-ink/60"
                 onClick={() => setIsOpen(false)}
               >

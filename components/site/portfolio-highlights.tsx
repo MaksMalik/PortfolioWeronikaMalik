@@ -232,8 +232,48 @@ export function PortfolioHighlights({ projects: initialProjects }: { projects: P
       )}
 
       <div className="section-shell">
-        <div className="flex flex-col justify-between gap-8 md:flex-row md:items-end">
-          <SectionHeading eyebrow="portfolio" title="Wybrane role" />
+        <div className="flex flex-col justify-between gap-8 md:flex-row md:items-end w-full">
+          {editMode ? (
+            <div className="grid gap-4 bg-white/70 p-4 border border-ink/10 rounded-2xl w-full">
+              <div className="grid gap-2 sm:grid-cols-2">
+                <div className="grid gap-1">
+                  <span className="text-[0.55rem] font-bold uppercase tracking-[0.1em] text-ink/30">
+                    Portfolio Eyebrow (nadnagłówek):
+                  </span>
+                  <input
+                    type="text"
+                    value={globalContent.sections.portfolio.eyebrow ?? "portfolio"}
+                    onChange={(e) =>
+                      updateContent((draft) => {
+                        draft.sections.portfolio.eyebrow = e.target.value;
+                      })
+                    }
+                    className="w-full bg-white border border-ink/10 rounded-full px-4 py-1.5 text-xs font-bold uppercase tracking-[0.2em] text-ink focus:outline-none"
+                  />
+                </div>
+                <div className="grid gap-1">
+                  <span className="text-[0.55rem] font-bold uppercase tracking-[0.1em] text-ink/30">
+                    Portfolio Tytuł:
+                  </span>
+                  <input
+                    type="text"
+                    value={globalContent.sections.portfolio.title ?? "Wybrane role"}
+                    onChange={(e) =>
+                      updateContent((draft) => {
+                        draft.sections.portfolio.title = e.target.value;
+                      })
+                    }
+                    className="w-full bg-white border border-ink/10 rounded-xl px-4 py-1.5 font-serif text-lg text-ink focus:outline-none"
+                  />
+                </div>
+              </div>
+            </div>
+          ) : (
+            <SectionHeading
+              eyebrow={globalContent.sections.portfolio.eyebrow ?? "portfolio"}
+              title={globalContent.sections.portfolio.title ?? "Wybrane role"}
+            />
+          )}
         </div>
 
         <div className="relative mt-12">
