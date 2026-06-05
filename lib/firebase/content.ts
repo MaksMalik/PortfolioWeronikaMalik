@@ -13,8 +13,7 @@ import {
   type FirestoreError,
   type Unsubscribe
 } from "firebase/firestore";
-import { getDownloadURL, ref, uploadBytesResumable } from "firebase/storage";
-import { firebaseAuth, firebaseDb, firebaseStorage } from "@/lib/firebase/client";
+import { firebaseAuth, firebaseDb } from "@/lib/firebase/client";
 import { SITE_CONTENT_SCHEMA_VERSION, siteContent } from "@/lib/site-content";
 import type { SiteContent, ContentVersion } from "@/lib/types";
 import { cloneContent } from "@/lib/utils";
@@ -37,24 +36,34 @@ function parseContentPayload(payload: unknown) {
     "content" in payload &&
     (payload as { content?: unknown }).content
   ) {
-    const content = (payload as { content: any }).content;
+    const content = (payload as { content: unknown }).content;
 
     // Merge content with siteContent defaults to handle missing schema fields gracefully without losing user data!
     const merged = cloneContent(siteContent);
     
-    const mergeDeep = (target: any, source: any) => {
+    const mergeDeep = (target: Record<string, unknown>, source: Record<string, unknown>) => {
       if (!source) return;
       Object.keys(source).forEach((key) => {
-        if (source[key] && typeof source[key] === "object" && !Array.isArray(source[key])) {
-          if (!target[key]) target[key] = {};
-          mergeDeep(target[key], source[key]);
+        const sourceValue = source[key];
+
+        if (sourceValue && typeof sourceValue === "object" && !Array.isArray(sourceValue)) {
+          const targetValue = target[key];
+          if (!targetValue || typeof targetValue !== "object" || Array.isArray(targetValue)) {
+            target[key] = {};
+          }
+          mergeDeep(target[key] as Record<string, unknown>, sourceValue as Record<string, unknown>);
         } else {
-          target[key] = source[key];
+          target[key] = sourceValue;
         }
       });
     };
     
-    mergeDeep(merged, content);
+    if (content && typeof content === "object" && !Array.isArray(content)) {
+      mergeDeep(
+        merged as unknown as Record<string, unknown>,
+        content as Record<string, unknown>
+      );
+    }
     
     // Always force schemaVersion to current version
     merged.schemaVersion = SITE_CONTENT_SCHEMA_VERSION;
@@ -162,6 +171,7 @@ export async function uploadImageFile(file: File, folder: string): Promise<strin
   }
 
   console.log("[Upload] Starting local compression:", {
+    folder,
     name: file.name,
     size: `${(file.size / 1024).toFixed(1)} KB`
   });
@@ -192,6 +202,15 @@ export function versionsCollectionRef() {
   return collection(firebaseDb, "siteContent", "eliana-loren-preview", "versions");
 }
 
+function isPermissionDenied(error: unknown) {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "code" in error &&
+    (error as { code?: string }).code === "permission-denied"
+  );
+}
+
 export async function fetchContentVersions(): Promise<ContentVersion[]> {
   try {
     const q = query(versionsCollectionRef(), orderBy("timestamp", "desc"), limit(10));
@@ -211,7 +230,9 @@ export async function fetchContentVersions(): Promise<ContentVersion[]> {
     });
     return versions;
   } catch (error) {
-    console.error("[Versions] Failed to fetch versions:", error);
+    if (!isPermissionDenied(error)) {
+      console.warn("[Versions] Could not fetch versions:", error);
+    }
     return [];
   }
 }
@@ -237,7 +258,9 @@ export async function saveContentVersion(version: ContentVersion) {
       await Promise.all(deletePromises);
     }
   } catch (error) {
-    console.error("[Versions] Failed to save version:", error);
+    if (!isPermissionDenied(error)) {
+      console.warn("[Versions] Could not save version:", error);
+    }
   }
 }
 
@@ -246,7 +269,8 @@ export async function deleteContentVersion(versionId: string) {
     const docRef = doc(versionsCollectionRef(), versionId);
     await deleteDoc(docRef);
   } catch (error) {
-    console.error("[Versions] Failed to delete version:", error);
+    if (!isPermissionDenied(error)) {
+      console.warn("[Versions] Could not delete version:", error);
+    }
   }
 }
-

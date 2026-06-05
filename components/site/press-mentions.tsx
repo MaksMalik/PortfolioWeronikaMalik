@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import type { PressMention } from "@/lib/types";
 import { SectionHeading, SectionReveal } from "@/components/site/section-reveal";
 import { useAdminEdit } from "@/components/admin/admin-edit-context";
@@ -20,7 +21,7 @@ export function PressMentions({ mentions: initialMentions }: { mentions: PressMe
 
   const isSectionEnabled = globalContent.sections.press.enabled;
 
-  const updateMentionField = (index: number, field: keyof PressMention, value: any) => {
+  const updateMentionField = <K extends keyof PressMention>(index: number, field: K, value: PressMention[K]) => {
     updateContent((draft) => {
       draft.press[index] = { ...draft.press[index], [field]: value };
     });
@@ -210,8 +211,17 @@ export function PressMentions({ mentions: initialMentions }: { mentions: PressMe
             </div>
 
             <div className="grid gap-4">
-              {mentions.map((mention, idx) => (
-                <div key={mention.id} className="grid gap-2.5 p-3 bg-white border border-ink/10 rounded-2xl relative group/item">
+              <AnimatePresence initial={false}>
+                {mentions.map((mention, idx) => (
+                <motion.div
+                  layout
+                  key={mention.id}
+                  className="relative grid gap-2.5 rounded-2xl border border-ink/10 bg-white p-3 group/item"
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -8 }}
+                  transition={{ duration: 0.22, ease: "easeOut" }}
+                >
                   <div className="grid gap-1">
                     <span className="text-[0.55rem] font-bold text-ink/30 uppercase">Cytat:</span>
                     <Textarea
@@ -277,8 +287,9 @@ export function PressMentions({ mentions: initialMentions }: { mentions: PressMe
                       <Trash2 className="h-4 w-4" />
                     </button>
                   </div>
-                </div>
+                </motion.div>
               ))}
+              </AnimatePresence>
             </div>
           </div>
         </div>

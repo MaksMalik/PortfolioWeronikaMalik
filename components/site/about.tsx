@@ -105,11 +105,11 @@ export function About({ content: initialContent }: { content: AboutContent }) {
 
         {(content.image.src && content.image.enabled !== false) && (
           <div className="ornament-line pl-5 pt-5">
-            <div className="relative group rounded-3xl overflow-hidden border border-ink/10 shadow-editorial">
+            <div className="relative group overflow-hidden rounded-[1.5rem] rounded-tl-none border border-ink/10 shadow-editorial">
               <CinematicImage
                 src={content.image.src}
                 alt={content.image.alt}
-                className="aspect-[4/5] max-h-[640px] rounded-3xl"
+                className="aspect-[4/5] max-h-[640px] rounded-[1.5rem] rounded-tl-none"
               />
               {editMode && (
                 <label className="absolute inset-0 z-30 flex flex-col items-center justify-center bg-ink/40 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300 cursor-pointer">

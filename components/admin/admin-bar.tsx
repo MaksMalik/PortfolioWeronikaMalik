@@ -20,6 +20,7 @@ export function AdminBar() {
     restoreBackup,
     clearBackup,
     historyVersions,
+    refreshHistoryVersions,
     restoreVersion,
     deleteVersion,
     createVersionCheckpoint,
@@ -39,9 +40,9 @@ export function AdminBar() {
   }
 
   return (
-    <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[100] h-14 w-[calc(100%-2rem)] max-w-5xl bg-ink/92 backdrop-blur-xl border border-white/10 text-white flex items-center justify-between px-3 sm:px-6 shadow-[0_16px_50px_rgba(0,0,0,0.35)] rounded-full select-none transition-all duration-300">
+    <div className="no-scrollbar fixed bottom-3 left-1/2 z-[70] flex min-h-12 w-[calc(100%-1rem)] max-w-4xl -translate-x-1/2 flex-nowrap items-center justify-start gap-1.5 overflow-x-auto rounded-2xl border border-white/10 bg-ink/94 px-2 py-2 text-white shadow-[0_16px_50px_rgba(0,0,0,0.35)] backdrop-blur-xl transition-all duration-300 select-none sm:bottom-4 sm:justify-between sm:gap-2 sm:rounded-full sm:px-3">
       {/* Left section: status logo (hidden on small mobile screens to save space) */}
-      <div className="hidden min-[440px]:flex items-center gap-2.5">
+      <div className="hidden items-center gap-2.5 lg:flex">
         <span className="inline-flex h-2 w-2 rounded-full bg-emerald-400 shrink-0 shadow-[0_0_10px_rgba(52,211,153,0.6)]" />
         <span className="hidden lg:inline-block text-[0.62rem] font-bold uppercase tracking-[0.24em] text-porcelain/90">
           Studio Treści
@@ -66,7 +67,7 @@ export function AdminBar() {
       </div>
 
       {/* Middle section: Backup recovery / Toggles */}
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-1.5">
         {/* Autosave recovery notification */}
         {hasBackup && (
           <div className="flex items-center gap-1 bg-amber-500/10 border border-amber-500/25 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-full text-[0.62rem] font-bold text-amber-400 shrink-0">
@@ -100,7 +101,7 @@ export function AdminBar() {
             setEditMode(!editMode);
           }}
           className={cn(
-            "inline-flex h-9 items-center gap-1.5 rounded-full border px-2.5 sm:px-4 text-xs font-bold uppercase tracking-[0.12em] transition-all duration-300 shrink-0",
+            "inline-flex h-8 items-center gap-1.5 rounded-full border px-2.5 text-xs font-bold uppercase tracking-[0.12em] transition-all duration-300 shrink-0 sm:px-3",
             editMode
               ? "border-emerald-500/35 bg-emerald-500/10 text-emerald-400"
               : "border-white/15 bg-white/5 text-white/70 hover:border-white/30 hover:text-white"
@@ -118,7 +119,7 @@ export function AdminBar() {
               type="button"
               onClick={undo}
               disabled={!canUndo}
-              className="flex h-8 w-8 items-center justify-center rounded-full hover:bg-white/10 text-white disabled:opacity-30 disabled:hover:bg-transparent transition-all cursor-pointer"
+            className="flex h-7 w-7 items-center justify-center rounded-full text-white transition-all hover:bg-white/10 disabled:opacity-30 disabled:hover:bg-transparent cursor-pointer"
               title="Cofnij ostatnią zmianę (Ctrl+Z)"
             >
               <Undo className="h-3.5 w-3.5" />
@@ -127,7 +128,7 @@ export function AdminBar() {
               type="button"
               onClick={redo}
               disabled={!canRedo}
-              className="flex h-8 w-8 items-center justify-center rounded-full hover:bg-white/10 text-white disabled:opacity-30 disabled:hover:bg-transparent transition-all cursor-pointer"
+            className="flex h-7 w-7 items-center justify-center rounded-full text-white transition-all hover:bg-white/10 disabled:opacity-30 disabled:hover:bg-transparent cursor-pointer"
               title="Ponów cofniętą zmianę (Ctrl+Y)"
             >
               <Redo className="h-3.5 w-3.5" />
@@ -173,7 +174,7 @@ export function AdminBar() {
             type="button"
             onClick={saveDraft}
             disabled={isSaving}
-            className="inline-flex h-9 items-center justify-center gap-1.5 rounded-full border border-white/15 bg-white/5 px-2.5 sm:px-4 text-xs font-bold uppercase tracking-[0.12em] text-white/80 transition-all hover:bg-white/10 hover:text-white disabled:opacity-40 shrink-0"
+          className="inline-flex h-8 items-center justify-center gap-1.5 rounded-full border border-white/15 bg-white/5 px-2.5 text-xs font-bold uppercase tracking-[0.12em] text-white/80 transition-all hover:bg-white/10 hover:text-white disabled:opacity-40 shrink-0 sm:px-3"
             title="Zapisz jako szkic roboczy"
           >
             {isSaving ? (
@@ -187,9 +188,17 @@ export function AdminBar() {
 
         <button
           type="button"
-          onClick={() => setShowHistory((prev) => !prev)}
+          onClick={() => {
+            setShowHistory((prev) => {
+              const next = !prev;
+              if (next) {
+                void refreshHistoryVersions();
+              }
+              return next;
+            });
+          }}
           className={cn(
-            "inline-flex h-9 items-center justify-center gap-1.5 rounded-full border px-2.5 sm:px-4 text-xs font-bold uppercase tracking-[0.12em] transition-all shrink-0",
+            "inline-flex h-8 items-center justify-center gap-1.5 rounded-full border px-2.5 text-xs font-bold uppercase tracking-[0.12em] transition-all shrink-0 sm:px-3",
             showHistory
               ? "border-emerald-500 bg-emerald-500/10 text-emerald-400"
               : "border-white/15 bg-white/5 text-white/80 hover:bg-white/10 hover:text-white"
@@ -205,7 +214,7 @@ export function AdminBar() {
           onClick={publishLive}
           disabled={isSaving || previewTarget === "live"}
           className={cn(
-            "inline-flex h-9 items-center justify-center gap-1.5 rounded-full bg-white px-2.5 sm:px-4 text-xs font-bold uppercase tracking-[0.12em] text-ink transition-all hover:bg-porcelain shrink-0",
+            "inline-flex h-8 items-center justify-center gap-1.5 rounded-full bg-white px-2.5 text-xs font-bold uppercase tracking-[0.12em] text-ink transition-all hover:bg-porcelain shrink-0 sm:px-3",
             (isSaving || previewTarget === "live") && "opacity-40 cursor-not-allowed"
           )}
           title={previewTarget === "live" ? "Przełącz na widok Szkic, aby opublikować zmiany" : "Opublikuj na żywo dla wszystkich użytkowników"}
@@ -221,7 +230,7 @@ export function AdminBar() {
         <button
           type="button"
           onClick={logout}
-          className="flex h-9 w-9 items-center justify-center rounded-full border border-white/15 bg-white/5 text-white/70 hover:border-white/30 hover:bg-red-500/10 hover:text-red-400 transition-all shrink-0"
+          className="flex h-8 w-8 items-center justify-center rounded-full border border-white/15 bg-white/5 text-white/70 transition-all hover:border-white/30 hover:bg-red-500/10 hover:text-red-400 shrink-0"
           title="Wyloguj się"
         >
           <LogOut className="h-4 w-4" />
@@ -229,7 +238,7 @@ export function AdminBar() {
 
         {/* History Dropdown Panel */}
         {showHistory && (
-          <div className="absolute right-0 top-16 z-50 w-72 max-h-96 overflow-y-auto bg-ink border border-white/10 rounded-xl p-3 shadow-xl text-white">
+          <div className="absolute right-0 bottom-12 z-50 max-h-96 w-72 overflow-y-auto rounded-xl border border-white/10 bg-ink p-3 text-white shadow-xl">
             <div className="flex items-center justify-between border-b border-white/10 pb-2 mb-2">
               <span className="text-[0.62rem] font-bold uppercase tracking-[0.12em] text-white/50">
                 Wersje (Max 10)

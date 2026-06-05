@@ -56,12 +56,13 @@ export function Hero({ content: initialContent }: { content: HeroContent }) {
       id="home"
       ref={ref}
       className={cn(
-        "relative flex min-h-[80svh] items-end overflow-hidden pt-24 transition-all duration-300 group/section",
+        "relative flex min-h-[92svh] items-center overflow-hidden pt-24 pb-10 transition-all duration-300 group/section",
         editMode && "hover:ring-1 hover:ring-ink/20",
         editMode && !isSectionEnabled && "opacity-60 border-2 border-dashed border-ink/15 bg-ink/[0.01]"
       )}
     >
       <div className="absolute inset-x-0 top-20 h-px bg-ink/10" />
+      <div className="absolute inset-x-0 bottom-0 h-px bg-ink/10" />
 
       {/* Control overlay for Admin */}
       {editMode && (
@@ -101,11 +102,11 @@ export function Hero({ content: initialContent }: { content: HeroContent }) {
         </div>
       )}
 
-      <div className="section-shell grid min-h-[calc(80svh-6rem)] items-center gap-10 pb-6 lg:grid-cols-[0.92fr_1.08fr] lg:gap-16">
+      <div className="section-shell grid min-h-[calc(92svh-8.5rem)] items-center gap-10 py-6 lg:grid-cols-[0.86fr_1.14fr] lg:gap-16">
         {(content.image.src && content.image.enabled !== false) && (
           <motion.div
             style={{ y: imageY }}
-            className="h-[54svh] min-h-[380px] lg:h-[64svh]"
+            className="mx-auto h-[52svh] min-h-[340px] w-full max-w-[430px] lg:h-[68svh] lg:max-h-[690px]"
             initial={{ opacity: 0, scale: 0.96 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 1.25, ease: [0.22, 1, 0.36, 1] }}
@@ -141,7 +142,7 @@ export function Hero({ content: initialContent }: { content: HeroContent }) {
           </motion.div>
         )}
 
-        <motion.div style={{ y: textY }} className="pb-6">
+        <motion.div style={{ y: textY }} className="pb-0 lg:pt-6">
           <motion.div
             className="mb-9 flex items-center gap-4 text-[0.66rem] font-bold uppercase tracking-[0.24em] text-ink/45"
             initial={{ opacity: 0, y: 18 }}
@@ -152,7 +153,7 @@ export function Hero({ content: initialContent }: { content: HeroContent }) {
             <span>{content.monogramTagline ?? "film / teatr / głos"}</span>
           </motion.div>
 
-          <h1 className="max-w-[760px] font-serif text-[clamp(3.2rem,7.1vw,7.2rem)] font-medium uppercase leading-[0.88] text-ink">
+          <h1 className="max-w-[760px] font-serif text-[2.85rem] font-medium uppercase leading-[0.92] text-ink min-[380px]:text-[3.2rem] sm:text-[5.1rem] lg:text-[6.2rem] xl:text-[6.8rem]">
             {nameWords.map((word, wordIndex) => (
               <span key={word} className="block whitespace-nowrap">
                 {word.split("").map((letter, letterIndex) => {
@@ -187,7 +188,7 @@ export function Hero({ content: initialContent }: { content: HeroContent }) {
             <p className="text-xs font-bold uppercase tracking-[0.26em] text-ink/55">
               {content.tagline}
             </p>
-            <p className="font-serif text-3xl leading-tight text-graphite sm:text-4xl">
+            <p className="font-serif text-2xl leading-tight text-graphite sm:text-4xl">
               {content.quote}
             </p>
             <MagneticButton href="#work">{content.buttonText}</MagneticButton>

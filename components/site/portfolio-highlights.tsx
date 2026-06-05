@@ -1,15 +1,18 @@
 "use client";
 
-import { useEffect, useState, ChangeEvent, useRef } from "react";
+import { useEffect, useState, ChangeEvent } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { ExternalLink, X, Plus, Trash2, ArrowUp, ArrowDown, Eye, EyeOff, Edit, Upload, Loader2, ChevronLeft, ChevronRight } from "lucide-react";
 import type { PortfolioProject, SiteImage } from "@/lib/types";
 import { Button } from "@/components/ui/button";
+import { FilmwebMark } from "@/components/site/brand-icons";
 import { CinematicImage } from "@/components/site/cinematic-image";
 import { ModalPortal } from "@/components/site/modal-portal";
 import { SectionHeading, SectionReveal } from "@/components/site/section-reveal";
 import { useAdminEdit } from "@/components/admin/admin-edit-context";
 import { AdminDrawer } from "@/components/admin/admin-drawer";
+import { useBodyScrollLock } from "@/components/site/use-body-scroll-lock";
+import { useHorizontalRail } from "@/components/site/use-horizontal-rail";
 import { uploadImageFile } from "@/lib/firebase/content";
 import { createId, cn } from "@/lib/utils";
 import { Label } from "@/components/ui/label";
@@ -31,16 +34,32 @@ function emptyImage(prefix: string): SiteImage {
   };
 }
 
+function isFilmwebLink(label?: string, url?: string) {
+  return `${label ?? ""} ${url ?? ""}`.toLowerCase().includes("filmweb");
+}
+
 export function PortfolioHighlights({ projects: initialProjects }: { projects: PortfolioProject[] }) {
   const { editMode, updateContent, content: globalContent } = useAdminEdit();
   const projects = editMode ? globalContent.portfolio : initialProjects;
+  const visibleProjects = projects.filter((project) => editMode || project.enabled);
 
   const [activeProject, setActiveProject] = useState<PortfolioProject | null>(null);
   const [editingProject, setEditingProject] = useState<PortfolioProject | null>(null);
   const [isSectionDrawerOpen, setIsSectionDrawerOpen] = useState(false);
   const [uploadingImageId, setUploadingImageId] = useState<string | null>(null);
 
-  const railRef = useRef<HTMLDivElement>(null);
+  const {
+    canScrollNext,
+    canScrollPrev,
+    isDragging,
+    railDragHandlers,
+    railRef,
+    scrollRail,
+    shouldIgnoreRailClick,
+    updateScrollState
+  } = useHorizontalRail();
+
+  useBodyScrollLock(activeProject !== null);
 
   useEffect(() => {
     if (!activeProject) return;
@@ -55,12 +74,9 @@ export function PortfolioHighlights({ projects: initialProjects }: { projects: P
     return () => window.removeEventListener("keydown", handleKey);
   }, [activeProject]);
 
-  const scrollRail = (direction: -1 | 1) => {
-    railRef.current?.scrollBy({
-      left: direction * (railRef.current.clientWidth * 0.82),
-      behavior: "smooth"
-    });
-  };
+  useEffect(() => {
+    updateScrollState();
+  }, [updateScrollState, visibleProjects.length]);
 
   const isSectionEnabled = globalContent.sections.portfolio.enabled;
 
@@ -116,7 +132,7 @@ export function PortfolioHighlights({ projects: initialProjects }: { projects: P
   };
 
   // Update specific fields of editing project
-  const updateProjectField = (field: keyof PortfolioProject, value: any) => {
+  const updateProjectField = <K extends keyof PortfolioProject>(field: K, value: PortfolioProject[K]) => {
     if (!editingProject) return;
     const nextProj = { ...editingProject, [field]: value };
     setEditingProject(nextProj);
@@ -247,36 +263,64 @@ export function PortfolioHighlights({ projects: initialProjects }: { projects: P
         </div>
 
         <div className="relative mt-12">
-          {projects.filter(p => editMode || p.enabled).length > 1 && (
+          {visibleProjects.length > 1 && (
             <div className="pointer-events-none absolute inset-y-0 left-0 right-0 z-10 hidden items-center justify-between px-2 md:flex">
-              <Button
-                type="button"
-                variant="outline"
-                size="icon"
-                className="pointer-events-auto border-white/70 bg-porcelain/85 shadow-[0_16px_40px_rgba(16,16,16,0.08)] backdrop-blur-md hover:bg-ink hover:text-white rounded-full"
-                onClick={() => scrollRail(-1)}
-                aria-label="Przewiń portfolio w lewo"
-              >
-                <ChevronLeft className="h-5 w-5" />
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                size="icon"
-                className="pointer-events-auto border-white/70 bg-porcelain/85 shadow-[0_16px_40px_rgba(16,16,16,0.08)] backdrop-blur-md hover:bg-ink hover:text-white rounded-full"
-                onClick={() => scrollRail(1)}
-                aria-label="Przewiń portfolio w prawo"
-              >
-                <ChevronRight className="h-5 w-5" />
-              </Button>
+              <AnimatePresence initial={false}>
+                {canScrollPrev && (
+                  <motion.div
+                    key="portfolio-prev"
+                    initial={{ opacity: 0, x: -12, scale: 0.92 }}
+                    animate={{ opacity: 1, x: 0, scale: 1 }}
+                    exit={{ opacity: 0, x: -12, scale: 0.92 }}
+                    transition={{ duration: 0.25, ease: "easeOut" }}
+                  >
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      className="pointer-events-auto rounded-full border-white/70 bg-porcelain/85 shadow-[0_16px_40px_rgba(16,16,16,0.08)] backdrop-blur-md hover:bg-ink hover:text-white"
+                      onClick={() => scrollRail(-1)}
+                      aria-label="Przewiń portfolio w lewo"
+                    >
+                      <ChevronLeft className="h-5 w-5" />
+                    </Button>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+              <AnimatePresence initial={false}>
+                {canScrollNext && (
+                  <motion.div
+                    key="portfolio-next"
+                    initial={{ opacity: 0, x: 12, scale: 0.92 }}
+                    animate={{ opacity: 1, x: 0, scale: 1 }}
+                    exit={{ opacity: 0, x: 12, scale: 0.92 }}
+                    transition={{ duration: 0.25, ease: "easeOut" }}
+                  >
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      className="pointer-events-auto rounded-full border-white/70 bg-porcelain/85 shadow-[0_16px_40px_rgba(16,16,16,0.08)] backdrop-blur-md hover:bg-ink hover:text-white"
+                      onClick={() => scrollRail(1)}
+                      aria-label="Przewiń portfolio w prawo"
+                    >
+                      <ChevronRight className="h-5 w-5" />
+                    </Button>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
           )}
 
           <div
             ref={railRef}
-            className="no-scrollbar grid auto-cols-[84%] grid-flow-col gap-5 overflow-x-auto scroll-smooth pt-12 pb-20 -mt-12 -mb-16 [scroll-snap-type:x_mandatory] sm:auto-cols-[52%] lg:auto-cols-[36%]"
+            {...railDragHandlers}
+            className={cn(
+              "no-scrollbar grid auto-cols-[84%] grid-flow-col gap-5 overflow-x-auto scroll-smooth pt-12 pb-20 -mt-12 -mb-16 select-none [scroll-snap-type:x_mandatory] [touch-action:pan-y] sm:auto-cols-[52%] lg:auto-cols-[36%]",
+              isDragging ? "cursor-grabbing scroll-auto" : "cursor-grab"
+            )}
           >
-            {projects.filter(p => editMode || p.enabled).map((project, index) => (
+            {visibleProjects.map((project, index) => (
               <div key={project.id} className="relative group scroll-ml-4 [scroll-snap-align:start]">
                 <motion.button
                   type="button"
@@ -284,7 +328,16 @@ export function PortfolioHighlights({ projects: initialProjects }: { projects: P
                     "w-full group border border-ink/10 bg-white text-left transition-shadow duration-500 hover:shadow-editorial rounded-2xl flex flex-col h-full",
                     !project.enabled && "opacity-50 border-dashed"
                   )}
-                  onClick={() => !editMode && setActiveProject(project)}
+                  onClick={(event) => {
+                    if (shouldIgnoreRailClick()) {
+                      event.preventDefault();
+                      return;
+                    }
+
+                    if (!editMode) {
+                      setActiveProject(project);
+                    }
+                  }}
                   aria-label={`Czytaj więcej o roli ${project.title}`}
                   initial={{ opacity: 0, y: 12 }}
                   whileInView={{ opacity: 1, y: 0 }}
@@ -406,8 +459,17 @@ export function PortfolioHighlights({ projects: initialProjects }: { projects: P
             </div>
 
             <div className="grid gap-2">
-              {projects.map((project, idx) => (
-                <div key={project.id} className="flex items-center justify-between bg-white p-2.5 border border-ink/10 rounded-xl gap-2">
+              <AnimatePresence initial={false}>
+                {projects.map((project, idx) => (
+                <motion.div
+                  layout
+                  key={project.id}
+                  className="flex items-center justify-between gap-2 rounded-xl border border-ink/10 bg-white p-2.5"
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -8 }}
+                  transition={{ duration: 0.22, ease: "easeOut" }}
+                >
                   <div className="truncate">
                     <p className="text-[0.62rem] font-bold uppercase text-ink/40 truncate">{project.type} ({project.year})</p>
                     <p className="text-xs font-serif font-bold text-ink truncate">{project.title}</p>
@@ -455,8 +517,9 @@ export function PortfolioHighlights({ projects: initialProjects }: { projects: P
                       <Trash2 className="h-4 w-4" />
                     </button>
                   </div>
-                </div>
+                </motion.div>
               ))}
+              </AnimatePresence>
             </div>
           </div>
         </div>
@@ -595,8 +658,17 @@ export function PortfolioHighlights({ projects: initialProjects }: { projects: P
               </div>
 
               <div className="grid gap-3">
-                {(editingProject.images ?? []).map((img, idx) => (
-                  <div key={img.id} className="grid grid-cols-[80px_1fr_auto] gap-3 items-center bg-porcelain/60 p-2 border border-ink/5 rounded-xl">
+                <AnimatePresence initial={false}>
+                  {(editingProject.images ?? []).map((img, idx) => (
+                  <motion.div
+                    layout
+                    key={img.id}
+                    className="grid grid-cols-[80px_1fr_auto] items-center gap-3 rounded-xl border border-ink/5 bg-porcelain/60 p-2"
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -8 }}
+                    transition={{ duration: 0.22, ease: "easeOut" }}
+                  >
                     <div className="aspect-[4/3] overflow-hidden border border-ink/10 bg-white rounded-lg">
                       <img src={img.src} alt="" className="h-full w-full object-cover" />
                     </div>
@@ -654,8 +726,9 @@ export function PortfolioHighlights({ projects: initialProjects }: { projects: P
                         <Trash2 className="h-3.5 w-3.5" />
                       </button>
                     </div>
-                  </div>
+                  </motion.div>
                 ))}
+                </AnimatePresence>
               </div>
             </div>
           </div>
@@ -667,7 +740,7 @@ export function PortfolioHighlights({ projects: initialProjects }: { projects: P
         <AnimatePresence>
           {activeProject && (
             <motion.div
-              className="fixed inset-0 z-[90] overflow-y-auto bg-porcelain text-ink"
+              className="fixed inset-0 z-[90] overflow-y-auto overscroll-contain bg-porcelain text-ink"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
@@ -725,14 +798,17 @@ export function PortfolioHighlights({ projects: initialProjects }: { projects: P
                       {activeProject.linkUrl && (
                         <Button
                           asChild
-                          className="mt-8 rounded-full border border-ink bg-ink text-white hover:bg-transparent hover:text-ink transition-colors font-bold uppercase tracking-[0.16em] h-auto px-6 py-3.5 text-xs w-fit"
+                          className="mt-8 h-auto w-fit rounded-full border border-ink bg-white px-6 py-3.5 text-xs font-bold uppercase tracking-[0.16em] text-ink transition-colors hover:bg-ink hover:text-white"
                         >
                           <a
                             href={activeProject.linkUrl}
                             target="_blank"
                             rel="noreferrer"
                           >
-                            {activeProject.linkLabel || "Zobacz więcej"}
+                            {isFilmwebLink(activeProject.linkLabel, activeProject.linkUrl) && (
+                              <FilmwebMark className="mr-1 h-4 w-4" />
+                            )}
+                            <span>{activeProject.linkLabel || "Zobacz więcej"}</span>
                             <ExternalLink className="h-4 w-4 ml-2" />
                           </a>
                         </Button>

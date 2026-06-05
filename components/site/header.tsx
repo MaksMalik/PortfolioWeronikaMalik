@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useState, type MouseEvent } from "react";
 import { motion, useScroll, useMotionValueEvent, AnimatePresence } from "framer-motion";
-import { Menu, Plus, X } from "lucide-react";
+import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useAdminEdit } from "@/components/admin/admin-edit-context";
@@ -10,6 +10,7 @@ import { useAdminEdit } from "@/components/admin/admin-edit-context";
 export function Header({ monogram }: { monogram: string }) {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
+  const [activeHref, setActiveHref] = useState("#home");
   const { scrollY } = useScroll();
   const { content } = useAdminEdit();
 
@@ -17,15 +18,85 @@ export function Header({ monogram }: { monogram: string }) {
     setIsScrolled(latest > 18);
   });
 
-  const activeNavItems = [
-    { label: content.sections.hero.label ?? "Start", href: "#home", enabled: content.sections.hero.enabled },
-    { label: content.sections.about.label ?? "O mnie", href: "#about", enabled: content.sections.about.enabled },
-    { label: content.sections.portfolio.label ?? "Role", href: "#work", enabled: content.sections.portfolio.enabled },
-    { label: content.sections.showreel.label ?? "Showreel", href: "#showreel", enabled: content.sections.showreel.enabled },
-    { label: content.sections.gallery.label ?? "Galeria", href: "#gallery", enabled: content.sections.gallery.enabled },
-    { label: content.sections.press.label ?? "Prasa", href: "#press", enabled: content.sections.press.enabled },
-    { label: content.sections.contact.label ?? "Kontakt", href: "#contact", enabled: content.sections.contact.enabled }
-  ].filter((item) => item.enabled);
+  const activeNavItems = useMemo(
+    () =>
+      [
+        { label: content.sections.hero.label ?? "Start", href: "#home", enabled: content.sections.hero.enabled },
+        { label: content.sections.about.label ?? "O mnie", href: "#about", enabled: content.sections.about.enabled },
+        { label: content.sections.portfolio.label ?? "Role", href: "#work", enabled: content.sections.portfolio.enabled },
+        { label: content.sections.showreel.label ?? "Showreel", href: "#showreel", enabled: content.sections.showreel.enabled },
+        { label: content.sections.gallery.label ?? "Galeria", href: "#gallery", enabled: content.sections.gallery.enabled },
+        { label: content.sections.press.label ?? "Prasa", href: "#press", enabled: content.sections.press.enabled },
+        { label: content.sections.contact.label ?? "Kontakt", href: "#contact", enabled: content.sections.contact.enabled }
+      ].filter((item) => item.enabled),
+    [content.sections]
+  );
+
+  useEffect(() => {
+    if (activeNavItems.length === 0) return;
+
+    let frame = 0;
+
+    const updateActiveSection = () => {
+      const anchorY = window.innerHeight * 0.42;
+      let nextHref = activeNavItems[0].href;
+      let bestDistance = Number.POSITIVE_INFINITY;
+
+      activeNavItems.forEach((item) => {
+        const element = document.querySelector<HTMLElement>(item.href);
+        if (!element) return;
+
+        const rect = element.getBoundingClientRect();
+        const sectionContainsAnchor = rect.top <= anchorY && rect.bottom >= anchorY;
+        const distance = sectionContainsAnchor ? 0 : Math.min(Math.abs(rect.top - anchorY), Math.abs(rect.bottom - anchorY));
+
+        if (distance < bestDistance) {
+          bestDistance = distance;
+          nextHref = item.href;
+        }
+      });
+
+      setActiveHref(nextHref);
+    };
+
+    const scheduleUpdate = () => {
+      window.cancelAnimationFrame(frame);
+      frame = window.requestAnimationFrame(updateActiveSection);
+    };
+
+    updateActiveSection();
+    window.addEventListener("scroll", scheduleUpdate, { passive: true });
+    window.addEventListener("resize", scheduleUpdate);
+
+    return () => {
+      window.cancelAnimationFrame(frame);
+      window.removeEventListener("scroll", scheduleUpdate);
+      window.removeEventListener("resize", scheduleUpdate);
+    };
+  }, [activeNavItems]);
+
+  const handleNavClick = (event: MouseEvent<HTMLAnchorElement>, href: string) => {
+    event.preventDefault();
+    const wasMobileMenuOpen = isOpen;
+    setIsOpen(false);
+    setActiveHref(href);
+    window.history.pushState(null, "", href);
+
+    const scrollToSection = () => {
+      const target = document.querySelector<HTMLElement>(href);
+      if (!target) return;
+
+      const headerHeight = document.querySelector("header")?.getBoundingClientRect().height ?? 80;
+      const top = Math.max(0, target.getBoundingClientRect().top + window.scrollY - headerHeight - 14);
+      window.scrollTo({ top, behavior: "smooth" });
+    };
+
+    window.requestAnimationFrame(scrollToSection);
+
+    if (wasMobileMenuOpen) {
+      window.setTimeout(scrollToSection, 480);
+    }
+  };
 
   return (
     <motion.header
@@ -55,10 +126,20 @@ export function Header({ monogram }: { monogram: string }) {
             <a
               key={item.href}
               href={item.href}
-              className="group relative text-[0.68rem] font-bold uppercase tracking-[0.22em] text-ink/70 transition-colors hover:text-ink"
+              className={cn(
+                "group relative text-[0.68rem] font-bold uppercase tracking-[0.22em] transition-colors hover:text-ink",
+                activeHref === item.href ? "text-ink" : "text-ink/62"
+              )}
+              aria-current={activeHref === item.href ? "page" : undefined}
+              onClick={(event) => handleNavClick(event, item.href)}
             >
               {item.label}
-              <span className="absolute -bottom-2 left-0 h-px w-0 bg-ink transition-all duration-500 group-hover:w-full" />
+              <span
+                className={cn(
+                  "absolute -bottom-2 left-0 h-px bg-ink transition-all duration-500 group-hover:w-full",
+                  activeHref === item.href ? "w-full" : "w-0"
+                )}
+              />
             </a>
           ))}
         </nav>
@@ -77,18 +158,33 @@ export function Header({ monogram }: { monogram: string }) {
         <Button
           variant="ghost"
           size="icon"
-          className="lg:hidden"
+          className="relative rounded-full border border-ink/10 lg:hidden"
           aria-label={isOpen ? "Zamknij menu" : "Otwórz menu"}
           onClick={() => setIsOpen((value) => !value)}
+          aria-expanded={isOpen}
         >
-          {isOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          <motion.span
+            className="absolute left-1/2 top-1/2 -ml-2.5 h-px w-5 bg-ink"
+            animate={isOpen ? { rotate: 45, y: 0 } : { rotate: 0, y: -6 }}
+            transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+          />
+          <motion.span
+            className="absolute left-1/2 top-1/2 -ml-2.5 h-px w-5 bg-ink"
+            animate={isOpen ? { opacity: 0, scaleX: 0.25 } : { opacity: 1, scaleX: 1 }}
+            transition={{ duration: 0.2, ease: "easeOut" }}
+          />
+          <motion.span
+            className="absolute left-1/2 top-1/2 -ml-2.5 h-px w-5 bg-ink"
+            animate={isOpen ? { rotate: -45, y: 0 } : { rotate: 0, y: 6 }}
+            transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+          />
         </Button>
       </div>
 
       <AnimatePresence>
         {isOpen && (
           <motion.nav
-            className="border-t border-ink/10 bg-porcelain px-6 overflow-hidden lg:hidden"
+            className="max-h-[calc(100svh-5rem)] overflow-hidden overflow-y-auto border-t border-ink/10 bg-porcelain px-6 lg:hidden"
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
@@ -103,8 +199,12 @@ export function Header({ monogram }: { monogram: string }) {
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: -12 }}
                   transition={{ delay: index * 0.04, duration: 0.35, ease: "easeOut" }}
-                  className="text-sm font-semibold uppercase tracking-[0.2em] text-ink"
-                  onClick={() => setIsOpen(false)}
+                  className={cn(
+                    "text-sm font-semibold uppercase tracking-[0.2em] transition-colors",
+                    activeHref === item.href ? "text-ink" : "text-ink/62"
+                  )}
+                  aria-current={activeHref === item.href ? "page" : undefined}
+                  onClick={(event) => handleNavClick(event, item.href)}
                 >
                   {item.label}
                 </motion.a>

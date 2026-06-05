@@ -10,6 +10,7 @@ import { MagneticButton } from "@/components/site/magnetic-button";
 import { ModalPortal } from "@/components/site/modal-portal";
 import { SectionReveal } from "@/components/site/section-reveal";
 import { useAdminEdit } from "@/components/admin/admin-edit-context";
+import { useBodyScrollLock } from "@/components/site/use-body-scroll-lock";
 import { uploadImageFile } from "@/lib/firebase/content";
 import { cn } from "@/lib/utils";
 import { AdminDrawer } from "@/components/admin/admin-drawer";
@@ -78,15 +79,12 @@ export function Showreel({ content: initialContent }: { content: ShowreelContent
   const isMp4 = videoUrl.toLowerCase().endsWith(".mp4");
 
   const ytId = getYoutubeVideoId(content.videoUrl);
-  const [ytThumbUrl, setYtThumbUrl] = useState<string | null>(null);
+  const ytThumbUrl =
+    content.youtubeThumbnailEnabled && ytId
+      ? `https://img.youtube.com/vi/${ytId}/hqdefault.jpg`
+      : null;
 
-  useEffect(() => {
-    if (content.youtubeThumbnailEnabled && ytId) {
-      setYtThumbUrl(`https://img.youtube.com/vi/${ytId}/maxresdefault.jpg`);
-    } else {
-      setYtThumbUrl(null);
-    }
-  }, [content.youtubeThumbnailEnabled, ytId]);
+  useBodyScrollLock(open);
 
   const thumbnailSrc = ytThumbUrl || content.thumbnail.src;
 
@@ -94,8 +92,6 @@ export function Showreel({ content: initialContent }: { content: ShowreelContent
     if (!open) {
       return;
     }
-
-    setIsVideoLoading(true);
 
     const handleKey = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
@@ -184,7 +180,12 @@ export function Showreel({ content: initialContent }: { content: ShowreelContent
             <button
               type="button"
               className="absolute inset-0 h-full w-full text-left cursor-pointer"
-              onClick={() => !editMode && setOpen(true)}
+              onClick={() => {
+                if (!editMode) {
+                  setIsVideoLoading(true);
+                  setOpen(true);
+                }
+              }}
               aria-label="Odtwórz showreel"
               disabled={editMode}
             >
@@ -193,11 +194,6 @@ export function Showreel({ content: initialContent }: { content: ShowreelContent
                   src={thumbnailSrc}
                   alt={content.thumbnail.alt}
                   className="absolute inset-0 rounded-3xl"
-                  onError={() => {
-                    if (ytThumbUrl && ytThumbUrl.includes("maxresdefault")) {
-                      setYtThumbUrl(`https://img.youtube.com/vi/${ytId}/hqdefault.jpg`);
-                    }
-                  }}
                 />
               )}
               <span className="absolute inset-0 bg-ink/0 transition-colors duration-700 group-hover:bg-ink/18" />
@@ -238,7 +234,12 @@ export function Showreel({ content: initialContent }: { content: ShowreelContent
             </h2>
             <p className="mt-6 text-lg leading-8 text-graphite/75">{content.description}</p>
             <div className="mt-9">
-              <MagneticButton onClick={() => setOpen(true)}>
+              <MagneticButton
+                onClick={() => {
+                  setIsVideoLoading(true);
+                  setOpen(true);
+                }}
+              >
                 {content.buttonText}
               </MagneticButton>
             </div>
