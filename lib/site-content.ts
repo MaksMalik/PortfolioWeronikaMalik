@@ -150,7 +150,8 @@ export const siteContent: SiteContent = {
       alt: "Kadr showreela Weroniki Malik",
       aspect: "wide"
     },
-    videoUrl: "https://www.w3schools.com/html/mov_bbb.mp4"
+    videoUrl: "https://www.w3schools.com/html/mov_bbb.mp4",
+    youtubeThumbnailEnabled: false
   },
   gallery: [
     {

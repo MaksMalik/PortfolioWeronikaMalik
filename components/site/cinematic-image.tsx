@@ -10,6 +10,7 @@ type CinematicImageProps = {
   className?: string;
   imageClassName?: string;
   children?: React.ReactNode;
+  onError?: () => void;
 };
 
 export function CinematicImage({
@@ -17,7 +18,8 @@ export function CinematicImage({
   alt,
   className,
   imageClassName,
-  children
+  children,
+  onError
 }: CinematicImageProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const colorRef = useRef<HTMLImageElement>(null);
@@ -134,6 +136,7 @@ export function CinematicImage({
         alt={alt}
         className={cn("cinematicImageBase", imageClassName)}
         draggable={false}
+        onError={onError}
       />
       <img
         ref={colorRef}
@@ -142,6 +145,7 @@ export function CinematicImage({
         aria-hidden="true"
         className={cn("cinematicImageColor", imageClassName)}
         draggable={false}
+        onError={onError}
       />
       <span className="cinematicImageVeil" aria-hidden="true" />
       {children}

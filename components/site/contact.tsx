@@ -12,18 +12,88 @@ import { useAdminEdit } from "@/components/admin/admin-edit-context";
 import { createId, cn } from "@/lib/utils";
 import { AdminDrawer } from "@/components/admin/admin-drawer";
 
+const InstagramIcon = () => (
+  <svg
+    className="h-4.5 w-4.5 transition-all duration-300 fill-none stroke-[1.5] stroke-ink/65 group-hover:stroke-[url(#insta-grad)] shrink-0"
+    viewBox="0 0 24 24"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <defs>
+      <linearGradient id="insta-grad" x1="0%" y1="100%" x2="100%" y2="0%">
+        <stop offset="0%" stopColor="#fdf497" />
+        <stop offset="5%" stopColor="#fdf497" />
+        <stop offset="45%" stopColor="#fd5949" />
+        <stop offset="60%" stopColor="#d6249f" />
+        <stop offset="100%" stopColor="#285AEB" />
+      </linearGradient>
+    </defs>
+    <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
+    <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
+    <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
+  </svg>
+);
+
+const FacebookIcon = () => (
+  <svg
+    className="h-4.5 w-4.5 transition-all duration-300 fill-ink/65 group-hover:fill-[#1877F2] shrink-0"
+    viewBox="0 0 24 24"
+  >
+    <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
+  </svg>
+);
+
+const FilmwebIcon = () => (
+  <svg
+    className="h-4.5 w-4.5 transition-all duration-300 fill-none stroke-[1.5] stroke-ink/65 group-hover:stroke-none shrink-0"
+    viewBox="0 0 24 24"
+  >
+    <circle
+      cx="12"
+      cy="12"
+      r="10"
+      className="stroke-ink/65 group-hover:fill-[#F3C910] group-hover:stroke-none transition-all duration-300"
+      strokeWidth="1.5"
+      fill="none"
+    />
+    <circle
+      cx="9"
+      cy="10.5"
+      r="1.5"
+      className="fill-ink/65 group-hover:fill-black transition-all duration-300"
+    />
+    <circle
+      cx="15"
+      cy="10.5"
+      r="1.5"
+      className="fill-ink/65 group-hover:fill-black transition-all duration-300"
+    />
+    <path
+      d="M8.5 14.5c1 1.8 6 1.8 7 0"
+      className="stroke-ink/65 group-hover:stroke-black transition-all duration-300"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      fill="none"
+    />
+  </svg>
+);
+
 function socialIcon(label: string) {
   const normalized = label.toLowerCase();
 
   if (normalized.includes("instagram")) {
-    return <Camera className="h-4 w-4" />;
+    return <InstagramIcon />;
   }
 
   if (normalized.includes("filmweb")) {
-    return <Film className="h-4 w-4" />;
+    return <FilmwebIcon />;
   }
 
-  return <MessageCircle className="h-4 w-4" />;
+  if (normalized.includes("facebook")) {
+    return <FacebookIcon />;
+  }
+
+  return <MessageCircle className="h-4.5 w-4.5 stroke-ink/65 group-hover:stroke-ink transition-colors duration-300 shrink-0" />;
 }
 
 export function Contact({ content: initialContent }: { content: ContactContent }) {
@@ -149,11 +219,11 @@ export function Contact({ content: initialContent }: { content: ContactContent }
                   href={social.url}
                   target="_blank"
                   rel="noreferrer"
-                  className="inline-flex items-center gap-2 rounded-full border border-ink/12 bg-white px-5 py-2.5 text-xs font-bold uppercase tracking-[0.18em] text-ink/65 transition-all hover:border-ink hover:text-ink hover:shadow-sm"
+                  className="group inline-flex items-center gap-2 rounded-full border border-ink/12 bg-white px-5 py-2.5 text-xs font-bold uppercase tracking-[0.18em] text-ink/65 transition-all hover:border-ink hover:text-ink hover:shadow-sm"
                 >
                   {socialIcon(social.label)}
                   {social.label}
-                  <ExternalLink className="h-3.5 w-3.5 opacity-60" />
+                  <ExternalLink className="h-3.5 w-3.5 opacity-60 group-hover:opacity-100 transition-opacity" />
                 </a>
               ))}
             </div>

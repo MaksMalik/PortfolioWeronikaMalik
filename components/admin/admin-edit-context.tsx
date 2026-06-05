@@ -42,6 +42,10 @@ type AdminEditContextType = {
   deleteVersion: (versionId: string) => Promise<void>;
   autosaveStatus: "idle" | "saving" | "saved" | "error";
   hasUnsavedEdits: boolean;
+  undo: () => void;
+  redo: () => void;
+  canUndo: boolean;
+  canRedo: boolean;
 };
 
 const AdminEditContext = createContext<AdminEditContextType | undefined>(undefined);
@@ -62,6 +66,10 @@ export function AdminEditProvider({ children }: { children: React.ReactNode }) {
   const [historyVersions, setHistoryVersions] = useState<ContentVersion[]>([]);
   const [autosaveStatus, setAutosaveStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
   const [hasUnsavedEdits, setHasUnsavedEdits] = useState(false);
+  
+  // Undo/Redo state stack
+  const [historyStates, setHistoryStates] = useState<SiteContent[]>([]);
+  const [historyIndex, setHistoryIndex] = useState(-1);
 
   const isAdmin = user?.email?.toLowerCase() === ADMIN_EMAIL.toLowerCase();
   const pathname = usePathname();
@@ -109,6 +117,69 @@ export function AdminEditProvider({ children }: { children: React.ReactNode }) {
     });
   }, []);
 
+  // Initialize/Reset Undo/Redo stack when database content finishes loading/resetting
+  useEffect(() => {
+    if (!hasUnsavedEdits && content) {
+      setHistoryStates([cloneContent(content)]);
+      setHistoryIndex(0);
+    }
+  }, [content, hasUnsavedEdits]);
+
+  // Undo/Redo methods
+  const undo = () => {
+    if (historyIndex > 0) {
+      const nextIndex = historyIndex - 1;
+      const targetState = cloneContent(historyStates[nextIndex]);
+      setHistoryIndex(nextIndex);
+      setContent(targetState);
+      setHasUnsavedEdits(true);
+      if (typeof window !== "undefined") {
+        localStorage.setItem("strona_aktorska_draft_backup", JSON.stringify(targetState));
+        setHasBackup(true);
+      }
+    }
+  };
+
+  const redo = () => {
+    if (historyIndex < historyStates.length - 1) {
+      const nextIndex = historyIndex + 1;
+      const targetState = cloneContent(historyStates[nextIndex]);
+      setHistoryIndex(nextIndex);
+      setContent(targetState);
+      setHasUnsavedEdits(true);
+      if (typeof window !== "undefined") {
+        localStorage.setItem("strona_aktorska_draft_backup", JSON.stringify(targetState));
+        setHasBackup(true);
+      }
+    }
+  };
+
+  // Global keyboard listener for Undo/Redo (Ctrl+Z / Ctrl+Y / Ctrl+Shift+Z)
+  useEffect(() => {
+    if (!editMode || !isAdmin) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const isZ = e.key.toLowerCase() === "z";
+      const isY = e.key.toLowerCase() === "y";
+      const hasMetaOrCtrl = e.metaKey || e.ctrlKey;
+
+      if (hasMetaOrCtrl && isZ) {
+        e.preventDefault();
+        if (e.shiftKey) {
+          redo();
+        } else {
+          undo();
+        }
+      } else if (hasMetaOrCtrl && isY) {
+        e.preventDefault();
+        redo();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [editMode, isAdmin, historyIndex, historyStates]);
+
   // Listen to Firestore Content based on preview target
   useEffect(() => {
     const target = isPreviewPage ? "preview" : (isAdmin ? previewTarget : "live");
@@ -145,6 +216,7 @@ export function AdminEditProvider({ children }: { children: React.ReactNode }) {
         await saveSiteContent(content, "preview");
         setAutosaveStatus("saved");
         setHasUnsavedEdits(false);
+        setStatusMessage(null); // Clear errors on success
         if (typeof window !== "undefined") {
           localStorage.removeItem("strona_aktorska_draft_backup");
           setHasBackup(false);
@@ -152,6 +224,7 @@ export function AdminEditProvider({ children }: { children: React.ReactNode }) {
       } catch (err) {
         console.error("Autosave failed:", err);
         setAutosaveStatus("error");
+        setStatusMessage(err instanceof Error ? err.message : String(err));
       }
     }, 3000); // 3 seconds debounce
 
@@ -166,6 +239,7 @@ export function AdminEditProvider({ children }: { children: React.ReactNode }) {
       await saveSiteContent(currentContent, "preview");
       setAutosaveStatus("saved");
       setHasUnsavedEdits(false);
+      setStatusMessage(null); // Clear errors on success
       if (typeof window !== "undefined") {
         localStorage.removeItem("strona_aktorska_draft_backup");
         setHasBackup(false);
@@ -173,6 +247,7 @@ export function AdminEditProvider({ children }: { children: React.ReactNode }) {
     } catch (err) {
       console.error("Immediate save failed:", err);
       setAutosaveStatus("error");
+      setStatusMessage(err instanceof Error ? err.message : String(err));
     }
   };
 
@@ -180,6 +255,15 @@ export function AdminEditProvider({ children }: { children: React.ReactNode }) {
     setContent((current) => {
       const next = cloneContent(current);
       recipe(next);
+
+      // Append state to history stack and truncate any future redo items
+      setHistoryStates((prev) => {
+        const truncated = prev.slice(0, historyIndex + 1);
+        const nextStates = [...truncated, cloneContent(next)];
+        setHistoryIndex(nextStates.length - 1);
+        return nextStates;
+      });
+
       if (typeof window !== "undefined") {
         localStorage.setItem("strona_aktorska_draft_backup", JSON.stringify(next));
         setHasBackup(true);
@@ -230,7 +314,14 @@ export function AdminEditProvider({ children }: { children: React.ReactNode }) {
   const restoreVersion = (versionId: string) => {
     const found = historyVersions.find((v) => v.id === versionId);
     if (found) {
-      setContent(cloneContent(found.content));
+      const restored = cloneContent(found.content);
+      setContent(restored);
+      setHistoryStates((prev) => {
+        const truncated = prev.slice(0, historyIndex + 1);
+        const nextStates = [...truncated, restored];
+        setHistoryIndex(nextStates.length - 1);
+        return nextStates;
+      });
       setHasUnsavedEdits(true);
       if (typeof window !== "undefined") {
         localStorage.setItem("strona_aktorska_draft_backup", JSON.stringify(found.content));
@@ -308,7 +399,14 @@ export function AdminEditProvider({ children }: { children: React.ReactNode }) {
       const backup = localStorage.getItem("strona_aktorska_draft_backup");
       if (backup) {
         try {
-          setContent(JSON.parse(backup));
+          const parsed = JSON.parse(backup);
+          setContent(parsed);
+          setHistoryStates((prev) => {
+            const truncated = prev.slice(0, historyIndex + 1);
+            const nextStates = [...truncated, parsed];
+            setHistoryIndex(nextStates.length - 1);
+            return nextStates;
+          });
           setHasUnsavedEdits(true);
         } catch (e) {
           console.error("Błąd przywracania autozapisu:", e);
@@ -382,7 +480,11 @@ export function AdminEditProvider({ children }: { children: React.ReactNode }) {
         restoreVersion,
         deleteVersion,
         autosaveStatus,
-        hasUnsavedEdits
+        hasUnsavedEdits,
+        undo,
+        redo,
+        canUndo: historyIndex > 0,
+        canRedo: historyIndex < historyStates.length - 1
       }}
     >
       {children}

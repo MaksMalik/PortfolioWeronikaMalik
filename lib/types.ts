@@ -57,6 +57,7 @@ export type ShowreelContent = {
   buttonText: string;
   thumbnail: SiteImage;
   videoUrl: string;
+  youtubeThumbnailEnabled?: boolean;
 };
 
 export type PressMention = {

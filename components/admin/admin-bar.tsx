@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useAdminEdit } from "./admin-edit-context";
-import { Eye, EyeOff, Save, Rocket, LogOut, Loader2, History, Trash2, Clock } from "lucide-react";
+import { Eye, EyeOff, Save, Rocket, LogOut, Loader2, History, Trash2, Clock, Undo, Redo } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export function AdminBar() {
@@ -24,7 +24,12 @@ export function AdminBar() {
     deleteVersion,
     createVersionCheckpoint,
     autosaveStatus,
-    hasUnsavedEdits
+    hasUnsavedEdits,
+    undo,
+    redo,
+    canUndo,
+    canRedo,
+    statusMessage
   } = useAdminEdit();
 
   const [showHistory, setShowHistory] = useState(false);
@@ -38,17 +43,20 @@ export function AdminBar() {
       {/* Left section: status logo (hidden on small mobile screens to save space) */}
       <div className="hidden min-[440px]:flex items-center gap-2.5">
         <span className="inline-flex h-2 w-2 rounded-full bg-emerald-400 shrink-0 shadow-[0_0_10px_rgba(52,211,153,0.6)]" />
-        <span className="hidden sm:inline-block text-[0.62rem] font-bold uppercase tracking-[0.24em] text-porcelain/90">
+        <span className="hidden lg:inline-block text-[0.62rem] font-bold uppercase tracking-[0.24em] text-porcelain/90">
           Studio Treści
         </span>
-        <span className={cn(
-          "text-[0.58rem] font-semibold border-l border-white/10 pl-2.5 ml-0.5 transition-colors duration-300 uppercase tracking-wider",
-          autosaveStatus === "saving" && "text-amber-400 animate-pulse",
-          autosaveStatus === "saved" && "text-emerald-400",
-          autosaveStatus === "error" && "text-red-400 font-bold",
-          autosaveStatus === "idle" && hasUnsavedEdits && "text-amber-400/80",
-          autosaveStatus === "idle" && !hasUnsavedEdits && "text-white/40"
-        )}>
+        <span
+          className={cn(
+            "text-[0.58rem] font-semibold border-l border-white/10 pl-2.5 ml-0.5 transition-colors duration-300 uppercase tracking-wider",
+            autosaveStatus === "saving" && "text-amber-400 animate-pulse",
+            autosaveStatus === "saved" && "text-emerald-400",
+            autosaveStatus === "error" && "text-red-400 font-bold",
+            autosaveStatus === "idle" && hasUnsavedEdits && "text-amber-400/80",
+            autosaveStatus === "idle" && !hasUnsavedEdits && "text-white/40"
+          )}
+          title={autosaveStatus === "error" && statusMessage ? `Szczegóły błędu: ${statusMessage}` : undefined}
+        >
           {autosaveStatus === "saving" && "Zapisywanie..."}
           {autosaveStatus === "saved" && "Zapisano"}
           {autosaveStatus === "error" && "Błąd zapisu!"}
@@ -63,7 +71,8 @@ export function AdminBar() {
         {hasBackup && (
           <div className="flex items-center gap-1 bg-amber-500/10 border border-amber-500/25 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-full text-[0.62rem] font-bold text-amber-400 shrink-0">
             <Clock className="h-3 w-3 sm:hidden text-amber-400" />
-            <span className="hidden sm:inline">Kopia robocza</span>
+            <span className="hidden md:inline">Kopia robocza</span>
+            <span className="md:hidden">Kopia</span>
             <button
               type="button"
               onClick={restoreBackup}
@@ -99,8 +108,32 @@ export function AdminBar() {
           title={editMode ? "Wyłącz edycję" : "Włącz edycję"}
         >
           {editMode ? <Eye className="h-3.5 w-3.5 shrink-0" /> : <EyeOff className="h-3.5 w-3.5 shrink-0" />}
-          <span className="hidden sm:inline">{editMode ? "Edycja: Wł" : "Edycja: Wył"}</span>
+          <span className="hidden md:inline">{editMode ? "Edycja: Wł" : "Edycja: Wył"}</span>
         </button>
+
+        {/* Undo/Redo Buttons */}
+        {editMode && (
+          <div className="flex items-center gap-0.5 border-l border-white/10 pl-1.5 ml-0.5 shrink-0">
+            <button
+              type="button"
+              onClick={undo}
+              disabled={!canUndo}
+              className="flex h-8 w-8 items-center justify-center rounded-full hover:bg-white/10 text-white disabled:opacity-30 disabled:hover:bg-transparent transition-all cursor-pointer"
+              title="Cofnij ostatnią zmianę (Ctrl+Z)"
+            >
+              <Undo className="h-3.5 w-3.5" />
+            </button>
+            <button
+              type="button"
+              onClick={redo}
+              disabled={!canRedo}
+              className="flex h-8 w-8 items-center justify-center rounded-full hover:bg-white/10 text-white disabled:opacity-30 disabled:hover:bg-transparent transition-all cursor-pointer"
+              title="Ponów cofniętą zmianę (Ctrl+Y)"
+            >
+              <Redo className="h-3.5 w-3.5" />
+            </button>
+          </div>
+        )}
 
         {/* Preview Target selector - only when edit mode is OFF */}
         {!editMode && (
@@ -148,7 +181,7 @@ export function AdminBar() {
             ) : (
               <Save className="h-3.5 w-3.5" />
             )}
-            <span className="hidden sm:inline">Szkic</span>
+            <span className="hidden md:inline">Szkic</span>
           </button>
         )}
 
@@ -164,7 +197,7 @@ export function AdminBar() {
           title="Historia wersji"
         >
           <History className="h-3.5 w-3.5" />
-          <span className="hidden sm:inline">Wersje</span>
+          <span className="hidden md:inline">Wersje</span>
         </button>
 
         <button
@@ -182,7 +215,7 @@ export function AdminBar() {
           ) : (
             <Rocket className="h-3.5 w-3.5" />
           )}
-          <span className="hidden sm:inline">Publikuj</span>
+          <span className="hidden md:inline">Publikuj</span>
         </button>
 
         <button

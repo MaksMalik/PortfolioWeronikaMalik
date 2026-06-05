@@ -17,32 +17,52 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 
-function getEmbeddableUrl(url: string) {
+function getEmbeddableUrl(url: string, autoplay: boolean = false) {
+  let embedUrl = url;
   if (url.includes("youtube.com/watch")) {
     try {
       const videoId = new URL(url).searchParams.get("v");
-      return videoId ? `https://www.youtube.com/embed/${videoId}` : url;
+      embedUrl = videoId ? `https://www.youtube.com/embed/${videoId}` : url;
     } catch {
-      return url;
+      embedUrl = url;
+    }
+  } else if (url.includes("youtube.com/shorts/")) {
+    const videoId = url.split("youtube.com/shorts/")[1]?.split(/[?&/]/)[0];
+    embedUrl = videoId ? `https://www.youtube.com/embed/${videoId}` : url;
+  } else if (url.includes("youtu.be/")) {
+    const videoId = url.split("youtu.be/")[1]?.split(/[?&]/)[0];
+    embedUrl = videoId ? `https://www.youtube.com/embed/${videoId}` : url;
+  } else if (url.includes("vimeo.com/") && !url.includes("player.vimeo.com")) {
+    const videoId = url.split("vimeo.com/")[1]?.split(/[?&]/)[0];
+    embedUrl = videoId ? `https://player.vimeo.com/video/${videoId}` : url;
+  }
+
+  if (autoplay) {
+    if (embedUrl.includes("youtube.com/embed/")) {
+      embedUrl += (embedUrl.includes("?") ? "&" : "?") + "autoplay=1&mute=0&rel=0&modestbranding=1";
+    } else if (embedUrl.includes("player.vimeo.com/video/")) {
+      embedUrl += (embedUrl.includes("?") ? "&" : "?") + "autoplay=1&muted=0";
     }
   }
+  return embedUrl;
+}
 
+function getYoutubeVideoId(url: string) {
+  if (!url) return null;
+  if (url.includes("youtube.com/watch")) {
+    try {
+      return new URL(url).searchParams.get("v");
+    } catch {
+      return null;
+    }
+  }
   if (url.includes("youtube.com/shorts/")) {
-    const videoId = url.split("youtube.com/shorts/")[1]?.split(/[?&/]/)[0];
-    return videoId ? `https://www.youtube.com/embed/${videoId}` : url;
+    return url.split("youtube.com/shorts/")[1]?.split(/[?&/]/)[0] ?? null;
   }
-
   if (url.includes("youtu.be/")) {
-    const videoId = url.split("youtu.be/")[1]?.split(/[?&]/)[0];
-    return videoId ? `https://www.youtube.com/embed/${videoId}` : url;
+    return url.split("youtu.be/")[1]?.split(/[?&]/)[0] ?? null;
   }
-
-  if (url.includes("vimeo.com/") && !url.includes("player.vimeo.com")) {
-    const videoId = url.split("vimeo.com/")[1]?.split(/[?&]/)[0];
-    return videoId ? `https://player.vimeo.com/video/${videoId}` : url;
-  }
-
-  return url;
+  return null;
 }
 
 export function Showreel({ content: initialContent }: { content: ShowreelContent }) {
@@ -54,8 +74,21 @@ export function Showreel({ content: initialContent }: { content: ShowreelContent
   const [isUploading, setIsUploading] = useState(false);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
-  const videoUrl = useMemo(() => getEmbeddableUrl(content.videoUrl), [content.videoUrl]);
+  const videoUrl = useMemo(() => getEmbeddableUrl(content.videoUrl, true), [content.videoUrl]);
   const isMp4 = videoUrl.toLowerCase().endsWith(".mp4");
+
+  const ytId = getYoutubeVideoId(content.videoUrl);
+  const [ytThumbUrl, setYtThumbUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (content.youtubeThumbnailEnabled && ytId) {
+      setYtThumbUrl(`https://img.youtube.com/vi/${ytId}/maxresdefault.jpg`);
+    } else {
+      setYtThumbUrl(null);
+    }
+  }, [content.youtubeThumbnailEnabled, ytId]);
+
+  const thumbnailSrc = ytThumbUrl || content.thumbnail.src;
 
   useEffect(() => {
     if (!open) {
@@ -105,6 +138,8 @@ export function Showreel({ content: initialContent }: { content: ShowreelContent
         editMode && !isSectionEnabled && "opacity-60 border-2 border-dashed border-ink/15 bg-ink/[0.01]"
       )}
     >
+      <link rel="preconnect" href="https://www.youtube.com" crossOrigin="anonymous" />
+      <link rel="preconnect" href="https://img.youtube.com" crossOrigin="anonymous" />
       {/* Control overlay for Admin */}
       {editMode && (
         <div className="absolute top-6 right-4 z-20 flex items-center gap-2">
@@ -153,11 +188,16 @@ export function Showreel({ content: initialContent }: { content: ShowreelContent
               aria-label="Odtwórz showreel"
               disabled={editMode}
             >
-              {(content.thumbnail.src && content.thumbnail.enabled !== false) && (
+              {thumbnailSrc && (
                 <CinematicImage
-                  src={content.thumbnail.src}
+                  src={thumbnailSrc}
                   alt={content.thumbnail.alt}
                   className="absolute inset-0 rounded-3xl"
+                  onError={() => {
+                    if (ytThumbUrl && ytThumbUrl.includes("maxresdefault")) {
+                      setYtThumbUrl(`https://img.youtube.com/vi/${ytId}/hqdefault.jpg`);
+                    }
+                  }}
                 />
               )}
               <span className="absolute inset-0 bg-ink/0 transition-colors duration-700 group-hover:bg-ink/18" />
@@ -283,6 +323,26 @@ export function Showreel({ content: initialContent }: { content: ShowreelContent
               className="rounded-full text-xs font-mono"
             />
           </div>
+
+          {content.videoUrl && (content.videoUrl.includes("youtube.com") || content.videoUrl.includes("youtu.be")) && (
+            <div className="flex items-center justify-between p-3.5 border border-ink/10 rounded-2xl bg-white mt-1">
+              <div className="grid gap-0.5">
+                <Label htmlFor="showreel-yt-thumb" className="text-xs font-bold cursor-pointer">Automatyczna miniatura z YouTube</Label>
+                <span className="text-[0.62rem] text-ink/40">Pobiera okładkę bezpośrednio z filmu na YouTube</span>
+              </div>
+              <input
+                id="showreel-yt-thumb"
+                type="checkbox"
+                checked={!!content.youtubeThumbnailEnabled}
+                onChange={(e) =>
+                  updateContent((draft) => {
+                    draft.showreel.youtubeThumbnailEnabled = e.target.checked;
+                  })
+                }
+                className="h-4 w-4 rounded border-ink/10 text-ink focus:ring-ink cursor-pointer"
+              />
+            </div>
+          )}
 
           <div className="grid gap-1">
             <Label htmlFor="showreel-btn-text">Tekst przycisku</Label>
