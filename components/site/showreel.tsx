@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { CinematicImage } from "@/components/site/cinematic-image";
 import { MagneticButton } from "@/components/site/magnetic-button";
 import { ModalPortal } from "@/components/site/modal-portal";
-import { SectionReveal } from "@/components/site/section-reveal";
+import { RevealBlock, SectionReveal } from "@/components/site/section-reveal";
 import { useAdminEdit } from "@/components/admin/admin-edit-context";
 import { useBodyScrollLock } from "@/components/site/use-body-scroll-lock";
 import { uploadImageFile } from "@/lib/firebase/content";
@@ -176,7 +176,7 @@ export function Showreel({ content: initialContent }: { content: ShowreelContent
 
       <div className="section-shell">
         <div className="grid items-center gap-10 border-y border-ink/10 py-10 lg:grid-cols-[1.1fr_0.9fr]">
-          <div className="relative group aspect-video w-full rounded-3xl overflow-hidden shadow-editorial">
+          <RevealBlock className="relative group aspect-video w-full rounded-3xl overflow-hidden shadow-editorial" x={-28} y={22}>
             <button
               type="button"
               className="absolute inset-0 h-full w-full text-left cursor-pointer"
@@ -203,37 +203,21 @@ export function Showreel({ content: initialContent }: { content: ShowreelContent
                 </span>
               )}
             </button>
-
-            {editMode && (
-              <label className="absolute inset-0 z-30 flex flex-col items-center justify-center bg-ink/40 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300 cursor-pointer">
-                {isUploading ? (
-                  <Loader2 className="h-8 w-8 animate-spin" />
-                ) : (
-                  <>
-                    <Upload className="h-8 w-8 mb-2" />
-                    <span className="text-xs font-bold uppercase tracking-[0.12em]">
-                      Zmień miniaturę wideo
-                    </span>
-                  </>
-                )}
-                <input
-                  type="file"
-                  accept="image/*"
-                  className="sr-only"
-                  onChange={handleImageUpload}
-                  disabled={isUploading}
-                />
-              </label>
-            )}
-          </div>
+          </RevealBlock>
 
           <div className="max-w-xl lg:pl-8 space-y-6">
-            <span className="eyebrow">{content.eyebrow}</span>
-            <h2 className="mt-5 font-serif text-5xl font-medium leading-none text-ink sm:text-7xl">
-              {content.title}
-            </h2>
-            <p className="mt-6 text-lg leading-8 text-graphite/75">{content.description}</p>
-            <div className="mt-9">
+            <RevealBlock delay={0.08} y={18}>
+              <span className="eyebrow">{content.eyebrow}</span>
+            </RevealBlock>
+            <RevealBlock delay={0.16}>
+              <h2 className="mt-5 font-serif text-5xl font-medium leading-none text-ink sm:text-7xl">
+                {content.title}
+              </h2>
+            </RevealBlock>
+            <RevealBlock delay={0.25}>
+              <p className="mt-6 text-lg leading-8 text-graphite/75">{content.description}</p>
+            </RevealBlock>
+            <RevealBlock delay={0.34} className="mt-9">
               <MagneticButton
                 onClick={() => {
                   setIsVideoLoading(true);
@@ -242,7 +226,7 @@ export function Showreel({ content: initialContent }: { content: ShowreelContent
               >
                 {content.buttonText}
               </MagneticButton>
-            </div>
+            </RevealBlock>
           </div>
         </div>
       </div>
@@ -344,6 +328,46 @@ export function Showreel({ content: initialContent }: { content: ShowreelContent
               />
             </div>
           )}
+
+          <div className="grid gap-3 rounded-2xl border border-ink/10 bg-white p-4">
+            <Label className="text-xs font-bold uppercase tracking-[0.1em] text-ink/40">
+              Miniatura wideo
+            </Label>
+            <div className="grid grid-cols-[112px_1fr] items-center gap-4">
+              <div className="aspect-video overflow-hidden rounded-xl border border-ink/10 bg-porcelain">
+                {thumbnailSrc && (
+                  <img src={thumbnailSrc} alt="" className="h-full w-full object-cover" />
+                )}
+              </div>
+              <div className="grid gap-2">
+                <label className="inline-flex h-9 w-fit cursor-pointer items-center justify-center gap-2 rounded-full border border-ink/15 bg-white px-4 text-xs font-bold uppercase tracking-[0.12em] text-ink/65 transition-colors hover:border-ink hover:text-ink">
+                  {isUploading ? (
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  ) : (
+                    <Upload className="h-3.5 w-3.5" />
+                  )}
+                  Zmień miniaturę
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="sr-only"
+                    onChange={handleImageUpload}
+                    disabled={isUploading}
+                  />
+                </label>
+                <Input
+                  value={content.thumbnail.alt}
+                  onChange={(e) =>
+                    updateContent((draft) => {
+                      draft.showreel.thumbnail.alt = e.target.value;
+                    })
+                  }
+                  placeholder="Opis alternatywny"
+                  className="h-8 rounded-full text-xs"
+                />
+              </div>
+            </div>
+          </div>
 
           <div className="grid gap-1">
             <Label htmlFor="showreel-btn-text">Tekst przycisku</Label>

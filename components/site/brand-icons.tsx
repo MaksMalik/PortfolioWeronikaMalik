@@ -9,7 +9,7 @@ export function FilmwebMark({ className }: { className?: string }) {
   return (
     <span
       className={cn(
-        "inline-flex h-4 w-4 shrink-0 items-center justify-center overflow-hidden rounded-[3px] bg-[#ECB014]",
+        "inline-flex h-4 w-4 shrink-0 items-center justify-center overflow-hidden rounded-[3px] bg-white",
         className
       )}
       aria-hidden="true"
@@ -17,7 +17,7 @@ export function FilmwebMark({ className }: { className?: string }) {
       <img
         src={FILMWEB_ICON_URL}
         alt=""
-        className="h-full w-full object-cover"
+        className="h-full w-full object-cover grayscale transition-[filter] duration-500 ease-out group-hover:grayscale-0"
         loading="lazy"
         referrerPolicy="no-referrer"
       />

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useAdminEdit } from "./admin-edit-context";
-import { Eye, EyeOff, Save, Rocket, LogOut, Loader2, History, Trash2, Clock, Undo, Redo } from "lucide-react";
+import { Eye, EyeOff, Save, Rocket, LogOut, Loader2, History, Trash2, Clock, Undo, Redo, RotateCcw, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export function AdminBar() {
@@ -40,20 +40,26 @@ export function AdminBar() {
   }
 
   return (
-    <div className="no-scrollbar fixed bottom-3 left-1/2 z-[70] flex min-h-12 w-[calc(100%-1rem)] max-w-4xl -translate-x-1/2 flex-nowrap items-center justify-start gap-1.5 overflow-x-auto rounded-2xl border border-white/10 bg-ink/94 px-2 py-2 text-white shadow-[0_16px_50px_rgba(0,0,0,0.35)] backdrop-blur-xl transition-all duration-300 select-none sm:bottom-4 sm:justify-between sm:gap-2 sm:rounded-full sm:px-3">
-      {/* Left section: status logo (hidden on small mobile screens to save space) */}
-      <div className="hidden items-center gap-2.5 lg:flex">
-        <span className="inline-flex h-2 w-2 rounded-full bg-emerald-400 shrink-0 shadow-[0_0_10px_rgba(52,211,153,0.6)]" />
-        <span className="hidden lg:inline-block text-[0.62rem] font-bold uppercase tracking-[0.24em] text-porcelain/90">
-          Studio Treści
-        </span>
+    <div className="no-scrollbar fixed bottom-2 left-1/2 z-[70] flex min-h-10 w-[calc(100%-0.75rem)] max-w-3xl -translate-x-1/2 flex-nowrap items-center justify-center gap-1 overflow-x-auto rounded-2xl border border-white/10 bg-ink/94 px-1.5 py-1.5 text-white shadow-[0_16px_50px_rgba(0,0,0,0.35)] backdrop-blur-xl transition-all duration-300 select-none sm:bottom-4 sm:min-h-11 sm:gap-1.5 sm:rounded-full sm:px-2">
+      {/* Left section: compact save status */}
+      <div className="hidden items-center gap-1.5 md:flex">
         <span
           className={cn(
-            "text-[0.58rem] font-semibold border-l border-white/10 pl-2.5 ml-0.5 transition-colors duration-300 uppercase tracking-wider",
-            autosaveStatus === "saving" && "text-amber-400 animate-pulse",
+            "inline-flex h-2 w-2 shrink-0 rounded-full",
+            autosaveStatus === "saving" && "bg-amber-400 shadow-[0_0_10px_rgba(251,191,36,0.55)]",
+            autosaveStatus === "saved" && "bg-emerald-400 shadow-[0_0_10px_rgba(52,211,153,0.55)]",
+            autosaveStatus === "error" && "bg-red-400 shadow-[0_0_10px_rgba(248,113,113,0.55)]",
+            autosaveStatus === "idle" && hasUnsavedEdits && "bg-amber-400",
+            autosaveStatus === "idle" && !hasUnsavedEdits && "bg-white/35"
+          )}
+        />
+        <span
+          className={cn(
+            "hidden text-[0.58rem] font-semibold uppercase tracking-wider transition-colors duration-300 lg:inline",
+            autosaveStatus === "saving" && "text-amber-200 animate-pulse",
             autosaveStatus === "saved" && "text-emerald-400",
             autosaveStatus === "error" && "text-red-400 font-bold",
-            autosaveStatus === "idle" && hasUnsavedEdits && "text-amber-400/80",
+            autosaveStatus === "idle" && hasUnsavedEdits && "text-amber-200",
             autosaveStatus === "idle" && !hasUnsavedEdits && "text-white/40"
           )}
           title={autosaveStatus === "error" && statusMessage ? `Szczegóły błędu: ${statusMessage}` : undefined}
@@ -70,23 +76,24 @@ export function AdminBar() {
       <div className="flex items-center gap-1.5">
         {/* Autosave recovery notification */}
         {hasBackup && (
-          <div className="flex items-center gap-1 bg-amber-500/10 border border-amber-500/25 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-full text-[0.62rem] font-bold text-amber-400 shrink-0">
-            <Clock className="h-3 w-3 sm:hidden text-amber-400" />
-            <span className="hidden md:inline">Kopia robocza</span>
-            <span className="md:hidden">Kopia</span>
+          <div className="flex shrink-0 items-center gap-0.5 rounded-full border border-white/10 bg-white/5 p-0.5 text-[0.62rem] font-bold text-white/70">
+            <Clock className="ml-1 h-3 w-3 text-white/45" />
             <button
               type="button"
               onClick={restoreBackup}
-              className="underline hover:text-white cursor-pointer ml-1 font-extrabold uppercase text-[0.58rem]"
+              className="inline-flex h-7 items-center justify-center gap-1 rounded-full px-2 text-[0.58rem] font-extrabold uppercase tracking-[0.08em] text-white/80 transition-colors hover:bg-white/10 hover:text-white"
+              title="Przywróć kopię roboczą"
             >
-              Przywróć
+              <RotateCcw className="h-3 w-3" />
+              <span className="hidden sm:inline">Przywróć</span>
             </button>
             <button
               type="button"
               onClick={clearBackup}
-              className="underline hover:text-white cursor-pointer ml-1 text-white/50 text-[0.58rem]"
+              className="inline-flex h-7 w-7 items-center justify-center rounded-full text-white/45 transition-colors hover:bg-white/10 hover:text-white"
+              title="Odrzuć kopię roboczą"
             >
-              Odrzuć
+              <X className="h-3.5 w-3.5" />
             </button>
           </div>
         )}

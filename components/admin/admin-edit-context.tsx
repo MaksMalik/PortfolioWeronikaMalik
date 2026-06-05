@@ -240,6 +240,18 @@ export function AdminEditProvider({ children }: { children: React.ReactNode }) {
     return () => clearTimeout(timer);
   }, [content, hasUnsavedEdits, editMode, isAdmin]);
 
+  useEffect(() => {
+    if (!hasUnsavedEdits || !editMode || !isAdmin) return;
+
+    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+      event.preventDefault();
+      event.returnValue = "";
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+  }, [hasUnsavedEdits, editMode, isAdmin]);
+
   // Immediate Save helper
   const triggerImmediateSave = async (currentContent: SiteContent) => {
     if (!hasUnsavedEdits) return;

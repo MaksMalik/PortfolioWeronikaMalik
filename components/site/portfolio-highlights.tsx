@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { FilmwebMark } from "@/components/site/brand-icons";
 import { CinematicImage } from "@/components/site/cinematic-image";
 import { ModalPortal } from "@/components/site/modal-portal";
-import { SectionHeading, SectionReveal } from "@/components/site/section-reveal";
+import { RevealBlock, SectionHeading, SectionReveal } from "@/components/site/section-reveal";
 import { useAdminEdit } from "@/components/admin/admin-edit-context";
 import { AdminDrawer } from "@/components/admin/admin-drawer";
 import { useBodyScrollLock } from "@/components/site/use-body-scroll-lock";
@@ -262,16 +262,17 @@ export function PortfolioHighlights({ projects: initialProjects }: { projects: P
           />
         </div>
 
-        <div className="relative mt-12">
+        <RevealBlock className="relative mt-12" delay={0.12}>
           {visibleProjects.length > 1 && (
-            <div className="pointer-events-none absolute inset-y-0 left-0 right-0 z-10 hidden items-center justify-between px-2 md:flex">
+            <div className="pointer-events-none absolute inset-y-0 left-0 right-0 z-10 hidden md:block">
               <AnimatePresence initial={false}>
                 {canScrollPrev && (
                   <motion.div
                     key="portfolio-prev"
-                    initial={{ opacity: 0, x: -12, scale: 0.92 }}
-                    animate={{ opacity: 1, x: 0, scale: 1 }}
-                    exit={{ opacity: 0, x: -12, scale: 0.92 }}
+                    className="absolute left-2 top-1/2 -translate-y-1/2"
+                    initial={{ opacity: 0, x: -12, y: "-50%", scale: 0.92 }}
+                    animate={{ opacity: 1, x: 0, scale: 1, y: "-50%" }}
+                    exit={{ opacity: 0, x: -12, y: "-50%", scale: 0.92 }}
                     transition={{ duration: 0.25, ease: "easeOut" }}
                   >
                     <Button
@@ -291,9 +292,10 @@ export function PortfolioHighlights({ projects: initialProjects }: { projects: P
                 {canScrollNext && (
                   <motion.div
                     key="portfolio-next"
-                    initial={{ opacity: 0, x: 12, scale: 0.92 }}
-                    animate={{ opacity: 1, x: 0, scale: 1 }}
-                    exit={{ opacity: 0, x: 12, scale: 0.92 }}
+                    className="absolute right-2 top-1/2 -translate-y-1/2"
+                    initial={{ opacity: 0, x: 12, y: "-50%", scale: 0.92 }}
+                    animate={{ opacity: 1, x: 0, scale: 1, y: "-50%" }}
+                    exit={{ opacity: 0, x: 12, y: "-50%", scale: 0.92 }}
                     transition={{ duration: 0.25, ease: "easeOut" }}
                   >
                     <Button
@@ -334,9 +336,7 @@ export function PortfolioHighlights({ projects: initialProjects }: { projects: P
                       return;
                     }
 
-                    if (!editMode) {
-                      setActiveProject(project);
-                    }
+                    setActiveProject(project);
                   }}
                   aria-label={`Czytaj więcej o roli ${project.title}`}
                   initial={{ opacity: 0, y: 12 }}
@@ -381,7 +381,7 @@ export function PortfolioHighlights({ projects: initialProjects }: { projects: P
               </div>
             ))}
           </div>
-        </div>
+        </RevealBlock>
       </div>
 
       {/* Section Settings Drawer */}
@@ -798,7 +798,7 @@ export function PortfolioHighlights({ projects: initialProjects }: { projects: P
                       {activeProject.linkUrl && (
                         <Button
                           asChild
-                          className="mt-8 h-auto w-fit rounded-full border border-ink bg-white px-6 py-3.5 text-xs font-bold uppercase tracking-[0.16em] text-ink transition-colors hover:bg-ink hover:text-white"
+                          className="group mt-8 h-auto w-fit rounded-full border border-ink bg-white px-6 py-3.5 text-xs font-bold uppercase tracking-[0.16em] text-ink transition-colors hover:!bg-ink hover:!text-white"
                         >
                           <a
                             href={activeProject.linkUrl}

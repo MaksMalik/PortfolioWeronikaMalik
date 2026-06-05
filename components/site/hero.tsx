@@ -117,27 +117,6 @@ export function Hero({ content: initialContent }: { content: HeroContent }) {
                 alt={content.image.alt}
                 className="h-full rounded-t-full border border-ink/10 shadow-editorial"
               />
-              {editMode && (
-                <label className="absolute inset-0 z-30 flex flex-col items-center justify-center bg-ink/40 text-white rounded-t-full opacity-0 group-hover:opacity-100 transition-opacity duration-300 cursor-pointer">
-                  {isUploading ? (
-                    <Loader2 className="h-8 w-8 animate-spin" />
-                  ) : (
-                    <>
-                      <Upload className="h-8 w-8 mb-2" />
-                      <span className="text-xs font-bold uppercase tracking-[0.12em]">
-                        Zmień zdjęcie
-                      </span>
-                    </>
-                  )}
-                  <input
-                    type="file"
-                    accept="image/*"
-                    className="sr-only"
-                    onChange={handleImageUpload}
-                    disabled={isUploading}
-                  />
-                </label>
-              )}
             </div>
           </motion.div>
         )}
@@ -243,6 +222,46 @@ export function Hero({ content: initialContent }: { content: HeroContent }) {
               }
               className="rounded-full"
             />
+          </div>
+
+          <div className="grid gap-3 rounded-2xl border border-ink/10 bg-white p-4">
+            <Label className="text-xs font-bold uppercase tracking-[0.1em] text-ink/40">
+              Zdjęcie główne
+            </Label>
+            <div className="grid grid-cols-[92px_1fr] items-center gap-4">
+              <div className="aspect-[3/4] overflow-hidden rounded-t-full border border-ink/10 bg-porcelain">
+                {content.image.src && (
+                  <img src={content.image.src} alt="" className="h-full w-full object-cover" />
+                )}
+              </div>
+              <div className="grid gap-2">
+                <label className="inline-flex h-9 w-fit cursor-pointer items-center justify-center gap-2 rounded-full border border-ink/15 bg-white px-4 text-xs font-bold uppercase tracking-[0.12em] text-ink/65 transition-colors hover:border-ink hover:text-ink">
+                  {isUploading ? (
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  ) : (
+                    <Upload className="h-3.5 w-3.5" />
+                  )}
+                  Zmień zdjęcie
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="sr-only"
+                    onChange={handleImageUpload}
+                    disabled={isUploading}
+                  />
+                </label>
+                <Input
+                  value={content.image.alt}
+                  onChange={(e) =>
+                    updateContent((draft) => {
+                      draft.hero.image.alt = e.target.value;
+                    })
+                  }
+                  placeholder="Opis alternatywny"
+                  className="h-8 rounded-full text-xs"
+                />
+              </div>
+            </div>
           </div>
 
           <div className="grid gap-1">

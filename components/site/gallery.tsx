@@ -7,7 +7,7 @@ import type { GallerySession, SiteImage } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { CinematicImage } from "@/components/site/cinematic-image";
 import { ModalPortal } from "@/components/site/modal-portal";
-import { SectionHeading, SectionReveal } from "@/components/site/section-reveal";
+import { RevealBlock, SectionHeading, SectionReveal } from "@/components/site/section-reveal";
 import { useAdminEdit } from "@/components/admin/admin-edit-context";
 import { AdminDrawer } from "@/components/admin/admin-drawer";
 import { useBodyScrollLock } from "@/components/site/use-body-scroll-lock";
@@ -325,21 +325,24 @@ export function Gallery({ sessions: initialSessions }: { sessions: GallerySessio
             eyebrow={globalContent.sections.gallery.eyebrow ?? "galeria"}
             title={globalContent.sections.gallery.title ?? "Sesje zdjęciowe"}
           />
-          <p className="max-w-sm text-sm leading-7 text-ink/55">
-            {globalContent.sections.gallery.description ?? "Editorialowe portrety, kadry i fragmenty pracy przed obiektywem."}
-          </p>
+          <RevealBlock delay={0.14} x={24} y={18}>
+            <p className="max-w-sm text-sm leading-7 text-ink/55">
+              {globalContent.sections.gallery.description ?? "Editorialowe portrety, kadry i fragmenty pracy przed obiektywem."}
+            </p>
+          </RevealBlock>
         </div>
 
-        <div className="relative mt-12">
+        <RevealBlock className="relative mt-12" delay={0.12}>
           {visibleSessions.length > 1 && (
-            <div className="pointer-events-none absolute inset-y-0 left-0 right-0 z-10 hidden items-center justify-between px-2 md:flex">
+            <div className="pointer-events-none absolute inset-y-0 left-0 right-0 z-10 hidden md:block">
               <AnimatePresence initial={false}>
                 {canScrollPrev && (
                   <motion.div
                     key="gallery-prev"
-                    initial={{ opacity: 0, x: -12, scale: 0.92 }}
-                    animate={{ opacity: 1, x: 0, scale: 1 }}
-                    exit={{ opacity: 0, x: -12, scale: 0.92 }}
+                    className="absolute left-2 top-1/2 -translate-y-1/2"
+                    initial={{ opacity: 0, x: -12, y: "-50%", scale: 0.92 }}
+                    animate={{ opacity: 1, x: 0, scale: 1, y: "-50%" }}
+                    exit={{ opacity: 0, x: -12, y: "-50%", scale: 0.92 }}
                     transition={{ duration: 0.25, ease: "easeOut" }}
                   >
                     <Button
@@ -359,9 +362,10 @@ export function Gallery({ sessions: initialSessions }: { sessions: GallerySessio
                 {canScrollNext && (
                   <motion.div
                     key="gallery-next"
-                    initial={{ opacity: 0, x: 12, scale: 0.92 }}
-                    animate={{ opacity: 1, x: 0, scale: 1 }}
-                    exit={{ opacity: 0, x: 12, scale: 0.92 }}
+                    className="absolute right-2 top-1/2 -translate-y-1/2"
+                    initial={{ opacity: 0, x: 12, y: "-50%", scale: 0.92 }}
+                    animate={{ opacity: 1, x: 0, scale: 1, y: "-50%" }}
+                    exit={{ opacity: 0, x: 12, y: "-50%", scale: 0.92 }}
                     transition={{ duration: 0.25, ease: "easeOut" }}
                   >
                     <Button
@@ -404,10 +408,8 @@ export function Gallery({ sessions: initialSessions }: { sessions: GallerySessio
                         return;
                       }
 
-                      if (!editMode) {
-                        setSessionDirection(1);
-                        setActiveIndex(index);
-                      }
+                      setSessionDirection(1);
+                      setActiveIndex(index);
                     }}
                     aria-label={`Otwórz sesję ${session.title}`}
                     initial={{ opacity: 0, y: 12 }}
@@ -454,7 +456,7 @@ export function Gallery({ sessions: initialSessions }: { sessions: GallerySessio
               );
             })}
           </div>
-        </div>
+        </RevealBlock>
       </div>
 
       {/* Section Settings Drawer */}

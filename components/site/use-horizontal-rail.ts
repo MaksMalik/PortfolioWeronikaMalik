@@ -16,8 +16,11 @@ type DragState = {
   startX: number;
 };
 
+const DRAG_THRESHOLD = 12;
+
 export function useHorizontalRail() {
   const railRef = useRef<HTMLDivElement>(null);
+  const scrollFrameRef = useRef<number | null>(null);
   const dragState = useRef<DragState>({
     active: false,
     didDrag: false,
@@ -45,7 +48,14 @@ export function useHorizontalRail() {
     if (!rail) return;
 
     updateScrollState();
-    const handleScroll = () => updateScrollState();
+    const handleScroll = () => {
+      if (scrollFrameRef.current !== null) return;
+
+      scrollFrameRef.current = window.requestAnimationFrame(() => {
+        scrollFrameRef.current = null;
+        updateScrollState();
+      });
+    };
     rail.addEventListener("scroll", handleScroll, { passive: true });
 
     const resizeObserver = new ResizeObserver(updateScrollState);
@@ -56,6 +66,10 @@ export function useHorizontalRail() {
 
     return () => {
       window.clearTimeout(timer);
+      if (scrollFrameRef.current !== null) {
+        window.cancelAnimationFrame(scrollFrameRef.current);
+        scrollFrameRef.current = null;
+      }
       rail.removeEventListener("scroll", handleScroll);
       resizeObserver.disconnect();
       window.removeEventListener("resize", updateScrollState);
@@ -100,44 +114,49 @@ export function useHorizontalRail() {
       if (!rail || !state.active) return;
 
       const deltaX = event.clientX - state.startX;
-      if (Math.abs(deltaX) > 5) {
-        state.didDrag = true;
-        rail.scrollLeft = state.scrollLeft - deltaX;
-        updateScrollState();
-        event.preventDefault();
+      if (Math.abs(deltaX) <= DRAG_THRESHOLD) {
+        return;
       }
+
+      state.didDrag = true;
+      rail.scrollLeft = state.scrollLeft - deltaX;
+      event.preventDefault();
+    },
+    []
+  );
+
+  const endPointerDrag = useCallback(
+    (event: ReactPointerEvent<HTMLDivElement>) => {
+      const state = dragState.current;
+      if (!state.active) return;
+
+      if (state.didDrag) {
+        ignoreClickRef.current = true;
+        window.setTimeout(() => {
+          ignoreClickRef.current = false;
+        }, 180);
+      }
+
+      try {
+        if (state.pointerId !== null) {
+          event.currentTarget.releasePointerCapture(state.pointerId);
+        }
+      } catch {
+        // The pointer may already be released by the browser.
+      }
+
+      dragState.current = {
+        active: false,
+        didDrag: false,
+        pointerId: null,
+        scrollLeft: 0,
+        startX: 0
+      };
+      setIsDragging(false);
+      updateScrollState();
     },
     [updateScrollState]
   );
-
-  const endPointerDrag = useCallback((event: ReactPointerEvent<HTMLDivElement>) => {
-    const state = dragState.current;
-    if (!state.active) return;
-
-    if (state.didDrag) {
-      ignoreClickRef.current = true;
-      window.setTimeout(() => {
-        ignoreClickRef.current = false;
-      }, 0);
-    }
-
-    try {
-      if (state.pointerId !== null) {
-        event.currentTarget.releasePointerCapture(state.pointerId);
-      }
-    } catch {
-      // The pointer may already be released by the browser.
-    }
-
-    dragState.current = {
-      active: false,
-      didDrag: false,
-      pointerId: null,
-      scrollLeft: 0,
-      startX: 0
-    };
-    setIsDragging(false);
-  }, []);
 
   const shouldIgnoreRailClick = useCallback(() => {
     if (!ignoreClickRef.current) {

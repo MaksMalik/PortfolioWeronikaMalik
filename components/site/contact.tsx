@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { FilmwebMark } from "@/components/site/brand-icons";
-import { SectionHeading, SectionReveal } from "@/components/site/section-reveal";
+import { RevealBlock, SectionHeading, SectionReveal } from "@/components/site/section-reveal";
 import { useAdminEdit } from "@/components/admin/admin-edit-context";
 import { createId, cn } from "@/lib/utils";
 import { AdminDrawer } from "@/components/admin/admin-drawer";
@@ -173,25 +173,31 @@ export function Contact({ content: initialContent }: { content: ContactContent }
           <div className="flex flex-col justify-between">
             <div>
               <SectionHeading eyebrow={content.eyebrow} title={content.heading} />
-              <p className="mt-7 max-w-xl whitespace-pre-wrap text-base leading-8 text-graphite/75 sm:text-lg">
-                {content.intro}
-              </p>
+              <RevealBlock delay={0.12}>
+                <p className="mt-7 max-w-xl whitespace-pre-wrap text-base leading-8 text-graphite/75 sm:text-lg">
+                  {content.intro}
+                </p>
+              </RevealBlock>
             </div>
 
             {/* Social Links List */}
             <div className="mt-10 grid gap-2 sm:grid-cols-3 lg:max-w-xl">
-              {content.socials.filter((social) => social.enabled).map((social) => (
-                <a
+              {content.socials.filter((social) => social.enabled).map((social, index) => (
+                <motion.a
                   key={social.id}
                   href={social.url}
                   target="_blank"
                   rel="noreferrer"
                   className="group inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-full border border-ink/12 bg-white px-4 py-2.5 text-[0.68rem] font-bold uppercase tracking-[0.16em] text-ink/65 transition-all hover:border-ink hover:text-ink hover:shadow-sm"
+                  initial={{ opacity: 0, y: 18 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, amount: 0.35, margin: "0px 0px -10% 0px" }}
+                  transition={{ delay: 0.18 + index * 0.07, duration: 0.62, ease: [0.22, 1, 0.36, 1] }}
                 >
                   {socialIcon(social.label)}
                   {social.label}
                   <ExternalLink className="h-3.5 w-3.5 opacity-60 group-hover:opacity-100 transition-opacity" />
-                </a>
+                </motion.a>
               ))}
             </div>
           </div>
@@ -199,7 +205,7 @@ export function Contact({ content: initialContent }: { content: ContactContent }
           <div className="flex flex-col justify-center space-y-8 lg:border-l lg:border-ink/10 lg:pl-14">
             <div className="space-y-7">
               {content.email && (
-                <div className="group/item">
+                <RevealBlock delay={0.08} x={24} y={18} className="group/item">
                   <span className="text-[0.62rem] font-bold uppercase tracking-[0.2em] text-ink/40 block mb-1">
                     Napisz bezpośrednio
                   </span>
@@ -210,11 +216,11 @@ export function Contact({ content: initialContent }: { content: ContactContent }
                     {content.email}
                     <Mail className="h-4.5 w-4.5 text-ink/40 group-hover/item:translate-x-1 transition-transform" />
                   </a>
-                </div>
+                </RevealBlock>
               )}
 
               {content.phone && (
-                <div className="group/item">
+                <RevealBlock delay={0.16} x={24} y={18} className="group/item">
                   <span className="text-[0.62rem] font-bold uppercase tracking-[0.2em] text-ink/40 block mb-1">
                     Zadzwoń
                   </span>
@@ -225,11 +231,11 @@ export function Contact({ content: initialContent }: { content: ContactContent }
                     {content.phone}
                     <Phone className="h-4.5 w-4.5 text-ink/40 group-hover/item:translate-x-1 transition-transform" />
                   </a>
-                </div>
+                </RevealBlock>
               )}
 
               {content.location && (
-                <div>
+                <RevealBlock delay={0.24} x={24} y={18}>
                   <span className="text-[0.62rem] font-bold uppercase tracking-[0.2em] text-ink/40 block mb-1">
                     Baza / Lokalizacja
                   </span>
@@ -237,19 +243,19 @@ export function Contact({ content: initialContent }: { content: ContactContent }
                     {content.location}
                     <MapPin className="h-4.5 w-4.5 text-ink/40" />
                   </p>
-                </div>
+                </RevealBlock>
               )}
             </div>
 
             {content.representation && (
-              <div className="relative overflow-hidden rounded-lg border border-ink/10 bg-white p-5 shadow-sm sm:p-6">
+              <RevealBlock delay={0.32} x={24} y={18} className="relative overflow-hidden rounded-lg border border-ink/10 bg-white p-5 shadow-sm sm:p-6">
                 <span className="text-[0.62rem] font-bold uppercase tracking-[0.2em] text-ink/40 block mb-2">
                   Reprezentacja / Agent
                 </span>
                 <h4 className="font-serif text-2xl font-medium text-ink sm:text-3xl">
                   {content.representation}
                 </h4>
-              </div>
+              </RevealBlock>
             )}
           </div>
         </div>

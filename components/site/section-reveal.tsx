@@ -1,13 +1,16 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 
 type SectionRevealProps = {
-  children: React.ReactNode;
+  children: ReactNode;
   className?: string;
   id?: string;
 };
+
+const revealEase = [0.22, 1, 0.36, 1] as const;
 
 export function SectionReveal({ children, className, id }: SectionRevealProps) {
   return (
@@ -16,11 +19,39 @@ export function SectionReveal({ children, className, id }: SectionRevealProps) {
       className={className}
       initial={{ opacity: 0, y: 24 }}
       whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, amount: 0.2 }}
-      transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
+      viewport={{ once: true, amount: 0.18, margin: "0px 0px -8% 0px" }}
+      transition={{ duration: 0.9, ease: revealEase }}
     >
       {children}
     </motion.section>
+  );
+}
+
+export function RevealBlock({
+  children,
+  className,
+  delay = 0,
+  x = 0,
+  y = 28,
+  amount = 0.22
+}: {
+  children: ReactNode;
+  className?: string;
+  delay?: number;
+  x?: number;
+  y?: number;
+  amount?: number;
+}) {
+  return (
+    <motion.div
+      className={className}
+      initial={{ opacity: 0, x, y }}
+      whileInView={{ opacity: 1, x: 0, y: 0 }}
+      viewport={{ once: true, amount, margin: "0px 0px -10% 0px" }}
+      transition={{ delay, duration: 0.82, ease: revealEase }}
+    >
+      {children}
+    </motion.div>
   );
 }
 
@@ -36,19 +67,44 @@ export function SectionHeading({
   className?: string;
 }) {
   return (
-    <div
+    <motion.div
       className={cn(
         "space-y-4",
         align === "center" && "mx-auto max-w-3xl text-center",
         className
       )}
+      initial="hidden"
+      whileInView="visible"
+      viewport={{ once: true, amount: 0.45, margin: "0px 0px -10% 0px" }}
+      variants={{
+        hidden: {},
+        visible: {
+          transition: {
+            staggerChildren: 0.12
+          }
+        }
+      }}
     >
-      <span className={cn("eyebrow", align === "center" && "justify-center")}>
+      <motion.span
+        className={cn("eyebrow", align === "center" && "justify-center")}
+        variants={{
+          hidden: { opacity: 0, x: align === "center" ? 0 : -22, y: 10 },
+          visible: { opacity: 1, x: 0, y: 0 }
+        }}
+        transition={{ duration: 0.72, ease: revealEase }}
+      >
         {eyebrow}
-      </span>
-      <h2 className="font-serif text-5xl font-medium leading-none text-ink sm:text-6xl lg:text-7xl">
+      </motion.span>
+      <motion.h2
+        className="font-serif text-5xl font-medium leading-none text-ink sm:text-6xl lg:text-7xl"
+        variants={{
+          hidden: { opacity: 0, y: 34 },
+          visible: { opacity: 1, y: 0 }
+        }}
+        transition={{ duration: 0.92, ease: revealEase }}
+      >
         {title}
-      </h2>
-    </div>
+      </motion.h2>
+    </motion.div>
   );
 }
