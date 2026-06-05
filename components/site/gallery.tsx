@@ -38,7 +38,7 @@ export function Gallery({ sessions: initialSessions }: { sessions: GallerySessio
   const sessions = editMode ? globalContent.gallery : initialSessions;
   const visibleSessions = sessions.filter((session) => editMode || session.enabled);
 
-  const [activeIndex, setActiveIndex] = useState<number | null>(null);
+  const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
   const [activeImage, setActiveImage] = useState<SiteImage | null>(null);
   const [editingSession, setEditingSession] = useState<GallerySession | null>(null);
   const [isSectionDrawerOpen, setIsSectionDrawerOpen] = useState(false);
@@ -57,7 +57,7 @@ export function Gallery({ sessions: initialSessions }: { sessions: GallerySessio
     updateScrollState
   } = useHorizontalRail();
 
-  const activeSession = activeIndex !== null ? sessions[activeIndex] : null;
+  const activeSession = activeSessionId !== null ? sessions.find(s => s.id === activeSessionId) ?? null : null;
 
   // Touch Swipe coordinates
   const touchStart = useRef<number | null>(null);
@@ -90,11 +90,11 @@ export function Gallery({ sessions: initialSessions }: { sessions: GallerySessio
   useBodyScrollLock(activeSession !== null || activeImage !== null);
 
   useEffect(() => {
-    if (activeIndex === null) return;
+    if (activeSessionId === null) return;
 
     const handleKey = (event: KeyboardEvent) => {
       if (event.key === "Escape" && !activeImage) {
-        setActiveIndex(null);
+        setActiveSessionId(null);
       } else if (event.key === "Escape" && activeImage) {
         setActiveImage(null);
       } else if (event.key === "ArrowLeft" && activeImage) {
@@ -106,7 +106,7 @@ export function Gallery({ sessions: initialSessions }: { sessions: GallerySessio
 
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
-  }, [activeIndex, activeImage, navigateImage]);
+  }, [activeSessionId, activeImage, navigateImage]);
 
   useEffect(() => {
     updateScrollState();
@@ -249,11 +249,12 @@ export function Gallery({ sessions: initialSessions }: { sessions: GallerySessio
 
   const goTo = (direction: "next" | "prev") => {
     if (sessions.length <= 1) return;
-    let nextIdx = (activeIndex ?? 0) + (direction === "next" ? 1 : -1);
+    const currentIdx = sessions.findIndex(s => s.id === activeSessionId);
+    let nextIdx = currentIdx + (direction === "next" ? 1 : -1);
     if (nextIdx >= sessions.length) nextIdx = 0;
     if (nextIdx < 0) nextIdx = sessions.length - 1;
     setSessionDirection(direction === "next" ? 1 : -1);
-    setActiveIndex(nextIdx);
+    setActiveSessionId(sessions[nextIdx].id);
     setActiveImage(null);
   };
 
@@ -410,7 +411,7 @@ export function Gallery({ sessions: initialSessions }: { sessions: GallerySessio
                       }
 
                       setSessionDirection(1);
-                      setActiveIndex(index);
+                      setActiveSessionId(session.id);
                     }}
                     aria-label={`Otwórz sesję ${session.title}`}
                     initial={{ opacity: 0, y: 12 }}
@@ -850,7 +851,7 @@ export function Gallery({ sessions: initialSessions }: { sessions: GallerySessio
                         className="rounded-full"
                         onClick={() => {
                           setActiveImage(null);
-                          setActiveIndex(null);
+                          setActiveSessionId(null);
                         }}
                         aria-label="Zamknij galerię"
                       >

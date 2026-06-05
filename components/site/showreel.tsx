@@ -86,7 +86,8 @@ export function Showreel({ content: initialContent }: { content: ShowreelContent
 
   useBodyScrollLock(open);
 
-  const thumbnailSrc = ytThumbUrl || content.thumbnail.src;
+  // Fallback to default thumbnail if src is empty
+  const thumbnailSrc = ytThumbUrl || (content.thumbnail?.src ?? "");
 
   useEffect(() => {
     if (!open) {

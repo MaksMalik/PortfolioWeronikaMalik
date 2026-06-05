@@ -122,7 +122,7 @@ async function compressImageFile(file: File) {
       img.src = imageUrl;
     });
 
-    const maxSize = 1200;
+    const maxSize = 2400;
     const scale = Math.min(1, maxSize / Math.max(image.width, image.height));
     const width = Math.round(image.width * scale);
     const height = Math.round(image.height * scale);
@@ -138,7 +138,7 @@ async function compressImageFile(file: File) {
     context.drawImage(image, 0, 0, width, height);
 
     const blob = await new Promise<Blob | null>((resolve) => {
-      canvas.toBlob(resolve, "image/webp", 0.72);
+      canvas.toBlob(resolve, "image/webp", 0.92);
     });
 
     return {
@@ -170,7 +170,7 @@ export async function uploadImageFile(file: File, folder: string): Promise<strin
     );
   }
 
-  console.log("[Upload] Starting local compression:", {
+  console.log("[Upload] Starting compression:", {
     folder,
     name: file.name,
     size: `${(file.size / 1024).toFixed(1)} KB`
@@ -178,24 +178,47 @@ export async function uploadImageFile(file: File, folder: string): Promise<strin
 
   const compressed = await compressImageFile(file);
 
-  return new Promise<string>((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      if (typeof reader.result === "string") {
-        console.log("[Upload] Base64 generation successful:", {
-          originalSize: `${(file.size / 1024).toFixed(1)} KB`,
-          base64Length: `${(reader.result.length / 1024).toFixed(1)} KB`
-        });
-        resolve(reader.result);
-      } else {
-        reject(new Error("Nie udało się przekonwertować obrazu do formatu Base64."));
-      }
-    };
-    reader.onerror = () => {
-      reject(new Error("Błąd podczas odczytu pliku obrazu."));
-    };
-    reader.readAsDataURL(compressed.blob);
-  });
+  // Try Firebase Storage first
+  try {
+    const { ref, uploadBytes, getDownloadURL } = await import("firebase/storage");
+    const timestamp = Date.now();
+    const extension = compressed.extension;
+    const storageRef = ref(
+      firebaseStorage,
+      `uploads/${folder}/${timestamp}-${Math.random().toString(36).slice(2)}.${extension}`
+    );
+
+    const uploadResult = await uploadBytes(storageRef, compressed.blob, {
+      contentType: compressed.contentType,
+      customMetadata: { uploadedBy: currentUser.uid }
+    });
+
+    const downloadUrl = await getDownloadURL(uploadResult.ref);
+    console.log("[Upload] Firebase Storage upload successful:", downloadUrl);
+    return downloadUrl;
+  } catch (storageError) {
+    console.warn("[Upload] Firebase Storage failed, falling back to base64:", storageError);
+
+    // Fallback: convert to base64 data URL (works without Firebase Storage but limited by Firestore 1MB doc limit)
+    return new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        if (typeof reader.result === "string") {
+          console.log("[Upload] Base64 fallback successful:", {
+            originalSize: `${(file.size / 1024).toFixed(1)} KB`,
+            base64Length: `${(reader.result.length / 1024).toFixed(1)} KB`
+          });
+          resolve(reader.result);
+        } else {
+          reject(new Error("Nie udało się przekonwertować obrazu do formatu Base64."));
+        }
+      };
+      reader.onerror = () => {
+        reject(new Error("Błąd podczas odczytu pliku obrazu."));
+      };
+      reader.readAsDataURL(compressed.blob);
+    });
+  }
 }
 
 export function versionsCollectionRef() {

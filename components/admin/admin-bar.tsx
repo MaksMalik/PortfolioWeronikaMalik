@@ -223,12 +223,12 @@ export function AdminBar() {
         <button
           type="button"
           onClick={publishLive}
-          disabled={isSaving || previewTarget === "live"}
+          disabled={isSaving}
           className={cn(
             "inline-flex h-8 shrink-0 items-center justify-center gap-1.5 rounded-full bg-white px-2.5 text-xs font-bold uppercase tracking-[0.12em] text-ink transition-all hover:bg-porcelain sm:px-3",
-            (isSaving || previewTarget === "live") && "opacity-40 cursor-not-allowed"
+            isSaving && "opacity-40 cursor-not-allowed"
           )}
-          title={previewTarget === "live" ? "Przełącz na widok Szkic, aby opublikować zmiany" : "Opublikuj na żywo dla wszystkich użytkowników"}
+          title="Opublikuj na żywo dla wszystkich użytkowników"
         >
           {isSaving ? (
             <Loader2 className="h-3.5 w-3.5 animate-spin" />

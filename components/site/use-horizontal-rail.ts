@@ -16,7 +16,7 @@ type DragState = {
   startX: number;
 };
 
-const DRAG_THRESHOLD = 12;
+const DRAG_THRESHOLD = 6;
 
 export function useHorizontalRail() {
   const railRef = useRef<HTMLDivElement>(null);
@@ -48,19 +48,18 @@ export function useHorizontalRail() {
     if (!rail) return;
 
     updateScrollState();
+
     const handleScroll = () => {
       if (scrollFrameRef.current !== null) return;
-
       scrollFrameRef.current = window.requestAnimationFrame(() => {
         scrollFrameRef.current = null;
         updateScrollState();
       });
     };
-    rail.addEventListener("scroll", handleScroll, { passive: true });
 
+    rail.addEventListener("scroll", handleScroll, { passive: true });
     const resizeObserver = new ResizeObserver(updateScrollState);
     resizeObserver.observe(rail);
-
     window.addEventListener("resize", updateScrollState);
     const timer = window.setTimeout(updateScrollState, 120);
 
@@ -79,71 +78,62 @@ export function useHorizontalRail() {
   const scrollRail = useCallback((direction: -1 | 1) => {
     const rail = railRef.current;
     if (!rail) return;
-
     rail.scrollBy({
       left: direction * Math.max(rail.clientWidth * 0.82, 280),
       behavior: "smooth"
     });
   }, []);
 
+  // Use window-level pointermove/pointerup instead of pointer capture
+  // so click events on children always fire normally.
   const handlePointerDown = useCallback((event: ReactPointerEvent<HTMLDivElement>) => {
     const rail = railRef.current;
     if (!rail || event.button !== 0) return;
 
+    const startX = event.clientX;
+    const startScrollLeft = rail.scrollLeft;
+    const pointerId = event.pointerId;
+    let didDrag = false;
+
     dragState.current = {
       active: true,
       didDrag: false,
-      pointerId: event.pointerId,
-      scrollLeft: rail.scrollLeft,
-      startX: event.clientX
+      pointerId,
+      scrollLeft: startScrollLeft,
+      startX
     };
 
-    try {
-      event.currentTarget.setPointerCapture(event.pointerId);
-    } catch {
-      // Pointer capture can fail on older touch implementations; dragging still works.
-    }
-  }, []);
+    const onMove = (e: PointerEvent) => {
+      if (e.pointerId !== pointerId) return;
+      const deltaX = e.clientX - startX;
+      if (Math.abs(deltaX) <= DRAG_THRESHOLD) return;
 
-  const handlePointerMove = useCallback(
-    (event: ReactPointerEvent<HTMLDivElement>) => {
-      const rail = railRef.current;
-      const state = dragState.current;
-      if (!rail || !state.active) return;
-
-      const deltaX = event.clientX - state.startX;
-      if (Math.abs(deltaX) <= DRAG_THRESHOLD) {
-        return;
-      }
-
-      if (!state.didDrag) {
+      if (!didDrag) {
+        didDrag = true;
+        dragState.current.didDrag = true;
         setIsDragging(true);
+        // Disable scroll snap while dragging
+        rail.style.scrollSnapType = "none";
       }
-      state.didDrag = true;
-      rail.scrollLeft = state.scrollLeft - deltaX;
-      event.preventDefault();
-    },
-    []
-  );
+      rail.scrollLeft = startScrollLeft - deltaX;
+      e.preventDefault();
+    };
 
-  const endPointerDrag = useCallback(
-    (event: ReactPointerEvent<HTMLDivElement>) => {
-      const state = dragState.current;
-      if (!state.active) return;
+    const onUp = (e: PointerEvent) => {
+      if (e.pointerId !== pointerId) return;
+      window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerup", onUp);
+      window.removeEventListener("pointercancel", onUp);
 
-      if (state.didDrag) {
+      if (didDrag) {
         ignoreClickRef.current = true;
         window.setTimeout(() => {
           ignoreClickRef.current = false;
-        }, 180);
-      }
-
-      try {
-        if (state.pointerId !== null) {
-          event.currentTarget.releasePointerCapture(state.pointerId);
-        }
-      } catch {
-        // The pointer may already be released by the browser.
+        }, 200);
+        // Re-enable scroll snap
+        window.setTimeout(() => {
+          if (rail) rail.style.scrollSnapType = "";
+        }, 10);
       }
 
       dragState.current = {
@@ -155,15 +145,15 @@ export function useHorizontalRail() {
       };
       setIsDragging(false);
       updateScrollState();
-    },
-    [updateScrollState]
-  );
+    };
+
+    window.addEventListener("pointermove", onMove, { passive: false });
+    window.addEventListener("pointerup", onUp);
+    window.addEventListener("pointercancel", onUp);
+  }, [updateScrollState]);
 
   const shouldIgnoreRailClick = useCallback(() => {
-    if (!ignoreClickRef.current) {
-      return false;
-    }
-
+    if (!ignoreClickRef.current) return false;
     ignoreClickRef.current = false;
     return true;
   }, []);
@@ -173,10 +163,7 @@ export function useHorizontalRail() {
     canScrollPrev,
     isDragging,
     railDragHandlers: {
-      onPointerCancel: endPointerDrag,
       onPointerDown: handlePointerDown,
-      onPointerMove: handlePointerMove,
-      onPointerUp: endPointerDrag
     },
     railRef,
     scrollRail,

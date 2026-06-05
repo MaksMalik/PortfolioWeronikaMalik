@@ -69,13 +69,44 @@ function friendlyErrorMessage(error: unknown, fallback: string) {
   return error instanceof Error ? error.message : fallback;
 }
 
+const SESSION_CACHE_KEY = "strona_aktorska_live_cache";
+
+function getCachedContent(): SiteContent | null {
+  if (typeof window === "undefined") return null;
+  try {
+    // Try localStorage first (persists across browser restarts), then sessionStorage
+    const raw = localStorage.getItem(SESSION_CACHE_KEY) ?? sessionStorage.getItem(SESSION_CACHE_KEY);
+    if (!raw) return null;
+    return JSON.parse(raw) as SiteContent;
+  } catch {
+    return null;
+  }
+}
+
+function setCachedContent(content: SiteContent) {
+  if (typeof window === "undefined") return;
+  const serialized = JSON.stringify(content);
+  try {
+    localStorage.setItem(SESSION_CACHE_KEY, serialized);
+    return;
+  } catch {
+    // localStorage full (likely base64 images) — fall back to sessionStorage
+  }
+  try {
+    sessionStorage.setItem(SESSION_CACHE_KEY, serialized);
+  } catch {
+    // Both storages full — skip cache
+  }
+}
+
 export function AdminEditProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [authLoading, setAuthLoading] = useState(true);
   const [editMode, setEditMode] = useState(false);
   const [previewTarget, setPreviewTarget] = useState<ContentTarget>("live");
   
-  // Local active content (might be loaded from preview or live, depending on target)
+  // Always initialize with siteContent defaults — identical on server and client.
+  // Cache is applied after hydration in a useEffect to avoid SSR/client mismatch.
   const [content, setContent] = useState<SiteContent>(() => cloneContent(siteContent));
   
   const [isSaving, setIsSaving] = useState(false);
@@ -100,6 +131,16 @@ export function AdminEditProvider({ children }: { children: React.ReactNode }) {
   const isAdmin = user?.email?.toLowerCase() === ADMIN_EMAIL.toLowerCase();
   const pathname = usePathname();
   const isPreviewPage = pathname === "/preview";
+
+  // Apply localStorage cache immediately after hydration — eliminates placeholder flash
+  // without causing SSR/client mismatch (state init is always siteContent on both sides).
+  useEffect(() => {
+    const cached = getCachedContent();
+    if (cached) {
+      setContent(cached);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // run once after mount only
 
   // Listen to Auth State
   useEffect(() => {
@@ -204,6 +245,10 @@ export function AdminEditProvider({ children }: { children: React.ReactNode }) {
             } catch (e) {
               console.error("Failed to parse local draft backup:", e);
             }
+          }
+          // Cache the live content so next page load has no placeholder flash
+          if (target === "live") {
+            setCachedContent(nextContent);
           }
           return nextContent;
         });
@@ -409,7 +454,9 @@ export function AdminEditProvider({ children }: { children: React.ReactNode }) {
           second: "2-digit"
         }).format(new Date())
       );
+      setStatusMessage(null);
     } catch (error) {
+      console.error("[saveDraft] Error:", error);
       if (isPermissionDenied(error)) {
         setRemoteSaveBlocked(true);
         setAutosaveStatus("idle");
@@ -431,6 +478,8 @@ export function AdminEditProvider({ children }: { children: React.ReactNode }) {
       await saveSiteContent(content, "live");
       await saveSiteContent(content, "preview");
       await createVersionCheckpoint("live");
+      // Update session cache immediately so next refresh shows published content
+      setCachedContent(content);
       if (typeof window !== "undefined") {
         localStorage.removeItem("strona_aktorska_draft_backup");
         setHasBackup(false);
@@ -445,7 +494,9 @@ export function AdminEditProvider({ children }: { children: React.ReactNode }) {
           second: "2-digit"
         }).format(new Date())
       );
+      setStatusMessage(null);
     } catch (error) {
+      console.error("[publishLive] Error:", error);
       if (isPermissionDenied(error)) {
         setRemoteSaveBlocked(true);
         setAutosaveStatus("idle");
