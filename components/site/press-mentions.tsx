@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import type { PressMention } from "@/lib/types";
-import { SectionHeading, SectionReveal } from "@/components/site/section-reveal";
+import { RevealBlock, SectionHeading, SectionReveal } from "@/components/site/section-reveal";
 import { useAdminEdit } from "@/components/admin/admin-edit-context";
 import { createId, cn } from "@/lib/utils";
 import { Trash2, Plus, ArrowUp, ArrowDown, Eye, EyeOff, Edit } from "lucide-react";
@@ -20,7 +21,7 @@ export function PressMentions({ mentions: initialMentions }: { mentions: PressMe
 
   const isSectionEnabled = globalContent.sections.press.enabled;
 
-  const updateMentionField = (index: number, field: keyof PressMention, value: any) => {
+  const updateMentionField = <K extends keyof PressMention>(index: number, field: K, value: PressMention[K]) => {
     updateContent((draft) => {
       draft.press[index] = { ...draft.press[index], [field]: value };
     });
@@ -122,29 +123,30 @@ export function PressMentions({ mentions: initialMentions }: { mentions: PressMe
         </div>
 
         <div className="mt-14 grid gap-6 md:grid-cols-3">
-          {mentions.filter(m => editMode || m.enabled).map((mention) => (
-            <figure
-              key={mention.id}
-              className={cn(
-                "relative border-y border-ink/10 px-4 py-10 text-center flex flex-col justify-between group/figure",
-                !mention.enabled && "opacity-45 border-dashed"
-              )}
-            >
-              <blockquote className="font-serif text-3xl leading-tight text-ink">
-                &quot;{mention.quote}&quot;
-              </blockquote>
-              <figcaption className="mt-8 text-xs font-bold uppercase tracking-[0.22em] text-ink/55">
-                {mention.outlet}
-                <span className="mt-2 block font-medium tracking-[0.16em] text-ink/35">
-                  {mention.author}
-                </span>
-                {!mention.enabled && (
-                  <span className="mt-2 inline-block rounded bg-ink/5 px-2 py-0.5 text-[0.55rem] font-bold text-ink/40 tracking-wider">
-                    Ukryty
-                  </span>
+          {mentions.filter(m => editMode || m.enabled).map((mention, index) => (
+            <RevealBlock key={mention.id} delay={index * 0.08} y={34} className="h-full">
+              <figure
+                className={cn(
+                  "relative flex h-full flex-col justify-between border-y border-ink/10 px-4 py-10 text-center group/figure",
+                  !mention.enabled && "opacity-45 border-dashed"
                 )}
-              </figcaption>
-            </figure>
+              >
+                <blockquote className="font-serif text-3xl leading-tight text-ink">
+                  &quot;{mention.quote}&quot;
+                </blockquote>
+                <figcaption className="mt-8 text-xs font-bold uppercase tracking-[0.22em] text-ink/55">
+                  {mention.outlet}
+                  <span className="mt-2 block font-medium tracking-[0.16em] text-ink/35">
+                    {mention.author}
+                  </span>
+                  {!mention.enabled && (
+                    <span className="mt-2 inline-block rounded bg-ink/5 px-2 py-0.5 text-[0.55rem] font-bold text-ink/40 tracking-wider">
+                      Ukryty
+                    </span>
+                  )}
+                </figcaption>
+              </figure>
+            </RevealBlock>
           ))}
         </div>
       </div>
@@ -210,8 +212,17 @@ export function PressMentions({ mentions: initialMentions }: { mentions: PressMe
             </div>
 
             <div className="grid gap-4">
-              {mentions.map((mention, idx) => (
-                <div key={mention.id} className="grid gap-2.5 p-3 bg-white border border-ink/10 rounded-2xl relative group/item">
+              <AnimatePresence initial={false}>
+                {mentions.map((mention, idx) => (
+                <motion.div
+                  layout
+                  key={mention.id}
+                  className="relative grid gap-2.5 rounded-2xl border border-ink/10 bg-white p-3 group/item"
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -8 }}
+                  transition={{ duration: 0.22, ease: "easeOut" }}
+                >
                   <div className="grid gap-1">
                     <span className="text-[0.55rem] font-bold text-ink/30 uppercase">Cytat:</span>
                     <Textarea
@@ -277,8 +288,9 @@ export function PressMentions({ mentions: initialMentions }: { mentions: PressMe
                       <Trash2 className="h-4 w-4" />
                     </button>
                   </div>
-                </div>
+                </motion.div>
               ))}
+              </AnimatePresence>
             </div>
           </div>
         </div>

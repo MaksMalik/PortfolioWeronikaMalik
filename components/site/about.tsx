@@ -4,7 +4,7 @@ import { useState, ChangeEvent } from "react";
 import type { AboutContent } from "@/lib/types";
 import { CinematicImage } from "@/components/site/cinematic-image";
 import { MagneticButton } from "@/components/site/magnetic-button";
-import { SectionHeading, SectionReveal } from "@/components/site/section-reveal";
+import { RevealBlock, SectionHeading, SectionReveal } from "@/components/site/section-reveal";
 import { useAdminEdit } from "@/components/admin/admin-edit-context";
 import { uploadImageFile } from "@/lib/firebase/content";
 import { Upload, Loader2, Edit } from "lucide-react";
@@ -93,47 +93,28 @@ export function About({ content: initialContent }: { content: AboutContent }) {
       <div className="section-shell grid items-center gap-12 lg:grid-cols-[1.12fr_0.88fr]">
         <div className="max-w-2xl space-y-6">
           <SectionHeading eyebrow={content.eyebrow} title={content.title} />
-          <p className="mt-8 text-lg leading-8 text-graphite/80 sm:text-xl sm:leading-9 whitespace-pre-wrap">
-            {content.body}
-          </p>
-          <div className="mt-10">
+          <RevealBlock delay={0.12}>
+            <p className="mt-8 text-lg leading-8 text-graphite/80 sm:text-xl sm:leading-9 whitespace-pre-wrap">
+              {content.body}
+            </p>
+          </RevealBlock>
+          <RevealBlock delay={0.22} className="mt-10">
             <MagneticButton href="#contact" variant="outline">
               {content.buttonText}
             </MagneticButton>
-          </div>
+          </RevealBlock>
         </div>
 
         {(content.image.src && content.image.enabled !== false) && (
-          <div className="ornament-line pl-5 pt-5">
-            <div className="relative group rounded-3xl overflow-hidden border border-ink/10 shadow-editorial">
+          <RevealBlock className="ornament-line pl-5 pt-5" delay={0.14} x={34} y={18}>
+            <div className="relative group overflow-hidden rounded-[1.5rem] rounded-tl-none border border-ink/10 shadow-editorial">
               <CinematicImage
                 src={content.image.src}
                 alt={content.image.alt}
-                className="aspect-[4/5] max-h-[640px] rounded-3xl"
+                className="aspect-[4/5] max-h-[640px] rounded-[1.5rem] rounded-tl-none"
               />
-              {editMode && (
-                <label className="absolute inset-0 z-30 flex flex-col items-center justify-center bg-ink/40 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300 cursor-pointer">
-                  {isUploading ? (
-                    <Loader2 className="h-8 w-8 animate-spin" />
-                  ) : (
-                    <>
-                      <Upload className="h-8 w-8 mb-2" />
-                      <span className="text-xs font-bold uppercase tracking-[0.12em]">
-                        Zmień zdjęcie
-                      </span>
-                    </>
-                  )}
-                  <input
-                    type="file"
-                    accept="image/*"
-                    className="sr-only"
-                    onChange={handleImageUpload}
-                    disabled={isUploading}
-                  />
-                </label>
-              )}
             </div>
-          </div>
+          </RevealBlock>
         )}
       </div>
 
@@ -199,6 +180,46 @@ export function About({ content: initialContent }: { content: AboutContent }) {
               rows={8}
               className="rounded-xl text-sm"
             />
+          </div>
+
+          <div className="grid gap-3 rounded-2xl border border-ink/10 bg-white p-4">
+            <Label className="text-xs font-bold uppercase tracking-[0.1em] text-ink/40">
+              Zdjęcie sekcji
+            </Label>
+            <div className="grid grid-cols-[92px_1fr] items-center gap-4">
+              <div className="aspect-[4/5] overflow-hidden rounded-xl rounded-tl-none border border-ink/10 bg-porcelain">
+                {content.image.src && (
+                  <img src={content.image.src} alt="" className="h-full w-full object-cover" />
+                )}
+              </div>
+              <div className="grid gap-2">
+                <label className="inline-flex h-9 w-fit cursor-pointer items-center justify-center gap-2 rounded-full border border-ink/15 bg-white px-4 text-xs font-bold uppercase tracking-[0.12em] text-ink/65 transition-colors hover:border-ink hover:text-ink">
+                  {isUploading ? (
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  ) : (
+                    <Upload className="h-3.5 w-3.5" />
+                  )}
+                  Zmień zdjęcie
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="sr-only"
+                    onChange={handleImageUpload}
+                    disabled={isUploading}
+                  />
+                </label>
+                <Input
+                  value={content.image.alt}
+                  onChange={(e) =>
+                    updateContent((draft) => {
+                      draft.about.image.alt = e.target.value;
+                    })
+                  }
+                  placeholder="Opis alternatywny"
+                  className="h-8 rounded-full text-xs"
+                />
+              </div>
+            </div>
           </div>
 
           <div className="grid gap-1">

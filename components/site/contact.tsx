@@ -1,13 +1,15 @@
 "use client";
 
-import { FormEvent, useState } from "react";
-import { Camera, ExternalLink, Film, Mail, MapPin, MessageCircle, Phone, Trash2, ArrowUp, ArrowDown, Eye, EyeOff, Plus, Edit } from "lucide-react";
+import { useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
+import { ExternalLink, Mail, MapPin, MessageCircle, Phone, Trash2, ArrowUp, ArrowDown, Eye, EyeOff, Plus, Edit } from "lucide-react";
 import type { ContactContent, SocialLink } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { SectionHeading, SectionReveal } from "@/components/site/section-reveal";
+import { FilmwebMark } from "@/components/site/brand-icons";
+import { RevealBlock, SectionHeading, SectionReveal } from "@/components/site/section-reveal";
 import { useAdminEdit } from "@/components/admin/admin-edit-context";
 import { createId, cn } from "@/lib/utils";
 import { AdminDrawer } from "@/components/admin/admin-drawer";
@@ -43,41 +45,6 @@ const FacebookIcon = () => (
   </svg>
 );
 
-const FilmwebIcon = () => (
-  <svg
-    className="h-4.5 w-4.5 transition-all duration-300 fill-none stroke-[1.5] stroke-ink/65 group-hover:stroke-none shrink-0"
-    viewBox="0 0 24 24"
-  >
-    <circle
-      cx="12"
-      cy="12"
-      r="10"
-      className="stroke-ink/65 group-hover:fill-[#F3C910] group-hover:stroke-none transition-all duration-300"
-      strokeWidth="1.5"
-      fill="none"
-    />
-    <circle
-      cx="9"
-      cy="10.5"
-      r="1.5"
-      className="fill-ink/65 group-hover:fill-black transition-all duration-300"
-    />
-    <circle
-      cx="15"
-      cy="10.5"
-      r="1.5"
-      className="fill-ink/65 group-hover:fill-black transition-all duration-300"
-    />
-    <path
-      d="M8.5 14.5c1 1.8 6 1.8 7 0"
-      className="stroke-ink/65 group-hover:stroke-black transition-all duration-300"
-      strokeWidth="1.5"
-      strokeLinecap="round"
-      fill="none"
-    />
-  </svg>
-);
-
 function socialIcon(label: string) {
   const normalized = label.toLowerCase();
 
@@ -86,7 +53,7 @@ function socialIcon(label: string) {
   }
 
   if (normalized.includes("filmweb")) {
-    return <FilmwebIcon />;
+    return <FilmwebMark className="h-4.5 w-4.5" />;
   }
 
   if (normalized.includes("facebook")) {
@@ -104,7 +71,7 @@ export function Contact({ content: initialContent }: { content: ContactContent }
 
   const isSectionEnabled = globalContent.sections.contact.enabled;
 
-  const updateContactField = (field: keyof ContactContent, value: any) => {
+  const updateContactField = <K extends keyof ContactContent>(field: K, value: ContactContent[K]) => {
     updateContent((draft) => {
       draft.contact = { ...draft.contact, [field]: value };
     });
@@ -148,7 +115,7 @@ export function Contact({ content: initialContent }: { content: ContactContent }
     });
   };
 
-  const updateSocialField = (index: number, field: keyof SocialLink, value: any) => {
+  const updateSocialField = <K extends keyof SocialLink>(index: number, field: K, value: SocialLink[K]) => {
     updateContent((draft) => {
       draft.contact.socials[index] = { ...draft.contact.socials[index], [field]: value };
     });
@@ -158,7 +125,7 @@ export function Contact({ content: initialContent }: { content: ContactContent }
     <SectionReveal
       id="contact"
       className={cn(
-        "relative bg-porcelain pb-10 pt-24 transition-all duration-300 group/section",
+        "relative bg-porcelain py-20 transition-all duration-300 group/section sm:py-24",
         editMode && "hover:ring-1 hover:ring-ink/20",
         editMode && !isSectionEnabled && "opacity-60 border-2 border-dashed border-ink/15 bg-ink/[0.01]"
       )}
@@ -202,92 +169,98 @@ export function Contact({ content: initialContent }: { content: ContactContent }
       )}
 
       <div className="section-shell">
-        <div className="grid gap-16 border-t border-ink/10 pt-16 lg:grid-cols-[1fr_1fr]">
+        <div className="grid gap-10 border-y border-ink/10 py-12 lg:grid-cols-[0.95fr_1.05fr] lg:gap-16 lg:py-16">
           <div className="flex flex-col justify-between">
             <div>
               <SectionHeading eyebrow={content.eyebrow} title={content.heading} />
-              <p className="mt-7 max-w-xl text-lg leading-8 text-graphite/75 whitespace-pre-wrap">
-                {content.intro}
-              </p>
+              <RevealBlock delay={0.12}>
+                <p className="mt-7 max-w-xl whitespace-pre-wrap text-base leading-8 text-graphite/75 sm:text-lg">
+                  {content.intro}
+                </p>
+              </RevealBlock>
             </div>
 
             {/* Social Links List */}
-            <div className="mt-12 flex flex-wrap gap-3">
-              {content.socials.filter((social) => social.enabled).map((social) => (
-                <a
+            <div className="mt-10 grid gap-2 sm:grid-cols-3 lg:max-w-xl">
+              {content.socials.filter((social) => social.enabled).map((social, index) => (
+                <motion.a
                   key={social.id}
                   href={social.url}
                   target="_blank"
                   rel="noreferrer"
-                  className="group inline-flex items-center gap-2 rounded-full border border-ink/12 bg-white px-5 py-2.5 text-xs font-bold uppercase tracking-[0.18em] text-ink/65 transition-all hover:border-ink hover:text-ink hover:shadow-sm"
+                  className="group inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-full border border-ink/12 bg-white px-4 py-2.5 text-[0.68rem] font-bold uppercase tracking-[0.16em] text-ink/65 transition-all hover:border-ink hover:text-ink hover:shadow-sm"
+                  initial={{ opacity: 0, y: 18 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, amount: 0.35, margin: "0px 0px -10% 0px" }}
+                  transition={{ delay: 0.18 + index * 0.07, duration: 0.62, ease: [0.22, 1, 0.36, 1] }}
                 >
                   {socialIcon(social.label)}
                   {social.label}
                   <ExternalLink className="h-3.5 w-3.5 opacity-60 group-hover:opacity-100 transition-opacity" />
-                </a>
+                </motion.a>
               ))}
             </div>
           </div>
 
-          <div className="flex flex-col justify-center space-y-10 lg:border-l lg:border-ink/10 lg:pl-16">
-            <div className="space-y-8">
+          <div className="flex flex-col justify-center space-y-8 lg:border-l lg:border-ink/10 lg:pl-14">
+            <div className="space-y-7">
               {content.email && (
-                <div className="group/item">
+                <RevealBlock delay={0.08} x={24} y={18} className="group/item">
                   <span className="text-[0.62rem] font-bold uppercase tracking-[0.2em] text-ink/40 block mb-1">
                     Napisz bezpośrednio
                   </span>
                   <a
                     href={`mailto:${content.email}`}
-                    className="text-2xl font-serif text-ink hover:text-ink/60 transition-colors inline-flex items-center gap-2.5 w-fit"
+                    className="inline-flex max-w-full items-center gap-2.5 break-all font-serif text-xl text-ink transition-colors hover:text-ink/60 sm:text-2xl"
                   >
                     {content.email}
                     <Mail className="h-4.5 w-4.5 text-ink/40 group-hover/item:translate-x-1 transition-transform" />
                   </a>
-                </div>
+                </RevealBlock>
               )}
 
               {content.phone && (
-                <div className="group/item">
+                <RevealBlock delay={0.16} x={24} y={18} className="group/item">
                   <span className="text-[0.62rem] font-bold uppercase tracking-[0.2em] text-ink/40 block mb-1">
                     Zadzwoń
                   </span>
                   <a
                     href={`tel:${content.phone}`}
-                    className="text-2xl font-serif text-ink hover:text-ink/60 transition-colors inline-flex items-center gap-2.5 w-fit"
+                    className="inline-flex w-fit items-center gap-2.5 font-serif text-xl text-ink transition-colors hover:text-ink/60 sm:text-2xl"
                   >
                     {content.phone}
                     <Phone className="h-4.5 w-4.5 text-ink/40 group-hover/item:translate-x-1 transition-transform" />
                   </a>
-                </div>
+                </RevealBlock>
               )}
 
               {content.location && (
-                <div>
+                <RevealBlock delay={0.24} x={24} y={18}>
                   <span className="text-[0.62rem] font-bold uppercase tracking-[0.2em] text-ink/40 block mb-1">
                     Baza / Lokalizacja
                   </span>
-                  <p className="text-xl font-serif text-ink inline-flex items-center gap-2.5">
+                  <p className="inline-flex items-center gap-2.5 font-serif text-xl text-ink sm:text-2xl">
                     {content.location}
                     <MapPin className="h-4.5 w-4.5 text-ink/40" />
                   </p>
-                </div>
+                </RevealBlock>
               )}
             </div>
 
             {content.representation && (
-              <div className="relative overflow-hidden rounded-2xl border border-ink/10 bg-white p-6 shadow-sm">
+              <RevealBlock delay={0.32} x={24} y={18} className="relative overflow-hidden rounded-lg border border-ink/10 bg-white p-5 shadow-sm sm:p-6">
                 <span className="text-[0.62rem] font-bold uppercase tracking-[0.2em] text-ink/40 block mb-2">
                   Reprezentacja / Agent
                 </span>
-                <h4 className="font-serif text-2xl text-ink font-medium">
+                <h4 className="font-serif text-2xl font-medium text-ink sm:text-3xl">
                   {content.representation}
                 </h4>
-              </div>
+              </RevealBlock>
             )}
           </div>
         </div>
 
-        <footer className="mt-16 border-t border-ink/10 py-8">
+        <footer className="mt-12 border-t border-ink/10 py-8">
           <div className="flex flex-col justify-between gap-5 text-[0.62rem] font-bold uppercase tracking-[0.22em] text-ink/40 sm:flex-row sm:items-center">
             <span>© {new Date().getFullYear()} {content.footerCopyrightName ?? "Weronika Malik"}</span>
             <span className="text-ink/30">{content.footerDesignerTag ?? "Projekt i realizacja"}</span>
@@ -427,8 +400,17 @@ export function Contact({ content: initialContent }: { content: ContactContent }
               </Button>
             </div>
             <div className="grid gap-2">
-              {content.socials.map((social, index) => (
-                <div key={social.id} className="grid grid-cols-[1fr_1.3fr_auto] gap-2 items-center bg-white p-2 border border-ink/10 rounded-xl">
+              <AnimatePresence initial={false}>
+                {content.socials.map((social, index) => (
+                <motion.div
+                  layout
+                  key={social.id}
+                  className="grid grid-cols-[1fr_1.3fr_auto] items-center gap-2 rounded-xl border border-ink/10 bg-white p-2"
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -8 }}
+                  transition={{ duration: 0.22, ease: "easeOut" }}
+                >
                   <Input
                     placeholder="Etykieta..."
                     value={social.label}
@@ -473,8 +455,9 @@ export function Contact({ content: initialContent }: { content: ContactContent }
                       <Trash2 className="h-4 w-4" />
                     </button>
                   </div>
-                </div>
+                </motion.div>
               ))}
+              </AnimatePresence>
             </div>
           </div>
         </div>
