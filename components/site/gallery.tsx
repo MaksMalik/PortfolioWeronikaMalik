@@ -892,7 +892,10 @@ export function Gallery({ sessions: initialSessions }: { sessions: GallerySessio
                             src={image.src}
                             alt={image.alt}
                             className={cn("w-full", aspectClass(image))}
-                            imageClassName="rounded-2xl"
+                            imageClassName={cn(
+                              "rounded-2xl",
+                              (image.title || image.description) && "rounded-b-none"
+                            )}
                           />
                         </motion.button>
                         {(image.title || image.description) && (

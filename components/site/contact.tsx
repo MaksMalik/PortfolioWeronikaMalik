@@ -69,6 +69,7 @@ export function Contact({ content: initialContent }: { content: ContactContent }
   const content = editMode ? globalContent.contact : initialContent;
 
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [showPhone, setShowPhone] = useState(false);
 
   const isSectionEnabled = globalContent.sections.contact.enabled;
 
@@ -126,7 +127,7 @@ export function Contact({ content: initialContent }: { content: ContactContent }
     <SectionReveal
       id="contact"
       className={cn(
-        "relative bg-porcelain py-20 transition-all duration-300 group/section sm:py-24",
+        "relative bg-porcelain pt-20 pb-10 transition-all duration-300 group/section sm:pt-24 sm:pb-12",
         editMode && "hover:ring-1 hover:ring-ink/20",
         editMode && !isSectionEnabled && "opacity-60 border-2 border-dashed border-ink/15 bg-ink/[0.01]"
       )}
@@ -170,7 +171,7 @@ export function Contact({ content: initialContent }: { content: ContactContent }
       )}
 
       <div className="section-shell">
-        <div className="grid gap-10 border-y border-ink/10 py-12 lg:grid-cols-[0.95fr_1.05fr] lg:gap-16 lg:py-16">
+        <div className="grid gap-10 border-t border-ink/10 py-12 lg:grid-cols-[0.95fr_1.05fr] lg:gap-16 lg:py-16">
           <div className="flex flex-col justify-between">
             <div>
               <SectionHeading eyebrow={content.eyebrow} title={content.heading} />
@@ -225,13 +226,28 @@ export function Contact({ content: initialContent }: { content: ContactContent }
                   <span className="text-[0.62rem] font-bold uppercase tracking-[0.2em] text-ink/40 block mb-1">
                     Zadzwoń
                   </span>
-                  <a
-                    href={`tel:${content.phone}`}
-                    className="inline-flex w-fit items-center gap-2.5 font-serif text-xl text-ink transition-colors hover:text-ink/60 sm:text-2xl"
-                  >
-                    {content.phone}
-                    <Phone className="h-4.5 w-4.5 text-ink/40 group-hover/item:translate-x-1 transition-transform" />
-                  </a>
+                  {showPhone || editMode ? (
+                    <a
+                      href={`tel:${content.phone.replace(/\s+/g, "")}`}
+                      className="inline-flex w-fit items-center gap-2.5 font-serif text-xl text-ink transition-colors hover:text-ink/60 sm:text-2xl"
+                    >
+                      {content.phone}
+                      <Phone className="h-4.5 w-4.5 text-ink/40 group-hover/item:translate-x-1 transition-transform" />
+                    </a>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => setShowPhone(true)}
+                      className="inline-flex w-fit items-center gap-2.5 font-serif text-xl text-ink transition-colors hover:text-ink/60 sm:text-2xl cursor-pointer text-left focus:outline-none"
+                    >
+                      <span className="blur-[4px] select-none tracking-wider opacity-60">
+                        {content.phone.substring(0, 4)} ••• ••• •••
+                      </span>
+                      <span className="text-xs font-sans font-bold uppercase tracking-[0.1em] text-ink/50 bg-ink/5 px-2.5 py-1 rounded-full group-hover/item:bg-ink/10 transition-colors ml-1.5 shrink-0">
+                        Pokaż numer
+                      </span>
+                    </button>
+                  )}
                 </RevealBlock>
               )}
 
