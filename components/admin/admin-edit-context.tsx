@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { onAuthStateChanged, signOut, type User } from "firebase/auth";
 import { ADMIN_EMAIL, firebaseAuth } from "@/lib/firebase/client";
@@ -37,11 +37,13 @@ type AdminEditContextType = {
   restoreBackup: () => void;
   clearBackup: () => void;
   historyVersions: ContentVersion[];
+  refreshHistoryVersions: () => Promise<void>;
   createVersionCheckpoint: (type?: ContentVersion["type"], customLabel?: string) => Promise<void>;
   restoreVersion: (versionId: string) => void;
   deleteVersion: (versionId: string) => Promise<void>;
   autosaveStatus: "idle" | "saving" | "saved" | "error";
   hasUnsavedEdits: boolean;
+  remoteSaveBlocked: boolean;
   undo: () => void;
   redo: () => void;
   canUndo: boolean;
@@ -50,22 +52,77 @@ type AdminEditContextType = {
 
 const AdminEditContext = createContext<AdminEditContextType | undefined>(undefined);
 
+function isPermissionDenied(error: unknown) {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "code" in error &&
+    (error as { code?: string }).code === "permission-denied"
+  );
+}
+
+function friendlyErrorMessage(error: unknown, fallback: string) {
+  if (isPermissionDenied(error)) {
+    return "Zmiany są zapisane lokalnie, ale Firebase odrzuca zapis online. Wdróż reguły Firestore albo odśwież logowanie admina.";
+  }
+
+  return error instanceof Error ? error.message : fallback;
+}
+
+const SESSION_CACHE_KEY = "strona_aktorska_live_cache";
+
+function getCachedContent(): SiteContent | null {
+  if (typeof window === "undefined") return null;
+  try {
+    // Try localStorage first (persists across browser restarts), then sessionStorage
+    const raw = localStorage.getItem(SESSION_CACHE_KEY) ?? sessionStorage.getItem(SESSION_CACHE_KEY);
+    if (!raw) return null;
+    return JSON.parse(raw) as SiteContent;
+  } catch {
+    return null;
+  }
+}
+
+function setCachedContent(content: SiteContent) {
+  if (typeof window === "undefined") return;
+  const serialized = JSON.stringify(content);
+  try {
+    localStorage.setItem(SESSION_CACHE_KEY, serialized);
+    return;
+  } catch {
+    // localStorage full (likely base64 images) — fall back to sessionStorage
+  }
+  try {
+    sessionStorage.setItem(SESSION_CACHE_KEY, serialized);
+  } catch {
+    // Both storages full — skip cache
+  }
+}
+
 export function AdminEditProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [authLoading, setAuthLoading] = useState(true);
   const [editMode, setEditMode] = useState(false);
   const [previewTarget, setPreviewTarget] = useState<ContentTarget>("live");
   
-  // Local active content (might be loaded from preview or live, depending on target)
+  // Always initialize with siteContent defaults — identical on server and client.
+  // Cache is applied after hydration in a useEffect to avoid SSR/client mismatch.
   const [content, setContent] = useState<SiteContent>(() => cloneContent(siteContent));
   
   const [isSaving, setIsSaving] = useState(false);
   const [savedAt, setSavedAt] = useState<string | null>(null);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
-  const [hasBackup, setHasBackup] = useState(false);
+  const [hasBackup, setHasBackup] = useState(() => {
+    if (typeof window === "undefined") {
+      return false;
+    }
+
+    return Boolean(localStorage.getItem("strona_aktorska_draft_backup"));
+  });
   const [historyVersions, setHistoryVersions] = useState<ContentVersion[]>([]);
   const [autosaveStatus, setAutosaveStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
   const [hasUnsavedEdits, setHasUnsavedEdits] = useState(false);
+  const [remoteSaveBlocked, setRemoteSaveBlocked] = useState(false);
   
   // Undo/Redo state stack
   const [historyStates, setHistoryStates] = useState<SiteContent[]>([]);
@@ -75,26 +132,15 @@ export function AdminEditProvider({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const isPreviewPage = pathname === "/preview";
 
-  // Check for local storage backup on mount
+  // Apply localStorage cache immediately after hydration — eliminates placeholder flash
+  // without causing SSR/client mismatch (state init is always siteContent on both sides).
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      const backup = localStorage.getItem("strona_aktorska_draft_backup");
-      if (backup) {
-        setHasBackup(true);
-      }
+    const cached = getCachedContent();
+    if (cached) {
+      setContent(cached);
     }
-  }, []);
-
-  // Fetch Firestore history versions on admin login
-  useEffect(() => {
-    if (isAdmin) {
-      fetchContentVersions().then((versions) => {
-        setHistoryVersions(versions);
-      });
-    } else {
-      setHistoryVersions([]);
-    }
-  }, [isAdmin]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // run once after mount only
 
   // Listen to Auth State
   useEffect(() => {
@@ -102,6 +148,7 @@ export function AdminEditProvider({ children }: { children: React.ReactNode }) {
       if (nextUser && nextUser.email?.toLowerCase() !== ADMIN_EMAIL.toLowerCase()) {
         void signOut(firebaseAuth);
         setUser(null);
+        setHistoryVersions([]);
       } else {
         setUser(nextUser);
         if (nextUser) {
@@ -111,6 +158,7 @@ export function AdminEditProvider({ children }: { children: React.ReactNode }) {
         } else {
           setEditMode(false);
           setPreviewTarget("live");
+          setHistoryVersions([]);
         }
       }
       setAuthLoading(false);
@@ -120,13 +168,15 @@ export function AdminEditProvider({ children }: { children: React.ReactNode }) {
   // Initialize/Reset Undo/Redo stack when database content finishes loading/resetting
   useEffect(() => {
     if (!hasUnsavedEdits && content) {
-      setHistoryStates([cloneContent(content)]);
-      setHistoryIndex(0);
+      queueMicrotask(() => {
+        setHistoryStates([cloneContent(content)]);
+        setHistoryIndex(0);
+      });
     }
   }, [content, hasUnsavedEdits]);
 
   // Undo/Redo methods
-  const undo = () => {
+  const undo = useCallback(() => {
     if (historyIndex > 0) {
       const nextIndex = historyIndex - 1;
       const targetState = cloneContent(historyStates[nextIndex]);
@@ -138,9 +188,9 @@ export function AdminEditProvider({ children }: { children: React.ReactNode }) {
         setHasBackup(true);
       }
     }
-  };
+  }, [historyIndex, historyStates]);
 
-  const redo = () => {
+  const redo = useCallback(() => {
     if (historyIndex < historyStates.length - 1) {
       const nextIndex = historyIndex + 1;
       const targetState = cloneContent(historyStates[nextIndex]);
@@ -152,7 +202,7 @@ export function AdminEditProvider({ children }: { children: React.ReactNode }) {
         setHasBackup(true);
       }
     }
-  };
+  }, [historyIndex, historyStates]);
 
   // Global keyboard listener for Undo/Redo (Ctrl+Z / Ctrl+Y / Ctrl+Shift+Z)
   useEffect(() => {
@@ -178,7 +228,7 @@ export function AdminEditProvider({ children }: { children: React.ReactNode }) {
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [editMode, isAdmin, historyIndex, historyStates]);
+  }, [editMode, isAdmin, redo, undo]);
 
   // Listen to Firestore Content based on preview target
   useEffect(() => {
@@ -186,7 +236,7 @@ export function AdminEditProvider({ children }: { children: React.ReactNode }) {
 
     return subscribeSiteContent(
       (nextContent) => {
-        setContent((current) => {
+        setContent(() => {
           const backup = typeof window !== "undefined" ? localStorage.getItem("strona_aktorska_draft_backup") : null;
           if (backup && target === "preview") {
             try {
@@ -195,6 +245,10 @@ export function AdminEditProvider({ children }: { children: React.ReactNode }) {
             } catch (e) {
               console.error("Failed to parse local draft backup:", e);
             }
+          }
+          // Cache the live content so next page load has no placeholder flash
+          if (target === "live") {
+            setCachedContent(nextContent);
           }
           return nextContent;
         });
@@ -209,11 +263,16 @@ export function AdminEditProvider({ children }: { children: React.ReactNode }) {
   // Debounced Autosave to Firestore preview target
   useEffect(() => {
     if (!hasUnsavedEdits || !editMode || !isAdmin) return;
+    if (remoteSaveBlocked) {
+      queueMicrotask(() => setAutosaveStatus("idle"));
+      return;
+    }
 
-    setAutosaveStatus("saving");
+    queueMicrotask(() => setAutosaveStatus("saving"));
     const timer = setTimeout(async () => {
       try {
         await saveSiteContent(content, "preview");
+        setRemoteSaveBlocked(false);
         setAutosaveStatus("saved");
         setHasUnsavedEdits(false);
         setStatusMessage(null); // Clear errors on success
@@ -222,21 +281,40 @@ export function AdminEditProvider({ children }: { children: React.ReactNode }) {
           setHasBackup(false);
         }
       } catch (err) {
-        console.error("Autosave failed:", err);
-        setAutosaveStatus("error");
-        setStatusMessage(err instanceof Error ? err.message : String(err));
+        if (!isPermissionDenied(err)) {
+          console.warn("Autosave failed:", err);
+          setAutosaveStatus("error");
+        } else {
+          setRemoteSaveBlocked(true);
+          setAutosaveStatus("idle");
+        }
+        setStatusMessage(friendlyErrorMessage(err, "Nie udało się automatycznie zapisać szkicu."));
       }
     }, 3000); // 3 seconds debounce
 
     return () => clearTimeout(timer);
-  }, [content, hasUnsavedEdits, editMode, isAdmin]);
+  }, [content, hasUnsavedEdits, editMode, isAdmin, remoteSaveBlocked]);
+
+  useEffect(() => {
+    if (!hasUnsavedEdits || !editMode || !isAdmin) return;
+
+    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+      event.preventDefault();
+      event.returnValue = "";
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+  }, [hasUnsavedEdits, editMode, isAdmin]);
 
   // Immediate Save helper
   const triggerImmediateSave = async (currentContent: SiteContent) => {
     if (!hasUnsavedEdits) return;
+    if (remoteSaveBlocked) return;
     setAutosaveStatus("saving");
     try {
       await saveSiteContent(currentContent, "preview");
+      setRemoteSaveBlocked(false);
       setAutosaveStatus("saved");
       setHasUnsavedEdits(false);
       setStatusMessage(null); // Clear errors on success
@@ -245,9 +323,14 @@ export function AdminEditProvider({ children }: { children: React.ReactNode }) {
         setHasBackup(false);
       }
     } catch (err) {
-      console.error("Immediate save failed:", err);
-      setAutosaveStatus("error");
-      setStatusMessage(err instanceof Error ? err.message : String(err));
+      if (!isPermissionDenied(err)) {
+        console.warn("Immediate save failed:", err);
+        setAutosaveStatus("error");
+      } else {
+        setRemoteSaveBlocked(true);
+        setAutosaveStatus("idle");
+      }
+      setStatusMessage(friendlyErrorMessage(err, "Nie udało się zapisać szkicu."));
     }
   };
 
@@ -311,6 +394,16 @@ export function AdminEditProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const refreshHistoryVersions = async () => {
+    if (!isAdmin) {
+      setHistoryVersions([]);
+      return;
+    }
+
+    const versions = await fetchContentVersions();
+    setHistoryVersions(versions);
+  };
+
   const restoreVersion = (versionId: string) => {
     const found = historyVersions.find((v) => v.id === versionId);
     if (found) {
@@ -343,6 +436,7 @@ export function AdminEditProvider({ children }: { children: React.ReactNode }) {
   const saveDraft = async () => {
     setIsSaving(true);
     setStatusMessage(null);
+    setRemoteSaveBlocked(false);
     try {
       await saveSiteContent(content, "preview");
       await createVersionCheckpoint("draft");
@@ -352,6 +446,7 @@ export function AdminEditProvider({ children }: { children: React.ReactNode }) {
       }
       setHasUnsavedEdits(false);
       setAutosaveStatus("saved");
+      setRemoteSaveBlocked(false);
       setSavedAt(
         new Intl.DateTimeFormat("pl-PL", {
           hour: "2-digit",
@@ -359,8 +454,16 @@ export function AdminEditProvider({ children }: { children: React.ReactNode }) {
           second: "2-digit"
         }).format(new Date())
       );
+      setStatusMessage(null);
     } catch (error) {
-      setStatusMessage(error instanceof Error ? error.message : "Nie udało się zapisać szkicu.");
+      console.error("[saveDraft] Error:", error);
+      if (isPermissionDenied(error)) {
+        setRemoteSaveBlocked(true);
+        setAutosaveStatus("idle");
+      } else {
+        setAutosaveStatus("error");
+      }
+      setStatusMessage(friendlyErrorMessage(error, "Nie udało się zapisać szkicu."));
     } finally {
       setIsSaving(false);
     }
@@ -369,17 +472,21 @@ export function AdminEditProvider({ children }: { children: React.ReactNode }) {
   const publishLive = async () => {
     setIsSaving(true);
     setStatusMessage(null);
+    setRemoteSaveBlocked(false);
     try {
       // Save to both preview and live targets
       await saveSiteContent(content, "live");
       await saveSiteContent(content, "preview");
       await createVersionCheckpoint("live");
+      // Update session cache immediately so next refresh shows published content
+      setCachedContent(content);
       if (typeof window !== "undefined") {
         localStorage.removeItem("strona_aktorska_draft_backup");
         setHasBackup(false);
       }
       setHasUnsavedEdits(false);
       setAutosaveStatus("saved");
+      setRemoteSaveBlocked(false);
       setSavedAt(
         new Intl.DateTimeFormat("pl-PL", {
           hour: "2-digit",
@@ -387,8 +494,16 @@ export function AdminEditProvider({ children }: { children: React.ReactNode }) {
           second: "2-digit"
         }).format(new Date())
       );
+      setStatusMessage(null);
     } catch (error) {
-      setStatusMessage(error instanceof Error ? error.message : "Nie udało się opublikować na żywo.");
+      console.error("[publishLive] Error:", error);
+      if (isPermissionDenied(error)) {
+        setRemoteSaveBlocked(true);
+        setAutosaveStatus("idle");
+      } else {
+        setAutosaveStatus("error");
+      }
+      setStatusMessage(friendlyErrorMessage(error, "Nie udało się opublikować na żywo."));
     } finally {
       setIsSaving(false);
     }
@@ -476,11 +591,13 @@ export function AdminEditProvider({ children }: { children: React.ReactNode }) {
         restoreBackup,
         clearBackup,
         historyVersions,
+        refreshHistoryVersions,
         createVersionCheckpoint,
         restoreVersion,
         deleteVersion,
         autosaveStatus,
         hasUnsavedEdits,
+        remoteSaveBlocked,
         undo,
         redo,
         canUndo: historyIndex > 0,

@@ -1,15 +1,17 @@
 "use client";
 
-import { useEffect, useState, ChangeEvent, useRef } from "react";
+import { useCallback, useEffect, useMemo, useState, ChangeEvent, useRef } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { ChevronLeft, ChevronRight, X, Plus, Trash2, ArrowUp, ArrowDown, Eye, EyeOff, Edit, Upload, Loader2 } from "lucide-react";
 import type { GallerySession, SiteImage } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { CinematicImage } from "@/components/site/cinematic-image";
 import { ModalPortal } from "@/components/site/modal-portal";
-import { SectionHeading, SectionReveal } from "@/components/site/section-reveal";
+import { RevealBlock, SectionHeading, SectionReveal } from "@/components/site/section-reveal";
 import { useAdminEdit } from "@/components/admin/admin-edit-context";
 import { AdminDrawer } from "@/components/admin/admin-drawer";
+import { useBodyScrollLock } from "@/components/site/use-body-scroll-lock";
+import { useHorizontalRail } from "@/components/site/use-horizontal-rail";
 import { uploadImageFile } from "@/lib/firebase/content";
 import { createId, cn } from "@/lib/utils";
 import { Label } from "@/components/ui/label";
@@ -34,33 +36,65 @@ function emptyImage(prefix: string): SiteImage {
 export function Gallery({ sessions: initialSessions }: { sessions: GallerySession[] }) {
   const { editMode, updateContent, content: globalContent } = useAdminEdit();
   const sessions = editMode ? globalContent.gallery : initialSessions;
+  const visibleSessions = sessions.filter((session) => editMode || session.enabled);
 
-  const [activeIndex, setActiveIndex] = useState<number | null>(null);
+  const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
   const [activeImage, setActiveImage] = useState<SiteImage | null>(null);
   const [editingSession, setEditingSession] = useState<GallerySession | null>(null);
   const [isSectionDrawerOpen, setIsSectionDrawerOpen] = useState(false);
   const [uploadingImageId, setUploadingImageId] = useState<string | null>(null);
   const [sessionDirection, setSessionDirection] = useState<-1 | 1>(1);
 
-  const railRef = useRef<HTMLDivElement>(null);
   const modalImageRef = useRef<HTMLDivElement>(null);
+  const {
+    canScrollNext,
+    canScrollPrev,
+    isDragging,
+    railDragHandlers,
+    railRef,
+    scrollRail,
+    shouldIgnoreRailClick,
+    updateScrollState
+  } = useHorizontalRail();
 
-  const activeSession = activeIndex !== null ? sessions[activeIndex] : null;
+  const activeSession = activeSessionId !== null ? sessions.find(s => s.id === activeSessionId) ?? null : null;
 
   // Touch Swipe coordinates
   const touchStart = useRef<number | null>(null);
 
-  const visibleImages = activeSession?.images.filter((img) => editMode || img.enabled) ?? [];
+  const visibleImages = useMemo(
+    () => activeSession?.images.filter((img) => editMode || img.enabled) ?? [],
+    [activeSession?.images, editMode]
+  );
   const currentImageIndex = activeImage
     ? visibleImages.findIndex((img) => img.id === activeImage.id)
     : -1;
+  const imageNavigationState = useRef({ currentImageIndex, visibleImages });
 
   useEffect(() => {
-    if (activeIndex === null) return;
+    imageNavigationState.current = { currentImageIndex, visibleImages };
+  }, [currentImageIndex, visibleImages]);
+
+  const navigateImage = useCallback(
+    (direction: "next" | "prev") => {
+      const { currentImageIndex: imageIndex, visibleImages: images } = imageNavigationState.current;
+      if (images.length <= 1) return;
+      let nextIdx = imageIndex + (direction === "next" ? 1 : -1);
+      if (nextIdx >= images.length) nextIdx = 0;
+      if (nextIdx < 0) nextIdx = images.length - 1;
+      setActiveImage(images[nextIdx]);
+    },
+    [setActiveImage]
+  );
+
+  useBodyScrollLock(activeSession !== null || activeImage !== null);
+
+  useEffect(() => {
+    if (activeSessionId === null) return;
 
     const handleKey = (event: KeyboardEvent) => {
       if (event.key === "Escape" && !activeImage) {
-        setActiveIndex(null);
+        setActiveSessionId(null);
       } else if (event.key === "Escape" && activeImage) {
         setActiveImage(null);
       } else if (event.key === "ArrowLeft" && activeImage) {
@@ -72,14 +106,11 @@ export function Gallery({ sessions: initialSessions }: { sessions: GallerySessio
 
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
-  }, [activeIndex, activeImage, visibleImages]);
+  }, [activeSessionId, activeImage, navigateImage]);
 
-  const scrollRail = (direction: -1 | 1) => {
-    railRef.current?.scrollBy({
-      left: direction * (railRef.current.clientWidth * 0.82),
-      behavior: "smooth"
-    });
-  };
+  useEffect(() => {
+    updateScrollState();
+  }, [updateScrollState, visibleSessions.length]);
 
   const isSectionEnabled = globalContent.sections.gallery.enabled;
 
@@ -129,7 +160,7 @@ export function Gallery({ sessions: initialSessions }: { sessions: GallerySessio
     setEditingSession(newSession); // Open editing immediately
   };
 
-  const updateSessionField = (field: keyof GallerySession, value: any) => {
+  const updateSessionField = <K extends keyof GallerySession>(field: K, value: GallerySession[K]) => {
     if (!editingSession) return;
     const nextSession = { ...editingSession, [field]: value };
     setEditingSession(nextSession);
@@ -216,21 +247,14 @@ export function Gallery({ sessions: initialSessions }: { sessions: GallerySessio
     return "aspect-[3/4]";
   };
 
-  const navigateImage = (direction: "next" | "prev") => {
-    if (visibleImages.length <= 1) return;
-    let nextIdx = currentImageIndex + (direction === "next" ? 1 : -1);
-    if (nextIdx >= visibleImages.length) nextIdx = 0;
-    if (nextIdx < 0) nextIdx = visibleImages.length - 1;
-    setActiveImage(visibleImages[nextIdx]);
-  };
-
   const goTo = (direction: "next" | "prev") => {
     if (sessions.length <= 1) return;
-    let nextIdx = (activeIndex ?? 0) + (direction === "next" ? 1 : -1);
+    const currentIdx = sessions.findIndex(s => s.id === activeSessionId);
+    let nextIdx = currentIdx + (direction === "next" ? 1 : -1);
     if (nextIdx >= sessions.length) nextIdx = 0;
     if (nextIdx < 0) nextIdx = sessions.length - 1;
     setSessionDirection(direction === "next" ? 1 : -1);
-    setActiveIndex(nextIdx);
+    setActiveSessionId(sessions[nextIdx].id);
     setActiveImage(null);
   };
 
@@ -252,6 +276,7 @@ export function Gallery({ sessions: initialSessions }: { sessions: GallerySessio
   return (
     <SectionReveal
       id="gallery"
+      reveal={false}
       className={cn(
         "relative bg-porcelain py-24 transition-all duration-300 group/section",
         editMode && "hover:ring-1 hover:ring-ink/20",
@@ -302,42 +327,74 @@ export function Gallery({ sessions: initialSessions }: { sessions: GallerySessio
             eyebrow={globalContent.sections.gallery.eyebrow ?? "galeria"}
             title={globalContent.sections.gallery.title ?? "Sesje zdjęciowe"}
           />
-          <p className="max-w-sm text-sm leading-7 text-ink/55">
-            {globalContent.sections.gallery.description ?? "Editorialowe portrety, kadry i fragmenty pracy przed obiektywem."}
-          </p>
+          <RevealBlock delay={0.14} x={24} y={18}>
+            <p className="max-w-sm text-sm leading-7 text-ink/55">
+              {globalContent.sections.gallery.description ?? "Editorialowe portrety, kadry i fragmenty pracy przed obiektywem."}
+            </p>
+          </RevealBlock>
         </div>
 
         <div className="relative mt-12">
-          {sessions.filter(s => editMode || s.enabled).length > 1 && (
-            <div className="pointer-events-none absolute inset-y-0 left-0 right-0 z-10 hidden items-center justify-between px-2 md:flex">
-              <Button
-                type="button"
-                variant="outline"
-                size="icon"
-                className="pointer-events-auto border-white/70 bg-porcelain/85 shadow-[0_16px_40px_rgba(16,16,16,0.08)] backdrop-blur-md hover:bg-ink hover:text-white rounded-full"
-                onClick={() => scrollRail(-1)}
-                aria-label="Przewiń galerię w lewo"
-              >
-                <ChevronLeft className="h-5 w-5" />
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                size="icon"
-                className="pointer-events-auto border-white/70 bg-porcelain/85 shadow-[0_16px_40px_rgba(16,16,16,0.08)] backdrop-blur-md hover:bg-ink hover:text-white rounded-full"
-                onClick={() => scrollRail(1)}
-                aria-label="Przewiń galerię w prawo"
-              >
-                <ChevronRight className="h-5 w-5" />
-              </Button>
+          {visibleSessions.length > 1 && (
+            <div className="pointer-events-none absolute inset-y-0 left-0 right-0 z-10 hidden md:block">
+              <AnimatePresence initial={false}>
+                {canScrollPrev && (
+                  <motion.div
+                    key="gallery-prev"
+                    className="absolute left-2 top-1/2 -translate-y-1/2"
+                    initial={{ opacity: 0, x: -12, y: "-50%", scale: 0.92 }}
+                    animate={{ opacity: 1, x: 0, scale: 1, y: "-50%" }}
+                    exit={{ opacity: 0, x: -12, y: "-50%", scale: 0.92 }}
+                    transition={{ duration: 0.25, ease: "easeOut" }}
+                  >
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      className="pointer-events-auto rounded-full border-white/70 bg-porcelain/85 shadow-[0_16px_40px_rgba(16,16,16,0.08)] backdrop-blur-md hover:bg-ink hover:text-white"
+                      onClick={() => scrollRail(-1)}
+                      aria-label="Przewiń galerię w lewo"
+                    >
+                      <ChevronLeft className="h-5 w-5" />
+                    </Button>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+              <AnimatePresence initial={false}>
+                {canScrollNext && (
+                  <motion.div
+                    key="gallery-next"
+                    className="absolute right-2 top-1/2 -translate-y-1/2"
+                    initial={{ opacity: 0, x: 12, y: "-50%", scale: 0.92 }}
+                    animate={{ opacity: 1, x: 0, scale: 1, y: "-50%" }}
+                    exit={{ opacity: 0, x: 12, y: "-50%", scale: 0.92 }}
+                    transition={{ duration: 0.25, ease: "easeOut" }}
+                  >
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      className="pointer-events-auto rounded-full border-white/70 bg-porcelain/85 shadow-[0_16px_40px_rgba(16,16,16,0.08)] backdrop-blur-md hover:bg-ink hover:text-white"
+                      onClick={() => scrollRail(1)}
+                      aria-label="Przewiń galerię w prawo"
+                    >
+                      <ChevronRight className="h-5 w-5" />
+                    </Button>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
           )}
 
           <div
             ref={railRef}
-            className="no-scrollbar grid auto-cols-[84%] grid-flow-col gap-5 overflow-x-auto scroll-smooth pt-12 pb-20 -mt-12 -mb-16 [scroll-snap-type:x_mandatory] sm:auto-cols-[52%] lg:auto-cols-[36%]"
+            {...railDragHandlers}
+            className={cn(
+              "no-scrollbar grid auto-cols-[84%] grid-flow-col gap-5 overflow-x-auto pt-12 pb-20 -mt-12 -mb-16 select-none [scroll-snap-type:x_mandatory] [touch-action:pan-y] sm:auto-cols-[52%] lg:auto-cols-[36%]",
+              isDragging ? "cursor-grabbing" : "cursor-grab"
+            )}
           >
-            {sessions.filter(s => editMode || s.enabled).map((session, index) => {
+            {visibleSessions.map((session, index) => {
               const cover = coverFor(session);
 
               return (
@@ -349,16 +406,18 @@ export function Gallery({ sessions: initialSessions }: { sessions: GallerySessio
                       !session.enabled && "opacity-50 border-dashed"
                     )}
                     onClick={() => {
-                      if (!editMode) {
-                        setSessionDirection(1);
-                        setActiveIndex(index);
+                      if (shouldIgnoreRailClick()) {
+                        return;
                       }
+
+                      setSessionDirection(1);
+                      setActiveSessionId(session.id);
                     }}
                     aria-label={`Otwórz sesję ${session.title}`}
                     initial={{ opacity: 0, y: 12 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true, amount: 0.05 }}
-                    transition={{ delay: index * 0.03, duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+                    transition={{ delay: index * 0.08, duration: 0.58, ease: [0.22, 1, 0.36, 1] }}
                     whileHover={editMode ? {} : { y: -8 }}
                   >
                     <CinematicImage
@@ -492,8 +551,17 @@ export function Gallery({ sessions: initialSessions }: { sessions: GallerySessio
             </div>
 
             <div className="grid gap-2">
-              {sessions.map((session, idx) => (
-                <div key={session.id} className="flex items-center justify-between bg-white p-2.5 border border-ink/10 rounded-xl gap-2">
+              <AnimatePresence initial={false}>
+                {sessions.map((session, idx) => (
+                <motion.div
+                  layout
+                  key={session.id}
+                  className="flex items-center justify-between gap-2 rounded-xl border border-ink/10 bg-white p-2.5"
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -8 }}
+                  transition={{ duration: 0.22, ease: "easeOut" }}
+                >
                   <div className="truncate">
                     <p className="text-[0.62rem] font-bold uppercase text-ink/40 truncate">{session.subtitle}</p>
                     <p className="text-xs font-serif font-bold text-ink truncate">{session.title}</p>
@@ -541,8 +609,9 @@ export function Gallery({ sessions: initialSessions }: { sessions: GallerySessio
                       <Trash2 className="h-4 w-4" />
                     </button>
                   </div>
-                </div>
+                </motion.div>
               ))}
+              </AnimatePresence>
             </div>
           </div>
         </div>
@@ -646,8 +715,17 @@ export function Gallery({ sessions: initialSessions }: { sessions: GallerySessio
               </div>
 
               <div className="grid gap-3">
-                {editingSession.images.map((img, idx) => (
-                  <div key={img.id} className="grid grid-cols-[70px_1fr_auto] gap-3 items-center bg-porcelain/60 p-2 border border-ink/5 rounded-xl">
+                <AnimatePresence initial={false}>
+                  {editingSession.images.map((img, idx) => (
+                  <motion.div
+                    layout
+                    key={img.id}
+                    className="grid grid-cols-[70px_1fr_auto] items-center gap-3 rounded-xl border border-ink/5 bg-porcelain/60 p-2"
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -8 }}
+                    transition={{ duration: 0.22, ease: "easeOut" }}
+                  >
                     <div className="aspect-[3/4] overflow-hidden border border-ink/10 bg-white rounded-lg">
                       <img src={img.src} alt="" className="h-full w-full object-cover" />
                     </div>
@@ -668,7 +746,9 @@ export function Gallery({ sessions: initialSessions }: { sessions: GallerySessio
                         value={img.aspect ?? "portrait"}
                         onChange={(e) => {
                           const updated = editingSession.images.map((image, i) =>
-                            i === idx ? { ...image, aspect: e.target.value } : image
+                            i === idx
+                              ? { ...image, aspect: e.target.value as NonNullable<SiteImage["aspect"]> }
+                              : image
                           );
                           updateSessionField("images", updated);
                         }}
@@ -712,8 +792,9 @@ export function Gallery({ sessions: initialSessions }: { sessions: GallerySessio
                         <Trash2 className="h-3.5 w-3.5" />
                       </button>
                     </div>
-                  </div>
+                  </motion.div>
                 ))}
+                </AnimatePresence>
               </div>
             </div>
           </div>
@@ -725,7 +806,7 @@ export function Gallery({ sessions: initialSessions }: { sessions: GallerySessio
         <AnimatePresence>
           {activeSession && (
             <motion.div
-              className="fixed inset-0 z-[90] overflow-y-auto bg-porcelain text-ink"
+              className="fixed inset-0 z-[90] overflow-y-auto overscroll-contain bg-porcelain text-ink"
               initial={{ opacity: 0, y: "100%" }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: "100%" }}
@@ -770,7 +851,7 @@ export function Gallery({ sessions: initialSessions }: { sessions: GallerySessio
                         className="rounded-full"
                         onClick={() => {
                           setActiveImage(null);
-                          setActiveIndex(null);
+                          setActiveSessionId(null);
                         }}
                         aria-label="Zamknij galerię"
                       >

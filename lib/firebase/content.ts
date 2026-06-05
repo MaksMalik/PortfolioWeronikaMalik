@@ -13,8 +13,7 @@ import {
   type FirestoreError,
   type Unsubscribe
 } from "firebase/firestore";
-import { getDownloadURL, ref, uploadBytesResumable } from "firebase/storage";
-import { firebaseAuth, firebaseDb, firebaseStorage } from "@/lib/firebase/client";
+import { firebaseAuth, firebaseDb } from "@/lib/firebase/client";
 import { SITE_CONTENT_SCHEMA_VERSION, siteContent } from "@/lib/site-content";
 import type { SiteContent, ContentVersion } from "@/lib/types";
 import { cloneContent } from "@/lib/utils";
@@ -37,24 +36,34 @@ function parseContentPayload(payload: unknown) {
     "content" in payload &&
     (payload as { content?: unknown }).content
   ) {
-    const content = (payload as { content: any }).content;
+    const content = (payload as { content: unknown }).content;
 
     // Merge content with siteContent defaults to handle missing schema fields gracefully without losing user data!
     const merged = cloneContent(siteContent);
     
-    const mergeDeep = (target: any, source: any) => {
+    const mergeDeep = (target: Record<string, unknown>, source: Record<string, unknown>) => {
       if (!source) return;
       Object.keys(source).forEach((key) => {
-        if (source[key] && typeof source[key] === "object" && !Array.isArray(source[key])) {
-          if (!target[key]) target[key] = {};
-          mergeDeep(target[key], source[key]);
+        const sourceValue = source[key];
+
+        if (sourceValue && typeof sourceValue === "object" && !Array.isArray(sourceValue)) {
+          const targetValue = target[key];
+          if (!targetValue || typeof targetValue !== "object" || Array.isArray(targetValue)) {
+            target[key] = {};
+          }
+          mergeDeep(target[key] as Record<string, unknown>, sourceValue as Record<string, unknown>);
         } else {
-          target[key] = source[key];
+          target[key] = sourceValue;
         }
       });
     };
     
-    mergeDeep(merged, content);
+    if (content && typeof content === "object" && !Array.isArray(content)) {
+      mergeDeep(
+        merged as unknown as Record<string, unknown>,
+        content as Record<string, unknown>
+      );
+    }
     
     // Always force schemaVersion to current version
     merged.schemaVersion = SITE_CONTENT_SCHEMA_VERSION;
@@ -113,7 +122,7 @@ async function compressImageFile(file: File) {
       img.src = imageUrl;
     });
 
-    const maxSize = 1200;
+    const maxSize = 2400;
     const scale = Math.min(1, maxSize / Math.max(image.width, image.height));
     const width = Math.round(image.width * scale);
     const height = Math.round(image.height * scale);
@@ -129,7 +138,7 @@ async function compressImageFile(file: File) {
     context.drawImage(image, 0, 0, width, height);
 
     const blob = await new Promise<Blob | null>((resolve) => {
-      canvas.toBlob(resolve, "image/webp", 0.72);
+      canvas.toBlob(resolve, "image/webp", 0.92);
     });
 
     return {
@@ -143,7 +152,6 @@ async function compressImageFile(file: File) {
 }
 
 export async function uploadImageFile(file: File, folder: string): Promise<string> {
-  // 1. Check auth state before attempting upload
   const currentUser = firebaseAuth.currentUser;
   if (!currentUser) {
     throw new Error(
@@ -151,20 +159,11 @@ export async function uploadImageFile(file: File, folder: string): Promise<strin
     );
   }
 
-  // Force token refresh to ensure we have valid credentials
   try {
     await currentUser.getIdToken(true);
-  } catch (tokenError) {
-    console.error("[Upload] Token refresh failed:", tokenError);
-    throw new Error(
-      "Sesja wygasła. Odśwież stronę i zaloguj się ponownie."
-    );
+  } catch {
+    throw new Error("Sesja wygasła. Odśwież stronę i zaloguj się ponownie.");
   }
-
-  console.log("[Upload] Starting local compression:", {
-    name: file.name,
-    size: `${(file.size / 1024).toFixed(1)} KB`
-  });
 
   const compressed = await compressImageFile(file);
 
@@ -172,24 +171,27 @@ export async function uploadImageFile(file: File, folder: string): Promise<strin
     const reader = new FileReader();
     reader.onloadend = () => {
       if (typeof reader.result === "string") {
-        console.log("[Upload] Base64 generation successful:", {
-          originalSize: `${(file.size / 1024).toFixed(1)} KB`,
-          base64Length: `${(reader.result.length / 1024).toFixed(1)} KB`
-        });
         resolve(reader.result);
       } else {
         reject(new Error("Nie udało się przekonwertować obrazu do formatu Base64."));
       }
     };
-    reader.onerror = () => {
-      reject(new Error("Błąd podczas odczytu pliku obrazu."));
-    };
+    reader.onerror = () => reject(new Error("Błąd podczas odczytu pliku obrazu."));
     reader.readAsDataURL(compressed.blob);
   });
 }
 
 export function versionsCollectionRef() {
   return collection(firebaseDb, "siteContent", "eliana-loren-preview", "versions");
+}
+
+function isPermissionDenied(error: unknown) {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "code" in error &&
+    (error as { code?: string }).code === "permission-denied"
+  );
 }
 
 export async function fetchContentVersions(): Promise<ContentVersion[]> {
@@ -211,7 +213,9 @@ export async function fetchContentVersions(): Promise<ContentVersion[]> {
     });
     return versions;
   } catch (error) {
-    console.error("[Versions] Failed to fetch versions:", error);
+    if (!isPermissionDenied(error)) {
+      console.warn("[Versions] Could not fetch versions:", error);
+    }
     return [];
   }
 }
@@ -237,7 +241,9 @@ export async function saveContentVersion(version: ContentVersion) {
       await Promise.all(deletePromises);
     }
   } catch (error) {
-    console.error("[Versions] Failed to save version:", error);
+    if (!isPermissionDenied(error)) {
+      console.warn("[Versions] Could not save version:", error);
+    }
   }
 }
 
@@ -246,7 +252,8 @@ export async function deleteContentVersion(versionId: string) {
     const docRef = doc(versionsCollectionRef(), versionId);
     await deleteDoc(docRef);
   } catch (error) {
-    console.error("[Versions] Failed to delete version:", error);
+    if (!isPermissionDenied(error)) {
+      console.warn("[Versions] Could not delete version:", error);
+    }
   }
 }
-
