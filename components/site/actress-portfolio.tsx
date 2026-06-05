@@ -100,7 +100,7 @@ export function ActressPortfolio() {
         let bgClass = "bg-white";
         
         if (sec.id !== "hero") {
-          bgClass = nonHeroIndex % 2 === 0 ? "bg-porcelain" : "bg-white";
+          bgClass = nonHeroIndex % 2 === 0 ? "bg-white" : "bg-porcelain";
           nonHeroIndex++;
         }
         
