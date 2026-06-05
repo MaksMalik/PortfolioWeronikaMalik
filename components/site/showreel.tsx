@@ -190,14 +190,15 @@ export function Showreel({ content: initialContent }: { content: ShowreelContent
               aria-label="Odtwórz showreel"
               disabled={editMode}
             >
-              <img
+              <CinematicImage
                 src={thumbnailSrc}
                 alt={content.thumbnail.alt || "Showreel thumbnail"}
-                className="absolute inset-0 h-full w-full object-cover rounded-3xl"
+                className="absolute inset-0 h-full w-full"
+                imageClassName="rounded-3xl"
               />
-              <span className="absolute inset-0 bg-ink/0 transition-colors duration-700 group-hover:bg-ink/18" />
+              <span className="absolute inset-0 z-10 bg-ink/0 transition-colors duration-700 group-hover:bg-ink/18" />
               {!editMode && (
-                <span className="absolute left-1/2 top-1/2 flex h-20 w-20 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-white/70 bg-white/18 text-white backdrop-blur-sm transition-transform duration-500 group-hover:scale-110">
+                <span className="absolute left-1/2 top-1/2 z-10 flex h-20 w-20 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-white/70 bg-white/18 text-white backdrop-blur-sm transition-transform duration-500 group-hover:scale-110">
                   <Play className="ml-1 h-8 w-8 fill-current" />
                 </span>
               )}
