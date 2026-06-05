@@ -26,6 +26,7 @@ export function AdminBar() {
     createVersionCheckpoint,
     autosaveStatus,
     hasUnsavedEdits,
+    remoteSaveBlocked,
     undo,
     redo,
     canUndo,
@@ -40,9 +41,9 @@ export function AdminBar() {
   }
 
   return (
-    <div className="no-scrollbar fixed bottom-2 left-1/2 z-[70] flex min-h-10 w-[calc(100%-0.75rem)] max-w-3xl -translate-x-1/2 flex-nowrap items-center justify-center gap-1 overflow-x-auto rounded-2xl border border-white/10 bg-ink/94 px-1.5 py-1.5 text-white shadow-[0_16px_50px_rgba(0,0,0,0.35)] backdrop-blur-xl transition-all duration-300 select-none sm:bottom-4 sm:min-h-11 sm:gap-1.5 sm:rounded-full sm:px-2">
+    <div className="no-scrollbar fixed bottom-2 left-2 right-2 z-[70] flex min-h-10 max-w-none flex-nowrap items-center justify-start gap-1 overflow-x-auto rounded-2xl border border-white/10 bg-ink/94 px-2 py-1.5 text-white shadow-[0_16px_50px_rgba(0,0,0,0.35)] backdrop-blur-xl transition-all duration-300 select-none sm:bottom-4 sm:left-4 sm:right-4 sm:min-h-11 sm:gap-1.5 sm:rounded-full sm:px-3 lg:justify-center">
       {/* Left section: compact save status */}
-      <div className="hidden items-center gap-1.5 md:flex">
+      <div className="hidden shrink-0 items-center gap-1.5 lg:flex">
         <span
           className={cn(
             "inline-flex h-2 w-2 shrink-0 rounded-full",
@@ -50,25 +51,28 @@ export function AdminBar() {
             autosaveStatus === "saved" && "bg-emerald-400 shadow-[0_0_10px_rgba(52,211,153,0.55)]",
             autosaveStatus === "error" && "bg-red-400 shadow-[0_0_10px_rgba(248,113,113,0.55)]",
             autosaveStatus === "idle" && hasUnsavedEdits && "bg-amber-400",
-            autosaveStatus === "idle" && !hasUnsavedEdits && "bg-white/35"
+            autosaveStatus === "idle" && !hasUnsavedEdits && "bg-white/35",
+            remoteSaveBlocked && "bg-amber-300 shadow-[0_0_10px_rgba(252,211,77,0.55)]"
           )}
         />
         <span
           className={cn(
-            "hidden text-[0.58rem] font-semibold uppercase tracking-wider transition-colors duration-300 lg:inline",
+            "hidden text-[0.58rem] font-semibold uppercase tracking-wider transition-colors duration-300 xl:inline",
             autosaveStatus === "saving" && "text-amber-200 animate-pulse",
             autosaveStatus === "saved" && "text-emerald-400",
             autosaveStatus === "error" && "text-red-400 font-bold",
             autosaveStatus === "idle" && hasUnsavedEdits && "text-amber-200",
-            autosaveStatus === "idle" && !hasUnsavedEdits && "text-white/40"
+            autosaveStatus === "idle" && !hasUnsavedEdits && "text-white/40",
+            remoteSaveBlocked && "text-amber-200"
           )}
-          title={autosaveStatus === "error" && statusMessage ? `Szczegóły błędu: ${statusMessage}` : undefined}
+          title={(autosaveStatus === "error" || remoteSaveBlocked) && statusMessage ? statusMessage : undefined}
         >
-          {autosaveStatus === "saving" && "Zapisywanie..."}
-          {autosaveStatus === "saved" && "Zapisano"}
-          {autosaveStatus === "error" && "Błąd zapisu!"}
-          {autosaveStatus === "idle" && hasUnsavedEdits && "Niezapisane"}
-          {autosaveStatus === "idle" && !hasUnsavedEdits && "Zapisano"}
+          {remoteSaveBlocked && "Lokalnie"}
+          {!remoteSaveBlocked && autosaveStatus === "saving" && "Zapisywanie..."}
+          {!remoteSaveBlocked && autosaveStatus === "saved" && "Zapisano"}
+          {!remoteSaveBlocked && autosaveStatus === "error" && "Błąd zapisu!"}
+          {!remoteSaveBlocked && autosaveStatus === "idle" && hasUnsavedEdits && "Niezapisane"}
+          {!remoteSaveBlocked && autosaveStatus === "idle" && !hasUnsavedEdits && "Zapisano"}
         </span>
       </div>
 
@@ -81,11 +85,11 @@ export function AdminBar() {
             <button
               type="button"
               onClick={restoreBackup}
-              className="inline-flex h-7 items-center justify-center gap-1 rounded-full px-2 text-[0.58rem] font-extrabold uppercase tracking-[0.08em] text-white/80 transition-colors hover:bg-white/10 hover:text-white"
+              className="inline-flex h-7 items-center justify-center gap-1 rounded-full px-1.5 text-[0.58rem] font-extrabold uppercase tracking-[0.08em] text-white/80 transition-colors hover:bg-white/10 hover:text-white sm:px-2"
               title="Przywróć kopię roboczą"
             >
               <RotateCcw className="h-3 w-3" />
-              <span className="hidden sm:inline">Przywróć</span>
+              <span className="hidden lg:inline">Przywróć</span>
             </button>
             <button
               type="button"
@@ -108,7 +112,7 @@ export function AdminBar() {
             setEditMode(!editMode);
           }}
           className={cn(
-            "inline-flex h-8 items-center gap-1.5 rounded-full border px-2.5 text-xs font-bold uppercase tracking-[0.12em] transition-all duration-300 shrink-0 sm:px-3",
+            "inline-flex h-8 shrink-0 items-center gap-1.5 rounded-full border px-2.5 text-xs font-bold uppercase tracking-[0.12em] transition-all duration-300 sm:px-3",
             editMode
               ? "border-emerald-500/35 bg-emerald-500/10 text-emerald-400"
               : "border-white/15 bg-white/5 text-white/70 hover:border-white/30 hover:text-white"
@@ -116,7 +120,7 @@ export function AdminBar() {
           title={editMode ? "Wyłącz edycję" : "Włącz edycję"}
         >
           {editMode ? <Eye className="h-3.5 w-3.5 shrink-0" /> : <EyeOff className="h-3.5 w-3.5 shrink-0" />}
-          <span className="hidden md:inline">{editMode ? "Edycja: Wł" : "Edycja: Wył"}</span>
+          <span className="hidden sm:inline">{editMode ? "Edycja: Wł" : "Edycja: Wył"}</span>
         </button>
 
         {/* Undo/Redo Buttons */}
@@ -175,13 +179,13 @@ export function AdminBar() {
       </div>
 
       {/* Right section: Save / Publish / Versions / Logout */}
-      <div className="flex items-center gap-1.5 sm:gap-2 relative">
+      <div className="relative flex shrink-0 items-center gap-1.5 sm:gap-2">
         {editMode && (
           <button
             type="button"
             onClick={saveDraft}
             disabled={isSaving}
-          className="inline-flex h-8 items-center justify-center gap-1.5 rounded-full border border-white/15 bg-white/5 px-2.5 text-xs font-bold uppercase tracking-[0.12em] text-white/80 transition-all hover:bg-white/10 hover:text-white disabled:opacity-40 shrink-0 sm:px-3"
+            className="inline-flex h-8 shrink-0 items-center justify-center gap-1.5 rounded-full border border-white/15 bg-white/5 px-2.5 text-xs font-bold uppercase tracking-[0.12em] text-white/80 transition-all hover:bg-white/10 hover:text-white disabled:opacity-40 sm:px-3"
             title="Zapisz jako szkic roboczy"
           >
             {isSaving ? (
@@ -189,7 +193,7 @@ export function AdminBar() {
             ) : (
               <Save className="h-3.5 w-3.5" />
             )}
-            <span className="hidden md:inline">Szkic</span>
+            <span className="hidden sm:inline">Szkic</span>
           </button>
         )}
 
@@ -205,7 +209,7 @@ export function AdminBar() {
             });
           }}
           className={cn(
-            "inline-flex h-8 items-center justify-center gap-1.5 rounded-full border px-2.5 text-xs font-bold uppercase tracking-[0.12em] transition-all shrink-0 sm:px-3",
+            "inline-flex h-8 shrink-0 items-center justify-center gap-1.5 rounded-full border px-2.5 text-xs font-bold uppercase tracking-[0.12em] transition-all sm:px-3",
             showHistory
               ? "border-emerald-500 bg-emerald-500/10 text-emerald-400"
               : "border-white/15 bg-white/5 text-white/80 hover:bg-white/10 hover:text-white"
@@ -213,7 +217,7 @@ export function AdminBar() {
           title="Historia wersji"
         >
           <History className="h-3.5 w-3.5" />
-          <span className="hidden md:inline">Wersje</span>
+          <span className="hidden sm:inline">Wersje</span>
         </button>
 
         <button
@@ -221,7 +225,7 @@ export function AdminBar() {
           onClick={publishLive}
           disabled={isSaving || previewTarget === "live"}
           className={cn(
-            "inline-flex h-8 items-center justify-center gap-1.5 rounded-full bg-white px-2.5 text-xs font-bold uppercase tracking-[0.12em] text-ink transition-all hover:bg-porcelain shrink-0 sm:px-3",
+            "inline-flex h-8 shrink-0 items-center justify-center gap-1.5 rounded-full bg-white px-2.5 text-xs font-bold uppercase tracking-[0.12em] text-ink transition-all hover:bg-porcelain sm:px-3",
             (isSaving || previewTarget === "live") && "opacity-40 cursor-not-allowed"
           )}
           title={previewTarget === "live" ? "Przełącz na widok Szkic, aby opublikować zmiany" : "Opublikuj na żywo dla wszystkich użytkowników"}
@@ -231,7 +235,7 @@ export function AdminBar() {
           ) : (
             <Rocket className="h-3.5 w-3.5" />
           )}
-          <span className="hidden md:inline">Publikuj</span>
+          <span className="hidden sm:inline">Publikuj</span>
         </button>
 
         <button

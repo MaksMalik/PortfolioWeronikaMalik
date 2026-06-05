@@ -98,8 +98,6 @@ export function useHorizontalRail() {
       startX: event.clientX
     };
 
-    setIsDragging(true);
-
     try {
       event.currentTarget.setPointerCapture(event.pointerId);
     } catch {
@@ -118,6 +116,9 @@ export function useHorizontalRail() {
         return;
       }
 
+      if (!state.didDrag) {
+        setIsDragging(true);
+      }
       state.didDrag = true;
       rail.scrollLeft = state.scrollLeft - deltaX;
       event.preventDefault();

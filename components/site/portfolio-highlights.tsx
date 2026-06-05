@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { FilmwebMark } from "@/components/site/brand-icons";
 import { CinematicImage } from "@/components/site/cinematic-image";
 import { ModalPortal } from "@/components/site/modal-portal";
-import { RevealBlock, SectionHeading, SectionReveal } from "@/components/site/section-reveal";
+import { SectionHeading, SectionReveal } from "@/components/site/section-reveal";
 import { useAdminEdit } from "@/components/admin/admin-edit-context";
 import { AdminDrawer } from "@/components/admin/admin-drawer";
 import { useBodyScrollLock } from "@/components/site/use-body-scroll-lock";
@@ -210,6 +210,7 @@ export function PortfolioHighlights({ projects: initialProjects }: { projects: P
   return (
     <SectionReveal
       id="work"
+      reveal={false}
       className={cn(
         "relative bg-porcelain py-24 transition-all duration-300 group/section",
         editMode && "hover:ring-1 hover:ring-ink/20",
@@ -262,7 +263,7 @@ export function PortfolioHighlights({ projects: initialProjects }: { projects: P
           />
         </div>
 
-        <RevealBlock className="relative mt-12" delay={0.12}>
+        <div className="relative mt-12">
           {visibleProjects.length > 1 && (
             <div className="pointer-events-none absolute inset-y-0 left-0 right-0 z-10 hidden md:block">
               <AnimatePresence initial={false}>
@@ -318,8 +319,8 @@ export function PortfolioHighlights({ projects: initialProjects }: { projects: P
             ref={railRef}
             {...railDragHandlers}
             className={cn(
-              "no-scrollbar grid auto-cols-[84%] grid-flow-col gap-5 overflow-x-auto scroll-smooth pt-12 pb-20 -mt-12 -mb-16 select-none [scroll-snap-type:x_mandatory] [touch-action:pan-y] sm:auto-cols-[52%] lg:auto-cols-[36%]",
-              isDragging ? "cursor-grabbing scroll-auto" : "cursor-grab"
+              "no-scrollbar grid auto-cols-[84%] grid-flow-col gap-5 overflow-x-auto pt-12 pb-20 -mt-12 -mb-16 select-none [scroll-snap-type:x_mandatory] [touch-action:pan-y] sm:auto-cols-[52%] lg:auto-cols-[36%]",
+              isDragging ? "cursor-grabbing" : "cursor-grab"
             )}
           >
             {visibleProjects.map((project, index) => (
@@ -342,7 +343,7 @@ export function PortfolioHighlights({ projects: initialProjects }: { projects: P
                   initial={{ opacity: 0, y: 12 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true, amount: 0.05 }}
-                  transition={{ delay: index * 0.03, duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+                  transition={{ delay: index * 0.08, duration: 0.58, ease: [0.22, 1, 0.36, 1] }}
                   whileHover={editMode ? {} : { y: -10 }}
                 >
                   {(project.image.src && project.image.enabled !== false) && (
@@ -381,7 +382,7 @@ export function PortfolioHighlights({ projects: initialProjects }: { projects: P
               </div>
             ))}
           </div>
-        </RevealBlock>
+        </div>
       </div>
 
       {/* Section Settings Drawer */}

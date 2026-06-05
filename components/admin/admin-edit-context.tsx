@@ -43,6 +43,7 @@ type AdminEditContextType = {
   deleteVersion: (versionId: string) => Promise<void>;
   autosaveStatus: "idle" | "saving" | "saved" | "error";
   hasUnsavedEdits: boolean;
+  remoteSaveBlocked: boolean;
   undo: () => void;
   redo: () => void;
   canUndo: boolean;
@@ -62,7 +63,7 @@ function isPermissionDenied(error: unknown) {
 
 function friendlyErrorMessage(error: unknown, fallback: string) {
   if (isPermissionDenied(error)) {
-    return "Firebase odmówił dostępu. Sprawdź wdrożone reguły Firestore albo zalogowanie admina.";
+    return "Zmiany są zapisane lokalnie, ale Firebase odrzuca zapis online. Wdróż reguły Firestore albo odśwież logowanie admina.";
   }
 
   return error instanceof Error ? error.message : fallback;
@@ -90,6 +91,7 @@ export function AdminEditProvider({ children }: { children: React.ReactNode }) {
   const [historyVersions, setHistoryVersions] = useState<ContentVersion[]>([]);
   const [autosaveStatus, setAutosaveStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
   const [hasUnsavedEdits, setHasUnsavedEdits] = useState(false);
+  const [remoteSaveBlocked, setRemoteSaveBlocked] = useState(false);
   
   // Undo/Redo state stack
   const [historyStates, setHistoryStates] = useState<SiteContent[]>([]);
@@ -216,11 +218,16 @@ export function AdminEditProvider({ children }: { children: React.ReactNode }) {
   // Debounced Autosave to Firestore preview target
   useEffect(() => {
     if (!hasUnsavedEdits || !editMode || !isAdmin) return;
+    if (remoteSaveBlocked) {
+      queueMicrotask(() => setAutosaveStatus("idle"));
+      return;
+    }
 
     queueMicrotask(() => setAutosaveStatus("saving"));
     const timer = setTimeout(async () => {
       try {
         await saveSiteContent(content, "preview");
+        setRemoteSaveBlocked(false);
         setAutosaveStatus("saved");
         setHasUnsavedEdits(false);
         setStatusMessage(null); // Clear errors on success
@@ -231,14 +238,17 @@ export function AdminEditProvider({ children }: { children: React.ReactNode }) {
       } catch (err) {
         if (!isPermissionDenied(err)) {
           console.warn("Autosave failed:", err);
+          setAutosaveStatus("error");
+        } else {
+          setRemoteSaveBlocked(true);
+          setAutosaveStatus("idle");
         }
-        setAutosaveStatus("error");
         setStatusMessage(friendlyErrorMessage(err, "Nie udało się automatycznie zapisać szkicu."));
       }
     }, 3000); // 3 seconds debounce
 
     return () => clearTimeout(timer);
-  }, [content, hasUnsavedEdits, editMode, isAdmin]);
+  }, [content, hasUnsavedEdits, editMode, isAdmin, remoteSaveBlocked]);
 
   useEffect(() => {
     if (!hasUnsavedEdits || !editMode || !isAdmin) return;
@@ -255,9 +265,11 @@ export function AdminEditProvider({ children }: { children: React.ReactNode }) {
   // Immediate Save helper
   const triggerImmediateSave = async (currentContent: SiteContent) => {
     if (!hasUnsavedEdits) return;
+    if (remoteSaveBlocked) return;
     setAutosaveStatus("saving");
     try {
       await saveSiteContent(currentContent, "preview");
+      setRemoteSaveBlocked(false);
       setAutosaveStatus("saved");
       setHasUnsavedEdits(false);
       setStatusMessage(null); // Clear errors on success
@@ -268,8 +280,11 @@ export function AdminEditProvider({ children }: { children: React.ReactNode }) {
     } catch (err) {
       if (!isPermissionDenied(err)) {
         console.warn("Immediate save failed:", err);
+        setAutosaveStatus("error");
+      } else {
+        setRemoteSaveBlocked(true);
+        setAutosaveStatus("idle");
       }
-      setAutosaveStatus("error");
       setStatusMessage(friendlyErrorMessage(err, "Nie udało się zapisać szkicu."));
     }
   };
@@ -376,6 +391,7 @@ export function AdminEditProvider({ children }: { children: React.ReactNode }) {
   const saveDraft = async () => {
     setIsSaving(true);
     setStatusMessage(null);
+    setRemoteSaveBlocked(false);
     try {
       await saveSiteContent(content, "preview");
       await createVersionCheckpoint("draft");
@@ -385,6 +401,7 @@ export function AdminEditProvider({ children }: { children: React.ReactNode }) {
       }
       setHasUnsavedEdits(false);
       setAutosaveStatus("saved");
+      setRemoteSaveBlocked(false);
       setSavedAt(
         new Intl.DateTimeFormat("pl-PL", {
           hour: "2-digit",
@@ -393,6 +410,12 @@ export function AdminEditProvider({ children }: { children: React.ReactNode }) {
         }).format(new Date())
       );
     } catch (error) {
+      if (isPermissionDenied(error)) {
+        setRemoteSaveBlocked(true);
+        setAutosaveStatus("idle");
+      } else {
+        setAutosaveStatus("error");
+      }
       setStatusMessage(friendlyErrorMessage(error, "Nie udało się zapisać szkicu."));
     } finally {
       setIsSaving(false);
@@ -402,6 +425,7 @@ export function AdminEditProvider({ children }: { children: React.ReactNode }) {
   const publishLive = async () => {
     setIsSaving(true);
     setStatusMessage(null);
+    setRemoteSaveBlocked(false);
     try {
       // Save to both preview and live targets
       await saveSiteContent(content, "live");
@@ -413,6 +437,7 @@ export function AdminEditProvider({ children }: { children: React.ReactNode }) {
       }
       setHasUnsavedEdits(false);
       setAutosaveStatus("saved");
+      setRemoteSaveBlocked(false);
       setSavedAt(
         new Intl.DateTimeFormat("pl-PL", {
           hour: "2-digit",
@@ -421,6 +446,12 @@ export function AdminEditProvider({ children }: { children: React.ReactNode }) {
         }).format(new Date())
       );
     } catch (error) {
+      if (isPermissionDenied(error)) {
+        setRemoteSaveBlocked(true);
+        setAutosaveStatus("idle");
+      } else {
+        setAutosaveStatus("error");
+      }
       setStatusMessage(friendlyErrorMessage(error, "Nie udało się opublikować na żywo."));
     } finally {
       setIsSaving(false);
@@ -515,6 +546,7 @@ export function AdminEditProvider({ children }: { children: React.ReactNode }) {
         deleteVersion,
         autosaveStatus,
         hasUnsavedEdits,
+        remoteSaveBlocked,
         undo,
         redo,
         canUndo: historyIndex > 0,

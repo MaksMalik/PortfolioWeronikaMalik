@@ -8,19 +8,26 @@ type SectionRevealProps = {
   children: ReactNode;
   className?: string;
   id?: string;
+  reveal?: boolean;
 };
 
 const revealEase = [0.22, 1, 0.36, 1] as const;
 
-export function SectionReveal({ children, className, id }: SectionRevealProps) {
+export function SectionReveal({ children, className, id, reveal = true }: SectionRevealProps) {
+  const revealProps = reveal
+    ? {
+        initial: { opacity: 0, y: 24 },
+        whileInView: { opacity: 1, y: 0 },
+        viewport: { once: true, amount: 0.18, margin: "0px 0px -8% 0px" },
+        transition: { duration: 0.9, ease: revealEase }
+      }
+    : {};
+
   return (
     <motion.section
       id={id}
       className={className}
-      initial={{ opacity: 0, y: 24 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, amount: 0.18, margin: "0px 0px -8% 0px" }}
-      transition={{ duration: 0.9, ease: revealEase }}
+      {...revealProps}
     >
       {children}
     </motion.section>
