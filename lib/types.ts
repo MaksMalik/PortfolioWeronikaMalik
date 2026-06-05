@@ -100,6 +100,7 @@ export type ContactContent = {
 
 export type SiteContent = {
   schemaVersion: number;
+  theme?: "light" | "dark";
   sections: {
     hero: SectionSettings;
     about: SectionSettings;

@@ -259,6 +259,21 @@ export function AdminEditProvider({ children }: { children: React.ReactNode }) {
     );
   }, [isAdmin, previewTarget, isPreviewPage]);
 
+  // Synchronize Theme (Light / Dark) class on document and body
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const isDark = content.theme === "dark";
+    const root = document.documentElement;
+    const body = document.body;
+    if (isDark) {
+      root.classList.add("dark");
+      body.classList.add("dark");
+    } else {
+      root.classList.remove("dark");
+      body.classList.remove("dark");
+    }
+  }, [content.theme]);
+
   // Debounced Autosave to Firestore preview target
   useEffect(() => {
     if (!hasUnsavedEdits || !editMode || !isAdmin) return;

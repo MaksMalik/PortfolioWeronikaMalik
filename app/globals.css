@@ -14,6 +14,128 @@
   --radius: 0.5rem;
 }
 
+.dark {
+  --background: #0a0a09;
+  --foreground: #f8f7f4;
+  --card: #141412;
+  --card-foreground: #f8f7f4;
+  --muted: #1c1b18;
+  --muted-foreground: #a6a29a;
+  --border: #222220;
+  --input: #222220;
+  --ring: #f8f7f4;
+}
+
+/* Tryb ciemny - adaptacja klas Tailwind i styli */
+.dark body {
+  background:
+    linear-gradient(180deg, rgba(16, 16, 15, 0.95), rgba(10, 10, 9, 0.98)),
+    var(--background) !important;
+  color: var(--foreground) !important;
+}
+
+.dark .bg-white {
+  background-color: var(--card) !important;
+}
+
+.dark .bg-porcelain {
+  background-color: var(--background) !important;
+}
+
+.dark .text-ink {
+  color: var(--foreground) !important;
+}
+
+.dark .text-graphite {
+  color: var(--muted-foreground) !important;
+}
+
+.dark .text-graphite\/80,
+.dark .text-graphite\/75,
+.dark .text-graphite\/70 {
+  color: rgba(248, 247, 244, 0.72) !important;
+}
+
+.dark .text-ink\/62,
+.dark .text-ink\/55,
+.dark .text-ink\/45 {
+  color: rgba(248, 247, 244, 0.6) !important;
+}
+
+.dark .border-ink\/10,
+.dark .border-ink\/12,
+.dark .border-ink\/15,
+.dark .border-ink\/5 {
+  border-color: var(--border) !important;
+}
+
+.dark .bg-porcelain\/88 {
+  background-color: rgba(20, 20, 18, 0.88) !important;
+}
+
+.dark .bg-porcelain\/85 {
+  background-color: rgba(20, 20, 18, 0.85) !important;
+}
+
+.dark .bg-porcelain\/95 {
+  background-color: rgba(10, 10, 9, 0.95) !important;
+}
+
+.dark .bg-ink\/5 {
+  background-color: rgba(248, 247, 244, 0.08) !important;
+}
+
+.dark .text-ink\/40,
+.dark .text-ink\/35,
+.dark .text-ink\/30 {
+  color: rgba(248, 247, 244, 0.4) !important;
+}
+
+.dark .stroke-ink\/65 {
+  stroke: rgba(248, 247, 244, 0.65) !important;
+}
+
+.dark .border-white\/70 {
+  border-color: rgba(248, 247, 244, 0.2) !important;
+}
+
+.dark .border-ink {
+  border-color: var(--foreground) !important;
+}
+
+.dark .hover\:bg-ink:hover {
+  background-color: var(--foreground) !important;
+  color: var(--background) !important;
+}
+
+/* Poprawki dla Admin UI i wejsc tekstowych */
+.dark input,
+.dark textarea,
+.dark select {
+  background-color: var(--card) !important;
+  color: var(--foreground) !important;
+  border-color: var(--border) !important;
+}
+
+.dark .bg-white\/90 {
+  background-color: rgba(20, 20, 18, 0.9) !important;
+}
+
+.dark .bg-porcelain\/90 {
+  background-color: rgba(10, 10, 9, 0.9) !important;
+}
+
+/* Delikatne podświetlenie linii siatki Vogue w trybie ciemnym */
+.dark .section-shell::before,
+.dark .section-shell::after {
+  background: rgba(248, 247, 244, 0.05) !important;
+}
+
+/* Filmweb mark w trybie ciemnym */
+.dark .FilmwebMark {
+  background-color: transparent !important;
+}
+
 * {
   box-sizing: border-box;
 }

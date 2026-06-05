@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useAdminEdit } from "./admin-edit-context";
-import { Eye, EyeOff, Save, Rocket, LogOut, Loader2, History, Trash2, Clock, Undo, Redo, RotateCcw, X } from "lucide-react";
+import { Eye, EyeOff, Save, Rocket, LogOut, Loader2, History, Trash2, Clock, Undo, Redo, RotateCcw, X, Moon, Sun } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export function AdminBar() {
@@ -32,7 +32,9 @@ export function AdminBar() {
     redo,
     canUndo,
     canRedo,
-    statusMessage
+    statusMessage,
+    content,
+    updateContent
   } = useAdminEdit();
 
   const [showHistory, setShowHistory] = useState(false);
@@ -239,6 +241,25 @@ export function AdminBar() {
             <Rocket className="h-3.5 w-3.5" />
           )}
           <span className="hidden lg:inline">Publikuj</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => {
+            updateContent((draft) => {
+              draft.theme = draft.theme === "dark" ? "light" : "dark";
+            });
+          }}
+          className={cn(
+            "inline-flex h-9 items-center justify-center gap-1.5 rounded-full border px-2.5 sm:px-4 text-xs font-bold uppercase tracking-[0.12em] transition-all shrink-0",
+            content.theme === "dark"
+              ? "border-purple-500 bg-purple-500/10 text-purple-400"
+              : "border-white/15 bg-white/5 text-white/80 hover:bg-white/10 hover:text-white"
+          )}
+          title="Przełącz motyw globalny (dla wszystkich)"
+        >
+          {content.theme === "dark" ? <Sun className="h-3.5 w-3.5" /> : <Moon className="h-3.5 w-3.5" />}
+          <span className="hidden lg:inline">{content.theme === "dark" ? "Ciemny" : "Jasny"}</span>
         </button>
 
         <button

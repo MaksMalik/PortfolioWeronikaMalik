@@ -4,6 +4,7 @@ export const SITE_CONTENT_SCHEMA_VERSION = 4;
 
 export const siteContent: SiteContent = {
   schemaVersion: SITE_CONTENT_SCHEMA_VERSION,
+  theme: "light",
   sections: {
     hero: { enabled: true, label: "Start" },
     about: { enabled: true, label: "O mnie" },
