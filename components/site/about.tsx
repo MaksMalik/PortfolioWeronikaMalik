@@ -118,7 +118,7 @@ export function About({
           </RevealBlock>
         </div>
 
-        {(content.image.src && content.image.enabled !== false) && (
+        {content.image.src && content.image.enabled !== false ? (
           <RevealBlock className="ornament-line pl-5 pt-5" delay={0.14} x={34} y={18}>
             <div className="relative group overflow-hidden rounded-[1.5rem] rounded-tl-none border border-ink/10 shadow-editorial">
               <CinematicImage
@@ -127,6 +127,10 @@ export function About({
                 className="aspect-[4/5] max-h-[640px] rounded-[1.5rem] rounded-tl-none"
               />
             </div>
+          </RevealBlock>
+        ) : (
+          <RevealBlock className="ornament-line pl-5 pt-5" delay={0.14} x={34} y={18}>
+            <div className="aspect-[4/5] max-h-[640px] rounded-[1.5rem] rounded-tl-none bg-porcelain" />
           </RevealBlock>
         )}
       </div>

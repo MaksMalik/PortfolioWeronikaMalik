@@ -21,9 +21,6 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 
-const PLACEHOLDER_IMAGE =
-  "https://images.unsplash.com/photo-1512316609839-ce289d3eba0a?auto=format&fit=crop&w=900&q=80";
-
 const linkLabelOptions = [
   "Filmweb",
   "Strona teatru",
@@ -40,8 +37,8 @@ function emptyImage(prefix: string): SiteImage {
   return {
     id: createId(prefix),
     enabled: true,
-    src: PLACEHOLDER_IMAGE,
-    alt: "Zdjęcie zastępcze",
+    src: "",
+    alt: "",
     title: "Nowe zdjęcie",
     description: "",
     aspect: "portrait"
@@ -393,7 +390,7 @@ export function PortfolioHighlights({
                   viewport={{ once: true, amount: 0.05 }}
                   transition={{ delay: index * 0.08, duration: 0.58, ease: [0.22, 1, 0.36, 1] }}
                 >
-                  {(project.image.src && project.image.enabled !== false) && (
+                  {project.image.src && project.image.enabled !== false ? (
                     <div className="relative">
                       <CinematicImage
                         src={project.image.src}
@@ -402,6 +399,8 @@ export function PortfolioHighlights({
                       />
                       <CinematicCardFrame />
                     </div>
+                  ) : (
+                    <div className="relative aspect-[3/4] rounded-t-2xl w-full bg-porcelain" />
                   )}
                   <div className="relative overflow-hidden p-6 flex-1 flex flex-col justify-between w-full">
                     <div className="absolute inset-x-6 top-0 h-px bg-ink/10" />

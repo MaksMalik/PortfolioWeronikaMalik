@@ -118,7 +118,7 @@ export function Hero({
       )}
 
       <div className="section-shell relative z-10 grid min-h-[calc(92svh-8.5rem)] items-center gap-10 py-6 lg:grid-cols-[0.86fr_1.14fr] lg:gap-16">
-        {(content.image.src && content.image.enabled !== false) && (
+        {content.image.src && content.image.enabled !== false ? (
           <motion.div
             style={{ y: imageY }}
             className="mx-auto h-[52svh] min-h-[340px] w-full max-w-[430px] lg:h-[68svh] lg:max-h-[690px]"
@@ -145,6 +145,13 @@ export function Hero({
                 )}
               />
             </div>
+          </motion.div>
+        ) : (
+          <motion.div
+            style={{ y: imageY }}
+            className="mx-auto h-[52svh] min-h-[340px] w-full max-w-[430px] lg:h-[68svh] lg:max-h-[690px]"
+          >
+            <div className="relative h-full rounded-t-full bg-porcelain" />
           </motion.div>
         )}
 

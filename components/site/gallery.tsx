@@ -20,15 +20,12 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 
-const PLACEHOLDER_IMAGE =
-  "https://images.unsplash.com/photo-1512316609839-ce289d3eba0a?auto=format&fit=crop&w=900&q=80";
-
 function emptyImage(prefix: string): SiteImage {
   return {
     id: createId(prefix),
     enabled: true,
-    src: PLACEHOLDER_IMAGE,
-    alt: "Zdjęcie zastępcze",
+    src: "",
+    alt: "",
     title: "Nowe zdjęcie",
     description: "",
     aspect: "portrait"
