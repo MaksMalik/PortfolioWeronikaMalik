@@ -556,7 +556,8 @@ body.is-edit-mode * {
 
 .customCursor.is-view .customCursorRing::after,
 .customCursor.is-play .customCursorRing::after {
-  opacity: 0;
+  opacity: 0 !important;
+  display: none !important;
 }
 
 .customCursorLabel {

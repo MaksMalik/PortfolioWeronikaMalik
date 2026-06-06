@@ -15,6 +15,7 @@ import { useHorizontalRail } from "@/components/site/use-horizontal-rail";
 import { uploadImageFile } from "@/lib/firebase/content";
 import { createId, cn } from "@/lib/utils";
 import { AdminDrawer } from "@/components/admin/admin-drawer";
+import { SectionReorderControls } from "@/components/admin/section-reorder-controls";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -254,37 +255,40 @@ export function Showreel({ content: initialContent, bgClass }: { content: Showre
       
       {/* Control overlay for Admin */}
       {editMode && (
-        <div className="absolute top-6 right-4 z-20 flex items-center gap-2">
-          <div className="flex items-center gap-3 bg-porcelain/90 border border-ink/10 px-4 py-2 shadow-sm rounded-full backdrop-blur-md">
-            <span className="text-[0.62rem] font-bold uppercase tracking-[0.14em] text-ink/65">
-              Sekcja Showreel (Wideo)
-            </span>
+        <div className="absolute top-6 right-4 z-20 flex flex-col items-end">
+          <div className="flex items-center gap-2">
+            <div className="flex items-center gap-3 bg-porcelain/90 border border-ink/10 px-4 py-2 shadow-sm rounded-full backdrop-blur-md">
+              <span className="text-[0.62rem] font-bold uppercase tracking-[0.14em] text-ink/65">
+                Sekcja Showreel (Wideo)
+              </span>
+              <button
+                type="button"
+                onClick={() =>
+                  updateContent((draft) => {
+                    draft.sections.showreel.enabled = !draft.sections.showreel.enabled;
+                  })
+                }
+                className={cn(
+                  "rounded-full px-2.5 py-0.5 text-[0.62rem] font-bold uppercase tracking-[0.1em] border transition-colors",
+                  isSectionEnabled
+                    ? "border-emerald-500 bg-emerald-500 text-white"
+                    : "border-ink/15 bg-white text-ink/45 hover:border-ink hover:text-ink"
+                )}
+              >
+                {isSectionEnabled ? "Aktywna" : "Ukryta"}
+              </button>
+            </div>
+
             <button
               type="button"
-              onClick={() =>
-                updateContent((draft) => {
-                  draft.sections.showreel.enabled = !draft.sections.showreel.enabled;
-                })
-              }
-              className={cn(
-                "rounded-full px-2.5 py-0.5 text-[0.62rem] font-bold uppercase tracking-[0.1em] border transition-colors",
-                isSectionEnabled
-                  ? "border-emerald-500 bg-emerald-500 text-white"
-                  : "border-ink/15 bg-white text-ink/45 hover:border-ink hover:text-ink"
-              )}
+              onClick={() => setIsSectionDrawerOpen(true)}
+              className="flex h-9 items-center gap-1.5 rounded-full border border-ink/15 bg-white px-4 text-xs font-bold uppercase tracking-[0.12em] text-ink/70 hover:border-ink hover:text-ink shadow-sm transition-all"
             >
-              {isSectionEnabled ? "Aktywna" : "Ukryta"}
+              <Edit className="h-3.5 w-3.5" />
+              Edytuj
             </button>
           </div>
-
-          <button
-            type="button"
-            onClick={() => setIsSectionDrawerOpen(true)}
-            className="flex h-9 items-center gap-1.5 rounded-full border border-ink/15 bg-white px-4 text-xs font-bold uppercase tracking-[0.12em] text-ink/70 hover:border-ink hover:text-ink shadow-sm transition-all"
-          >
-            <Edit className="h-3.5 w-3.5" />
-            Edytuj
-          </button>
+          <SectionReorderControls sectionId="showreel" />
         </div>
       )}
 

@@ -37,7 +37,6 @@ export function AdminBar() {
   } = useAdminEdit();
 
   const [showHistory, setShowHistory] = useState(false);
-  const [showLayout, setShowLayout] = useState(false);
 
   if (!isAdmin) {
     return null;
@@ -199,38 +198,12 @@ export function AdminBar() {
           </button>
         )}
 
-        {editMode && (
-          <button
-            type="button"
-            onClick={() => {
-              setShowLayout((prev) => {
-                const next = !prev;
-                if (next) {
-                  setShowHistory(false);
-                }
-                return next;
-              });
-            }}
-            className={cn(
-              "inline-flex h-9 items-center justify-center gap-1.5 rounded-full border px-2.5 sm:px-4 text-xs font-bold uppercase tracking-[0.12em] transition-all shrink-0",
-              showLayout
-                ? "border-emerald-500 bg-emerald-500/10 text-emerald-400"
-                : "border-white/15 bg-white/5 text-white/80 hover:bg-white/10 hover:text-white"
-            )}
-            title="Zmień kolejność sekcji strony głównej"
-          >
-            <ArrowUpDown className="h-3.5 w-3.5" />
-            <span className="hidden lg:inline">Układ</span>
-          </button>
-        )}
-
         <button
           type="button"
           onClick={() => {
             setShowHistory((prev) => {
               const next = !prev;
               if (next) {
-                setShowLayout(false);
                 void refreshHistoryVersions();
               }
               return next;
@@ -347,101 +320,6 @@ export function AdminBar() {
                 ))}
               </div>
             )}
-          </div>
-        )}
-
-        {/* Layout Dropdown Panel */}
-        {editMode && showLayout && (
-          <div className="fixed bottom-16 right-4 z-[90] max-h-[min(24rem,calc(100svh-6rem))] w-72 overflow-y-auto rounded-xl border border-white/10 bg-ink p-3 text-white shadow-xl sm:bottom-20">
-            <div className="flex items-center justify-between border-b border-white/10 pb-2 mb-2">
-              <span className="text-[0.62rem] font-bold uppercase tracking-[0.12em] text-white/50">
-                Kolejność sekcji
-              </span>
-              <button
-                type="button"
-                onClick={() => {
-                  if (confirm("Czy na pewno chcesz przywrócić domyślny układ sekcji?")) {
-                    updateContent((draft) => {
-                      draft.sectionsOrder = ["hero", "about", "portfolio", "showreel", "gallery", "press", "contact"];
-                    });
-                  }
-                }}
-                className="text-[0.58rem] font-extrabold uppercase text-emerald-400 hover:text-emerald-300"
-              >
-                Domyślny
-              </button>
-            </div>
-            <div className="grid gap-1.5">
-              {(() => {
-                const defaultOrder = ["hero", "about", "portfolio", "showreel", "gallery", "press", "contact"];
-                const currentOrder = content.sectionsOrder ?? defaultOrder;
-                
-                const sectionLabels: Record<string, string> = {
-                  hero: "Główna (Hero)",
-                  about: content.sections.about?.label || "O mnie",
-                  portfolio: content.sections.portfolio?.label || "Projekty",
-                  showreel: content.sections.showreel?.label || "Showreel",
-                  gallery: content.sections.gallery?.label || "Galeria",
-                  press: content.sections.press?.label || "Prasa",
-                  contact: content.sections.contact?.label || "Kontakt"
-                };
-
-                const moveSection = (index: number, direction: "up" | "down") => {
-                  const targetIndex = direction === "up" ? index - 1 : index + 1;
-                  if (targetIndex < 0 || targetIndex >= currentOrder.length) return;
-                  
-                  updateContent((draft) => {
-                    const order = draft.sectionsOrder ? [...draft.sectionsOrder] : [...defaultOrder];
-                    // Swap elements
-                    const temp = order[index];
-                    order[index] = order[targetIndex];
-                    order[targetIndex] = temp;
-                    draft.sectionsOrder = order;
-                  });
-                };
-
-                return currentOrder.map((sectionId, idx) => {
-                  const isFirst = idx === 0;
-                  const isLast = idx === currentOrder.length - 1;
-                  const label = sectionLabels[sectionId] || sectionId;
-                  const isEnabled = content.sections[sectionId as keyof typeof content.sections]?.enabled !== false;
-
-                  return (
-                    <div
-                      key={sectionId}
-                      className={cn(
-                        "flex items-center justify-between gap-2 p-2 rounded-lg text-[0.68rem] transition-colors",
-                        isEnabled ? "bg-white/5 hover:bg-white/10" : "bg-white/5 opacity-40"
-                      )}
-                    >
-                      <span className="font-medium truncate flex-1 text-white">
-                        {label} {!isEnabled && <span className="text-white/30 text-[0.58rem] font-normal italic ml-1">(wyłączona)</span>}
-                      </span>
-                      <div className="flex items-center gap-1 shrink-0">
-                        <button
-                          type="button"
-                          onClick={() => moveSection(idx, "up")}
-                          disabled={isFirst}
-                          className="flex h-5 w-5 items-center justify-center rounded bg-white/5 hover:bg-white/15 text-white/80 hover:text-white disabled:opacity-20 disabled:hover:bg-white/5 transition-all cursor-pointer"
-                          title="Przesuń w górę"
-                        >
-                          <ArrowUp className="h-3 w-3" />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => moveSection(idx, "down")}
-                          disabled={isLast}
-                          className="flex h-5 w-5 items-center justify-center rounded bg-white/5 hover:bg-white/15 text-white/80 hover:text-white disabled:opacity-20 disabled:hover:bg-white/5 transition-all cursor-pointer"
-                          title="Przesuń w dół"
-                        >
-                          <ArrowDown className="h-3 w-3" />
-                        </button>
-                      </div>
-                    </div>
-                  );
-                });
-              })()}
-            </div>
           </div>
         )}
       </div>
