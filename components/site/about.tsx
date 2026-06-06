@@ -74,23 +74,24 @@ export function About({
     const element = scrollRef.current;
     if (!element) return;
 
-    const handleResize = () => {
-      const scrollWidth = element.scrollWidth;
-      const clientWidth = element.clientWidth;
-      setTranslateXVal(-(scrollWidth - clientWidth));
+    const measure = () => {
+      // offsetWidth = full rendered width of the max-content rail
+      // window.innerWidth = visible viewport
+      const railWidth = element.offsetWidth;
+      const viewportWidth = window.innerWidth;
+      const overflow = railWidth - viewportWidth;
+      setTranslateXVal(overflow > 0 ? -overflow : 0);
     };
 
-    const resizeObserver = new ResizeObserver(() => {
-      handleResize();
-    });
+    // ResizeObserver catches font/image loads that change dimensions
+    const ro = new ResizeObserver(measure);
+    ro.observe(element);
+    measure();
 
-    resizeObserver.observe(element);
-    handleResize();
-
-    window.addEventListener("resize", handleResize);
+    window.addEventListener("resize", measure);
     return () => {
-      resizeObserver.disconnect();
-      window.removeEventListener("resize", handleResize);
+      ro.disconnect();
+      window.removeEventListener("resize", measure);
     };
   }, [visibleEvents, isMobile]);
 
