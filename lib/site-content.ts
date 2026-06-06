@@ -1,6 +1,6 @@
 import type { SiteContent } from "@/lib/types";
 
-export const SITE_CONTENT_SCHEMA_VERSION = 4;
+export const SITE_CONTENT_SCHEMA_VERSION = 5;
 
 export const siteContent: SiteContent = {
   schemaVersion: SITE_CONTENT_SCHEMA_VERSION,
@@ -94,6 +94,7 @@ export const siteContent: SiteContent = {
     representation: "Northline Talent Agency",
     footerCopyrightName: "Weronika Malik",
     footerDesignerTag: "Projekt i realizacja",
+    floatingSocialsEnabled: true,
     socials: [
       {
         id: "instagram",

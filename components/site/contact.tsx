@@ -117,6 +117,7 @@ export function Contact({
   const [showPhone, setShowPhone] = useState(false);
 
   const isSectionEnabled = globalContent.sections.contact.enabled;
+  const floatingSocialsEnabled = content.floatingSocialsEnabled ?? true;
 
   const updateContactField = <K extends keyof ContactContent>(field: K, value: ContactContent[K]) => {
     updateContent((draft) => {
@@ -232,7 +233,7 @@ export function Contact({
             </div>
 
             {/* Social Links List */}
-            <div className="mt-12 space-y-4 lg:max-w-md">
+            <div id="contact-social-links" className="mt-12 space-y-4 lg:max-w-md">
               {content.socials.filter((social) => social.enabled).map((social, index) => (
                 <motion.a
                   key={social.id}
@@ -482,6 +483,37 @@ export function Contact({
 
           {/* Social Links List Customization */}
           <div className="border-t border-ink/10 pt-4 mt-2">
+            <button
+              type="button"
+              onClick={() => updateContactField("floatingSocialsEnabled", !floatingSocialsEnabled)}
+              className={cn(
+                "mb-4 flex w-full items-center justify-between gap-3 rounded-2xl border p-3 text-left transition-all",
+                floatingSocialsEnabled
+                  ? "border-ink/12 bg-white text-ink shadow-[0_10px_28px_rgba(16,16,16,0.04)]"
+                  : "border-ink/10 bg-ink/[0.03] text-ink/45"
+              )}
+            >
+              <span>
+                <span className="block text-xs font-bold uppercase tracking-[0.12em]">
+                  Boczne social buttony
+                </span>
+                <span className="mt-1 block text-[0.68rem] leading-5 text-ink/45">
+                  Desktop-only. Znikają, gdy widać linki w sekcji kontaktu.
+                </span>
+              </span>
+              <span
+                className={cn(
+                  "inline-flex h-8 shrink-0 items-center gap-1.5 rounded-full border px-3 text-[0.62rem] font-bold uppercase tracking-[0.1em]",
+                  floatingSocialsEnabled
+                    ? "border-ink bg-ink text-white"
+                    : "border-ink/15 bg-white text-ink/45"
+                )}
+              >
+                {floatingSocialsEnabled ? <Eye className="h-3.5 w-3.5" /> : <EyeOff className="h-3.5 w-3.5" />}
+                {floatingSocialsEnabled ? "Wł." : "Wył."}
+              </span>
+            </button>
+
             <div className="flex items-center justify-between mb-3">
               <Label className="text-xs font-bold uppercase tracking-[0.1em] text-ink/40">
                 Odnośniki społecznościowe ({content.socials.length})

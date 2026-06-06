@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { useAdminEdit } from "@/components/admin/admin-edit-context";
 import { startFirebaseAnalytics } from "@/lib/firebase/client";
 import { About } from "@/components/site/about";
 import { Contact } from "@/components/site/contact";
 import { CustomCursor } from "@/components/site/custom-cursor";
+import { FloatingSocials } from "@/components/site/floating-socials";
 import { Gallery } from "@/components/site/gallery";
 import { Header } from "@/components/site/header";
 import { Hero } from "@/components/site/hero";
@@ -17,11 +18,20 @@ import { ScrollProgress } from "@/components/site/scroll-progress";
 import { Showreel } from "@/components/site/showreel";
 import { AdminBar } from "@/components/admin/admin-bar";
 
+const HEADER_INTRO_DELAY = 4.35;
+const FLOATING_SOCIALS_INTRO_DELAY = 5.15;
+
 export function ActressPortfolio() {
   const { content, isAdmin, editMode } = useAdminEdit();
+  const [headerIntroReady, setHeaderIntroReady] = useState(false);
 
   useEffect(() => {
     void startFirebaseAnalytics();
+  }, []);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => setHeaderIntroReady(true), HEADER_INTRO_DELAY * 1000);
+    return () => window.clearTimeout(timer);
   }, []);
 
   const sectionsConfig = [
@@ -115,7 +125,10 @@ export function ActressPortfolio() {
       <ClientOnly>
         <ScrollProgress />
       </ClientOnly>
-      <Header monogram={content.hero.monogram} isLoaded={true} />
+      <Header monogram={content.hero.monogram} isLoaded={headerIntroReady} />
+      <ClientOnly>
+        <FloatingSocials contact={content.contact} initialDelay={FLOATING_SOCIALS_INTRO_DELAY} />
+      </ClientOnly>
 
       {renderedSections.map((sec) => {
         let bgClass = "bg-white";

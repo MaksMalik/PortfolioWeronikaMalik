@@ -1243,6 +1243,14 @@ function ContactEditor({
         </div>
         <AreaField label="Tekst wprowadzający" value={content.intro} onChange={(intro) => update({ ...content, intro })} />
 
+        <ToggleField
+          label="Boczne social buttony"
+          checked={content.floatingSocialsEnabled ?? true}
+          onChange={(floatingSocialsEnabled) => update({ ...content, floatingSocialsEnabled })}
+          description="Desktop-only. Ukrywa się, gdy widać linki społecznościowe w kontakcie."
+          className="max-w-md"
+        />
+
         <div className="rounded-md border border-ink/10 bg-porcelain p-4">
           <div className="mb-4 flex items-center justify-between gap-3">
             <h3 className="font-serif text-3xl leading-none text-ink">Social media</h3>

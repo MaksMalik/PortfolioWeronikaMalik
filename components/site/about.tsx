@@ -2,6 +2,7 @@
 
 import { useState, ChangeEvent } from "react";
 import type { AboutContent } from "@/lib/types";
+import { AboutImageFrame } from "@/components/site/about-image-frame";
 import { CinematicImage } from "@/components/site/cinematic-image";
 import { MagneticButton } from "@/components/site/magnetic-button";
 import { RevealBlock, SectionHeading, SectionReveal } from "@/components/site/section-reveal";
@@ -121,6 +122,7 @@ export function About({
         {content.image.src && content.image.enabled !== false ? (
           <RevealBlock className="ornament-line pl-5 pt-5" delay={0.14} x={34} y={18}>
             <div className="relative group overflow-hidden rounded-[1.5rem] rounded-tl-none border border-ink/10 shadow-editorial">
+              <AboutImageFrame className="hidden lg:block" />
               <CinematicImage
                 src={content.image.src}
                 alt={content.image.alt}

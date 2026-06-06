@@ -104,7 +104,8 @@ export type ContactContent = {
   phone: string;
   location: string;
   representation: string;
-  socials: { id: string; enabled: boolean; label: string; url: string }[];
+  socials: SocialLink[];
+  floatingSocialsEnabled?: boolean;
   footerCopyrightName?: string;
   footerDesignerTag?: string;
 };

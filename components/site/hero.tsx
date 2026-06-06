@@ -16,6 +16,13 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 
+const HERO_NAME_DELAY = 0.18;
+const HERO_WORD_DELAY = 0.86;
+const HERO_META_DELAY = 2.35;
+const HERO_TAGLINE_DELAY = 2.72;
+const HERO_QUOTE_DELAY = 3.12;
+const HERO_BUTTON_DELAY = 3.56;
+
 export function Hero({
   content: initialContent,
   isLoaded
@@ -36,7 +43,7 @@ export function Hero({
   const imageY = useTransform(scrollYProgress, [0, 1], ["0%", "11%"]);
   const textY = useTransform(scrollYProgress, [0, 1], ["0%", "-6%"]);
   const lightOpacity = useTransform(scrollYProgress, [0, 0.55, 1], [0.62, 0.28, 0]);
-  const nameWords = content.name.split(" ");
+  const nameWords = content.name.split(" ").filter(Boolean);
 
   const handleImageUpload = async (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -163,81 +170,74 @@ export function Hero({
             className="mb-9 flex items-center gap-4 text-[0.66rem] font-bold uppercase tracking-[0.24em] text-ink/45"
             initial={{ opacity: 0, y: 18 }}
             animate={isLoaded ? { opacity: 1, y: 0 } : { opacity: 0, y: 18 }}
-            transition={{ delay: 0.4, duration: 0.8 }}
+            transition={{ delay: HERO_META_DELAY, duration: 0.82, ease: [0.22, 1, 0.36, 1] }}
           >
             <span className="h-px w-16 bg-silver" />
             <span>{content.monogramTagline ?? "film / teatr / głos"}</span>
           </motion.div>
 
-          <h1 className="max-w-[760px] font-serif text-[2.85rem] font-medium uppercase leading-[0.92] text-ink min-[380px]:text-[3.2rem] sm:text-[5.1rem] lg:text-[6.2rem] xl:text-[6.8rem]">
+          <h1 className="hero-written-name max-w-[760px] font-serif text-[2.85rem] font-medium leading-[0.92] text-ink min-[380px]:text-[3.2rem] sm:text-[5.1rem] lg:text-[6.2rem] xl:text-[6.8rem]">
             {nameWords.map((word, wordIndex) => (
-              <span key={word} className="block whitespace-nowrap">
-                {word.split("").map((letter, letterIndex) => {
-                  const index = wordIndex * 9 + letterIndex;
-
-                  return (
-                    <motion.span
-                      key={`${word}-${letter}-${letterIndex}`}
-                      className="inline-block"
-                      initial={{ opacity: 0, y: 54, rotateX: -18 }}
-                      animate={isLoaded ? { opacity: 1, y: 0, rotateX: 0 } : { opacity: 0, y: 54, rotateX: -18 }}
-                      transition={{
-                        delay: 0.1 + index * 0.035,
-                        duration: 0.72,
-                        ease: [0.22, 1, 0.36, 1]
-                      }}
-                    >
-                      {letter}
-                    </motion.span>
-                  );
-                })}
-              </span>
+              <motion.span
+                key={`${word}-${wordIndex}`}
+                className="hero-written-word relative block w-fit whitespace-nowrap"
+                initial={{ opacity: 0, clipPath: "inset(0 100% 0 0)" }}
+                animate={
+                  isLoaded
+                    ? { opacity: 1, clipPath: "inset(0 0% 0 0)" }
+                    : { opacity: 0, clipPath: "inset(0 100% 0 0)" }
+                }
+                transition={{
+                  delay: HERO_NAME_DELAY + wordIndex * HERO_WORD_DELAY,
+                  duration: 1.15,
+                  ease: [0.22, 1, 0.36, 1]
+                }}
+              >
+                {word}
+                <motion.span
+                  className="hero-write-edge"
+                  initial={{ left: "0%", opacity: 0 }}
+                  animate={
+                    isLoaded
+                      ? { left: ["0%", "100%"], opacity: [0, 0.65, 0] }
+                      : { left: "0%", opacity: 0 }
+                  }
+                  transition={{
+                    delay: HERO_NAME_DELAY + wordIndex * HERO_WORD_DELAY,
+                    duration: 1.15,
+                    ease: [0.22, 1, 0.36, 1]
+                  }}
+                  aria-hidden="true"
+                />
+              </motion.span>
             ))}
           </h1>
 
-          <motion.div
-            className="mt-8 max-w-xl space-y-7"
-            initial="hidden"
-            animate={isLoaded ? "visible" : "hidden"}
-            variants={{
-              hidden: {},
-              visible: {
-                transition: {
-                  staggerChildren: 0.16
-                }
-              }
-            }}
-          >
+          <div className="mt-8 max-w-xl space-y-7">
             <motion.p
               className="text-xs font-bold uppercase tracking-[0.26em] text-ink/55"
-              variants={{
-                hidden: { opacity: 0, y: 14 },
-                visible: { opacity: 1, y: 0 }
-              }}
-              transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+              initial={{ opacity: 0, y: 14 }}
+              animate={isLoaded ? { opacity: 1, y: 0 } : { opacity: 0, y: 14 }}
+              transition={{ delay: HERO_TAGLINE_DELAY, duration: 0.82, ease: [0.22, 1, 0.36, 1] }}
             >
               {content.tagline}
             </motion.p>
             <motion.p
               className="font-serif text-2xl leading-tight text-graphite sm:text-4xl"
-              variants={{
-                hidden: { opacity: 0, y: 20 },
-                visible: { opacity: 1, y: 0 }
-              }}
-              transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
+              initial={{ opacity: 0, y: 20 }}
+              animate={isLoaded ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
+              transition={{ delay: HERO_QUOTE_DELAY, duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
             >
               {content.quote}
             </motion.p>
             <motion.div
-              variants={{
-                hidden: { opacity: 0, y: 12 },
-                visible: { opacity: 1, y: 0 }
-              }}
-              transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+              initial={{ opacity: 0, y: 12 }}
+              animate={isLoaded ? { opacity: 1, y: 0 } : { opacity: 0, y: 12 }}
+              transition={{ delay: HERO_BUTTON_DELAY, duration: 0.72, ease: [0.22, 1, 0.36, 1] }}
             >
               <MagneticButton href="#work">{content.buttonText}</MagneticButton>
             </motion.div>
-          </motion.div>
+          </div>
         </motion.div>
       </div>
 
