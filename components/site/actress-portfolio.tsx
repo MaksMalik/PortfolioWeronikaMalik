@@ -21,6 +21,7 @@ export function ActressPortfolio() {
   const { content, isAdmin, editMode } = useAdminEdit();
   const [isLoaderComplete, setIsLoaderComplete] = useState(false);
   const [showLoader, setShowLoader] = useState(true);
+  const [shouldAnimateExit, setShouldAnimateExit] = useState(true);
 
   useEffect(() => {
     void startFirebaseAnalytics();
@@ -29,6 +30,7 @@ export function ActressPortfolio() {
   useEffect(() => {
     const hasSeenIntro = sessionStorage.getItem("has-seen-intro");
     if (hasSeenIntro === "true") {
+      setShouldAnimateExit(false);
       setShowLoader(false);
       setIsLoaderComplete(true);
     }
@@ -119,6 +121,7 @@ export function ActressPortfolio() {
   const renderedSections = sortedSections.filter((sec) => editMode || sec.enabled);
 
   let nonHeroIndex = 0;
+  const showMainContent = isLoaderComplete || editMode;
 
   return (
     <motion.main
@@ -128,27 +131,36 @@ export function ActressPortfolio() {
       animate={{ opacity: 1 }}
       transition={{ duration: 0.65, ease: "easeOut" }}
     >
-      <ScrollProgress />
+      {showMainContent && (
+        <>
+          <ScrollProgress />
+          <Header monogram={content.hero.monogram} />
+
+          {renderedSections.map((sec) => {
+            let bgClass = "bg-white";
+            let reverseParallax = false;
+            
+            if (sec.id !== "hero") {
+              bgClass = nonHeroIndex % 2 === 0 ? "bg-porcelain" : "bg-white";
+              reverseParallax = nonHeroIndex % 2 !== 0;
+              nonHeroIndex++;
+            }
+            
+            return sec.render(bgClass, reverseParallax);
+          })}
+        </>
+      )}
+
       <CustomCursor />
       <AdminBar />
-      <Header monogram={content.hero.monogram} />
-
-      {renderedSections.map((sec) => {
-        let bgClass = "bg-white";
-        let reverseParallax = false;
-        
-        if (sec.id !== "hero") {
-          bgClass = nonHeroIndex % 2 === 0 ? "bg-porcelain" : "bg-white";
-          reverseParallax = nonHeroIndex % 2 !== 0;
-          nonHeroIndex++;
-        }
-        
-        return sec.render(bgClass, reverseParallax);
-      })}
 
       <AnimatePresence>
         {shouldShowLoader && (
-          <IntroLoader monogram={content.hero.monogram} onComplete={handleLoaderComplete} />
+          <IntroLoader
+            monogram={content.hero.monogram}
+            onComplete={handleLoaderComplete}
+            animateExit={shouldAnimateExit}
+          />
         )}
       </AnimatePresence>
     </motion.main>

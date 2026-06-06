@@ -6,11 +6,12 @@ import { motion } from "framer-motion";
 type IntroLoaderProps = {
   monogram: string;
   onComplete: () => void;
+  animateExit?: boolean;
 };
 
-export function IntroLoader({ monogram, onComplete }: IntroLoaderProps) {
+export function IntroLoader({ monogram, onComplete, animateExit = true }: IntroLoaderProps) {
   useEffect(() => {
-    // End loading animation after 2.5 seconds total
+    // End loading animation after 2.4 seconds total
     const timer = setTimeout(() => {
       onComplete();
     }, 2400);
@@ -22,8 +23,8 @@ export function IntroLoader({ monogram, onComplete }: IntroLoaderProps) {
     <motion.div
       className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-ink text-white"
       initial={{ y: 0 }}
-      exit={{ y: "-100%" }}
-      transition={{ duration: 1.1, ease: [0.85, 0, 0.15, 1] }}
+      exit={animateExit ? { y: "-100%" } : { opacity: 0 }}
+      transition={animateExit ? { duration: 1.1, ease: [0.85, 0, 0.15, 1] } : { duration: 0 }}
     >
       <div className="relative flex flex-col items-center justify-center">
         {/* Animated SVG Circle */}

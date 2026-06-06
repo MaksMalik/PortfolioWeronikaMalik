@@ -521,7 +521,7 @@ body.is-edit-mode * {
   position: fixed;
   left: 0;
   top: 0;
-  z-index: 100;
+  z-index: 999999;
   display: none;
   height: 38px;
   width: 38px;

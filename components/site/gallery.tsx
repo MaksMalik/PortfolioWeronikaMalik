@@ -949,8 +949,12 @@ export function Gallery({
               aria-modal="true"
               onTouchStart={handleTouchStart}
               onTouchEnd={handleTouchEnd}
+              onClick={() => setActiveImage(null)}
             >
-              <div className="flex h-16 items-center justify-between px-4 sm:px-6 border-b border-white/5">
+              <div
+                className="flex h-16 items-center justify-between px-4 sm:px-6 border-b border-white/5"
+                onClick={(e) => e.stopPropagation()}
+              >
                 <span className="text-[0.62rem] font-bold uppercase tracking-[0.2em] text-white/55">
                   Zdjęcie {currentImageIndex + 1} z {visibleImages.length}
                 </span>
@@ -994,6 +998,7 @@ export function Gallery({
                     exit={{ opacity: 0, scale: 0.95 }}
                     transition={{ duration: 0.28, ease: "easeOut" }}
                     className="max-h-[82vh] max-w-full flex flex-col items-center"
+                    onClick={(e) => e.stopPropagation()}
                   >
                     <img
                       src={activeImage.src}
