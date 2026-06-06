@@ -71,18 +71,25 @@ export function About({
 
   useEffect(() => {
     if (isMobile) return;
+    const element = scrollRef.current;
+    if (!element) return;
+
     const handleResize = () => {
-      if (scrollRef.current) {
-        const scrollWidth = scrollRef.current.scrollWidth;
-        const clientWidth = scrollRef.current.clientWidth;
-        setTranslateXVal(-(scrollWidth - clientWidth));
-      }
+      const scrollWidth = element.scrollWidth;
+      const clientWidth = element.clientWidth;
+      setTranslateXVal(-(scrollWidth - clientWidth));
     };
-    // Let a short delay pass to ensure DOM is fully rendered before measuring
-    const timer = setTimeout(handleResize, 100);
+
+    const resizeObserver = new ResizeObserver(() => {
+      handleResize();
+    });
+
+    resizeObserver.observe(element);
+    handleResize();
+
     window.addEventListener("resize", handleResize);
     return () => {
-      clearTimeout(timer);
+      resizeObserver.disconnect();
       window.removeEventListener("resize", handleResize);
     };
   }, [visibleEvents, isMobile]);
@@ -260,7 +267,7 @@ export function About({
         <motion.div
           ref={scrollRef}
           style={{ x: currentX }}
-          className="flex flex-col gap-12 w-full lg:flex-row lg:h-full lg:items-center lg:pl-16 lg:pr-32 lg:gap-0 lg:w-auto"
+          className="flex flex-col gap-12 w-full lg:flex-row lg:h-full lg:items-center lg:pl-16 lg:pr-32 lg:gap-0 lg:w-max lg:shrink-0"
         >
           {/* Slide 0: Biography Intro */}
           <div className="flex flex-col gap-8 w-full lg:w-auto lg:shrink-0 lg:flex-row lg:gap-16 lg:pr-24 lg:h-[80vh] lg:items-center lg:justify-start lg:pl-16 xl:pl-[calc((100vw-1240px)/2+4rem)]">
