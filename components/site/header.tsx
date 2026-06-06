@@ -88,7 +88,7 @@ export function Header({
     window.history.pushState(null, "", href);
 
     const dispatchNavigation = () => {
-      window.dispatchEvent(new CustomEvent("portfolio:navigate", { detail: { href } }));
+      window.dispatchEvent(new CustomEvent("portfolio:navigate", { detail: { href, source: "header" } }));
     };
 
     window.setTimeout(dispatchNavigation, wasMobileMenuOpen ? 380 : 0);
