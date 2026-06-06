@@ -106,7 +106,7 @@ export const Gallery = memo(function Gallery({
     [setActiveImage]
   );
 
-  useBodyScrollLock(activeSession !== null || activeImage !== null);
+  useBodyScrollLock(activeImage !== null);
 
   useEffect(() => {
     if (activeSessionId === null) return;

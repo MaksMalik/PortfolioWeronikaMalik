@@ -81,9 +81,9 @@ export function CustomCursor() {
         const rect = magneticTarget.getBoundingClientRect();
         const centerX = rect.left + rect.width / 2;
         const centerY = rect.top + rect.height / 2;
-        // Blend mouse position and target center (10% pull strength)
-        targetX = event.clientX + (centerX - event.clientX) * 0.10 - size / 2;
-        targetY = event.clientY + (centerY - event.clientY) * 0.10 - size / 2;
+        // Blend mouse position and target center (15% pull strength)
+        targetX = event.clientX + (centerX - event.clientX) * 0.15 - size / 2;
+        targetY = event.clientY + (centerY - event.clientY) * 0.15 - size / 2;
       }
 
       x.set(targetX);
