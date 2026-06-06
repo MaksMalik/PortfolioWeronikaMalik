@@ -23,8 +23,8 @@ export function CustomCursor() {
 
   const x = useMotionValue(-80);
   const y = useMotionValue(-80);
-  const springX = useSpring(x, { stiffness: 980, damping: 42, mass: 0.18 });
-  const springY = useSpring(y, { stiffness: 980, damping: 42, mass: 0.18 });
+  const springX = useSpring(x, { stiffness: 600, damping: 42, mass: 0.18 });
+  const springY = useSpring(y, { stiffness: 600, damping: 42, mass: 0.18 });
   const [mode, setMode] = useState<"default" | "action" | "view" | "play">("default");
   const [visible, setVisible] = useState(false);
   const modeRef = useRef(mode);

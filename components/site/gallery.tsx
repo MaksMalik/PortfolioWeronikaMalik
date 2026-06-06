@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState, ChangeEvent, useRef } from "react";
+import { useCallback, useEffect, useMemo, useState, ChangeEvent, useRef, memo } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { ChevronLeft, ChevronRight, X, Plus, Trash2, ArrowUp, ArrowDown, Eye, EyeOff, Edit, Upload, Loader2 } from "lucide-react";
 import type { GallerySession, SiteImage } from "@/lib/types";
@@ -32,7 +32,7 @@ function emptyImage(prefix: string): SiteImage {
   };
 }
 
-export function Gallery({
+export const Gallery = memo(function Gallery({
   sessions: initialSessions,
   bgClass,
   reverseParallax
@@ -1029,4 +1029,4 @@ export function Gallery({
       </ModalPortal>
     </SectionReveal>
   );
-}
+});

@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useEffect, useCallback, useState } from "react";
+import { useRef, useEffect, useCallback, useState, memo } from "react";
 import { motion, useInView, useScroll, useTransform, useSpring } from "framer-motion";
 import { cn } from "@/lib/utils";
 
@@ -10,6 +10,7 @@ type CinematicImageProps = {
   className?: string;
   imageClassName?: string;
   loading?: "eager" | "lazy";
+  fetchPriority?: "high" | "low" | "auto";
   children?: React.ReactNode;
   onError?: () => void;
   disableScrollReveal?: boolean;
@@ -21,6 +22,7 @@ function StaticCinematicImage({
   className,
   imageClassName,
   loading = "lazy",
+  fetchPriority,
   children,
   onError
 }: Omit<CinematicImageProps, "disableScrollReveal">) {
@@ -84,6 +86,7 @@ function StaticCinematicImage({
         alt={alt}
         className={cn("cinematicImageColor", imageClassName)}
         loading={loading}
+        fetchPriority={fetchPriority}
         decoding="async"
         draggable={false}
         onError={onError}
@@ -100,6 +103,7 @@ function ScrollRevealCinematicImage({
   className,
   imageClassName,
   loading = "lazy",
+  fetchPriority,
   children,
   onError
 }: Omit<CinematicImageProps, "disableScrollReveal">) {
@@ -263,6 +267,7 @@ function ScrollRevealCinematicImage({
         alt={alt}
         className={cn("cinematicImageBase", imageClassName)}
         loading={loading}
+        fetchPriority={fetchPriority}
         decoding="async"
         draggable={false}
         onError={onError}
@@ -274,6 +279,7 @@ function ScrollRevealCinematicImage({
         aria-hidden="true"
         className={cn("cinematicImageColor", imageClassName)}
         loading={loading}
+        fetchPriority={fetchPriority}
         decoding="async"
         draggable={false}
         onError={onError}
@@ -285,9 +291,9 @@ function ScrollRevealCinematicImage({
   );
 }
 
-export function CinematicImage(props: CinematicImageProps) {
+export const CinematicImage = memo(function CinematicImage(props: CinematicImageProps) {
   if (props.disableScrollReveal) {
     return <StaticCinematicImage {...props} />;
   }
   return <ScrollRevealCinematicImage {...props} />;
-}
+});

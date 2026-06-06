@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, ChangeEvent } from "react";
+import { useEffect, useState, ChangeEvent, memo } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { ExternalLink, X, Plus, Trash2, ArrowUp, ArrowDown, Eye, EyeOff, Edit, Upload, Loader2, ChevronLeft, ChevronRight } from "lucide-react";
 import type { PortfolioProject, SiteImage } from "@/lib/types";
@@ -49,7 +49,7 @@ function isFilmwebLink(label?: string, url?: string) {
   return `${label ?? ""} ${url ?? ""}`.toLowerCase().includes("filmweb");
 }
 
-export function PortfolioHighlights({
+export const PortfolioHighlights = memo(function PortfolioHighlights({
   projects: initialProjects,
   bgClass,
   reverseParallax
@@ -923,4 +923,4 @@ export function PortfolioHighlights({
       </ModalPortal>
     </SectionReveal>
   );
-}
+});

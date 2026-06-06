@@ -13,10 +13,12 @@
   "dependencies": {
     "@radix-ui/react-label": "latest",
     "@radix-ui/react-slot": "latest",
+    "@studio-freight/lenis": "^1.0.42",
     "class-variance-authority": "latest",
     "clsx": "latest",
     "firebase": "^12.14.0",
     "framer-motion": "latest",
+    "lenis": "^1.3.23",
     "lucide-react": "latest",
     "next": "latest",
     "react": "latest",

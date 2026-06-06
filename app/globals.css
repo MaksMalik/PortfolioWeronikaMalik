@@ -136,7 +136,6 @@
 }
 
 html {
-  scroll-behavior: smooth;
   background: var(--background);
   scrollbar-width: thin;
   scrollbar-color: rgba(16, 16, 16, 0.22) var(--background);
@@ -185,6 +184,7 @@ body {
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   overflow-x: clip;
+  overscroll-behavior: contain;
 }
 
 body::before {
@@ -209,6 +209,9 @@ body::before {
     linear-gradient(180deg, rgba(16, 16, 16, 0.08), transparent 18%, transparent 78%, rgba(16, 16, 16, 0.09)),
     radial-gradient(ellipse at 50% 12%, rgba(255, 255, 255, 0.42), transparent 42%);
   opacity: 0.45;
+  will-change: opacity;
+  backface-visibility: hidden;
+  transform: translateZ(0);
 }
 
 .dark .cinematicAtmosphere {
@@ -229,6 +232,9 @@ body::before {
     border-color 520ms cubic-bezier(0.22, 1, 0.36, 1),
     box-shadow 700ms cubic-bezier(0.22, 1, 0.36, 1),
     transform 600ms cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: transform;
+  backface-visibility: hidden;
+  transform: translateZ(0);
 }
 
 .cinematic-card::before {
@@ -405,6 +411,9 @@ a {
     box-shadow 700ms ease,
     transform 700ms ease;
   -webkit-mask-image: -webkit-radial-gradient(white, black);
+  will-change: transform;
+  backface-visibility: hidden;
+  contain: layout style paint;
 }
 
 .cinematicImage:hover,
@@ -548,6 +557,7 @@ body.is-edit-mode * {
     height 240ms ease,
     opacity 240ms ease,
     width 240ms ease;
+  will-change: transform;
 }
 
 .customCursorRing {
@@ -730,18 +740,22 @@ body.is-edit-mode * {
   opacity: 0.022;
   pointer-events: none;
   z-index: 9999;
-  animation: grain 1.2s steps(6) infinite;
+  animation: grain 2.5s steps(6) infinite;
+  will-change: transform;
+  transform: translate3d(0, 0, 0);
+  contain: strict;
+  backface-visibility: hidden;
 }
 
 @keyframes grain {
-  0%, 100% { transform: translate(0, 0); }
-  10% { transform: translate(-1%, -1%); }
-  20% { transform: translate(-2%, 1%); }
-  30% { transform: translate(1%, -2%); }
-  40% { transform: translate(-1%, 3%); }
-  50% { transform: translate(-2%, 1%); }
-  60% { transform: translate(1%, 2%); }
-  70% { transform: translate(3%, -2%); }
-  80% { transform: translate(-1%, 1%); }
-  90% { transform: translate(2%, -1%); }
+  0%, 100% { transform: translate3d(0, 0, 0); }
+  10% { transform: translate3d(-1%, -1%, 0); }
+  20% { transform: translate3d(-2%, 1%, 0); }
+  30% { transform: translate3d(1%, -2%, 0); }
+  40% { transform: translate3d(-1%, 3%, 0); }
+  50% { transform: translate3d(-2%, 1%, 0); }
+  60% { transform: translate3d(1%, 2%, 0); }
+  70% { transform: translate3d(3%, -2%, 0); }
+  80% { transform: translate3d(-1%, 1%, 0); }
+  90% { transform: translate3d(2%, -1%, 0); }
 }

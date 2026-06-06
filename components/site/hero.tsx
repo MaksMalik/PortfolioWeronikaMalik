@@ -7,6 +7,7 @@ import { CinematicImage } from "@/components/site/cinematic-image";
 import { MagneticButton } from "@/components/site/magnetic-button";
 import { useAdminEdit } from "@/components/admin/admin-edit-context";
 import { uploadImageFile } from "@/lib/firebase/content";
+import { ImagePreloader } from "@/components/site/image-preloader";
 import { Upload, Loader2, Edit } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { AdminDrawer } from "@/components/admin/admin-drawer";
@@ -69,6 +70,7 @@ export function Hero({
         editMode && !isSectionEnabled && "opacity-60 border-2 border-dashed border-ink/15 bg-ink/[0.01]"
       )}
     >
+      {content.image.src && <ImagePreloader src={content.image.src} />}
       <div className="absolute inset-x-0 bottom-0 h-px bg-ink/10" />
       <motion.div
         className="pointer-events-none absolute inset-0 z-0 bg-[linear-gradient(115deg,rgba(255,255,255,0.46),transparent_32%,rgba(16,16,16,0.045)_78%,transparent)]"
@@ -138,6 +140,7 @@ export function Hero({
                 src={content.image.src}
                 alt={content.image.alt}
                 loading="eager"
+                fetchPriority="high"
                 className="h-full rounded-t-full border border-ink/10 shadow-editorial"
                 imageClassName={cn(
                   "transition-transform duration-[2800ms] ease-[cubic-bezier(0.16,1,0.3,1)]",

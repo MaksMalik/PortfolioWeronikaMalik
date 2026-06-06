@@ -11,6 +11,7 @@ import { Gallery } from "@/components/site/gallery";
 import { Header } from "@/components/site/header";
 import { Hero } from "@/components/site/hero";
 import { PortfolioHighlights } from "@/components/site/portfolio-highlights";
+import { ClientOnly } from "@/components/site/client-only";
 import { PressMentions } from "@/components/site/press-mentions";
 import { ScrollProgress } from "@/components/site/scroll-progress";
 import { Showreel } from "@/components/site/showreel";
@@ -111,7 +112,9 @@ export function ActressPortfolio() {
       transition={{ duration: 0.65, ease: "easeOut" }}
       suppressHydrationWarning
     >
-      <ScrollProgress />
+      <ClientOnly>
+        <ScrollProgress />
+      </ClientOnly>
       <Header monogram={content.hero.monogram} isLoaded={true} />
 
       {renderedSections.map((sec) => {
@@ -127,7 +130,9 @@ export function ActressPortfolio() {
         return sec.render(bgClass, reverseParallax);
       })}
 
-      <CustomCursor />
+      <ClientOnly>
+        <CustomCursor />
+      </ClientOnly>
       <AdminBar />
     </motion.main>
   );
