@@ -428,9 +428,7 @@ export const PortfolioHighlights = memo(function PortfolioHighlights({
                         alt={project.image.alt}
                         className="aspect-[3/4] rounded-t-2xl w-full"
                         layoutId={`project-img-${project.id}`}
-                        transition={{
-                          layout: { type: "spring", stiffness: 350, damping: 32, mass: 0.8 }
-                        }}
+                        transition={{ type: "spring", stiffness: 380, damping: 35, mass: 0.8 }}
                       />
                       <CinematicCardFrame />
                     </div>
@@ -846,6 +844,7 @@ export const PortfolioHighlights = memo(function PortfolioHighlights({
                 data-lenis-prevent
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
                 transition={{ duration: 0.35, ease: "easeOut" }}
                 role="dialog"
                 aria-modal="true"
@@ -953,9 +952,7 @@ export const PortfolioHighlights = memo(function PortfolioHighlights({
                         loading="eager"
                         className="aspect-[3/4] border border-ink/10 rounded-2xl overflow-hidden"
                         layoutId={`project-img-${activeProject.id}`}
-                        transition={{
-                          layout: { type: "spring", stiffness: 350, damping: 32, mass: 0.8 }
-                        }}
+                        transition={{ type: "spring", stiffness: 380, damping: 35, mass: 0.8 }}
                       />
                     )}
 
