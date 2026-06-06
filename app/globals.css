@@ -1019,3 +1019,13 @@ body.has-accents button[data-cursor="play"]:hover span.rounded-full {
 body.has-accents button[data-cursor="play"]:hover span.rounded-full svg {
   fill: var(--accent) !important;
 }
+
+/* scrollbar-hide utility */
+.scrollbar-hide {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none; /* Chrome, Safari and Opera */
+}
+

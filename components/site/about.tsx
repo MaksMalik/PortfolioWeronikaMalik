@@ -98,8 +98,10 @@ export function About({
   const x = useTransform(scrollYProgress, [0, 1], [0, translateXVal]);
   const springX = useSpring(x, { stiffness: 90, damping: 22, mass: 0.4 });
 
-  // Parallax translation for images
-  const imgX = useTransform(scrollYProgress, [0, 1], [60, -60]);
+  // Parallax translation for timeline images (percentage based to prevent gaps when scaled)
+  const imgX = useTransform(scrollYProgress, [0, 1], ["-6%", "6%"]);
+  // Year indicator translation (slightly faster to create depth/stagger)
+  const yearX = useTransform(scrollYProgress, [0, 1], ["8%", "-8%"]);
 
   const handleImageUpload = async (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -263,15 +265,15 @@ export function About({
         </div>
       )}
 
-      {/* Sticky viewport container (sticky on desktop, static flow on mobile) */}
-      <div className="relative h-auto w-full overflow-visible flex flex-col py-16 px-6 sm:px-10 lg:sticky lg:top-0 lg:h-screen lg:w-full lg:overflow-hidden lg:flex-row lg:items-center lg:py-0 lg:px-0 lg:border-y lg:border-ink/10">
+      {/* Desktop view (sticky horizontal scroll with parallax) - hidden on mobile */}
+      <div className="hidden lg:block relative lg:sticky lg:top-0 lg:h-screen lg:w-full lg:overflow-hidden lg:flex-row lg:items-center lg:py-0 lg:px-0 lg:border-y lg:border-ink/10">
         <motion.div
           ref={scrollRef}
           style={{ x: currentX }}
-          className="flex flex-col gap-12 w-full lg:flex-row lg:h-full lg:items-center lg:pl-16 lg:pr-32 lg:gap-0 lg:w-max lg:shrink-0"
+          className="flex lg:flex-row lg:h-full lg:items-center lg:pl-16 lg:pr-32 lg:gap-0 lg:w-max lg:shrink-0"
         >
           {/* Slide 0: Biography Intro */}
-          <div className="flex flex-col gap-8 w-full lg:w-auto lg:shrink-0 lg:flex-row lg:gap-16 lg:pr-24 lg:h-[80vh] lg:items-center lg:justify-start lg:pl-16 xl:pl-[calc((100vw-1240px)/2+4rem)]">
+          <div className="flex lg:w-auto lg:shrink-0 lg:flex-row lg:gap-16 lg:pr-24 lg:h-[80vh] lg:items-center lg:justify-start lg:pl-16 xl:pl-[calc((100vw-1240px)/2+4rem)]">
             <div className="max-w-2xl space-y-6">
               <SectionHeading eyebrow={content.eyebrow} title={content.title} reverseDirection={reverseParallax} />
               <RevealBlock delay={0.12}>
@@ -287,54 +289,49 @@ export function About({
             </div>
 
             {content.image.src && content.image.enabled !== false ? (
-              <RevealBlock className="w-full max-w-md ornament-line pl-4 pt-4 lg:shrink-0 lg:w-[420px] lg:pl-5 lg:pt-5 lg:ornament-line" delay={0.14} x={34} y={18}>
+              <RevealBlock className="ornament-line lg:shrink-0 lg:w-[420px] lg:pl-5 lg:pt-5" delay={0.14} x={34} y={18}>
                 <div className="relative group overflow-hidden rounded-[1.5rem] rounded-tl-none border border-ink/10 shadow-editorial">
                   <AboutImageFrame className="hidden lg:block" />
                   <CinematicImage
                     src={content.image.src}
                     alt={content.image.alt}
-                    className="aspect-[4/5] max-h-[480px] lg:max-h-[520px] rounded-[1.5rem] rounded-tl-none"
+                    className="aspect-[4/5] lg:max-h-[520px] rounded-[1.5rem] rounded-tl-none"
                   />
                 </div>
               </RevealBlock>
             ) : null}
           </div>
 
-          {/* Mobile-only header for timeline events */}
-          {visibleEvents.length > 0 && (
-            <div className="text-center max-w-lg mx-auto space-y-2 lg:hidden mt-8">
-              <span className="text-[0.66rem] font-bold uppercase tracking-[0.2em] text-ink/40">Oś Czasu</span>
-              <h3 className="font-serif text-2xl text-ink">Droga twórcza</h3>
-            </div>
-          )}
-
           {/* Slides 1-N: Timeline Milestones */}
           {visibleEvents.map((event, idx) => (
             <div
               key={event.id}
               className={cn(
-                "relative border border-ink/10 bg-porcelain/30 rounded-2xl p-6 flex flex-col justify-between min-h-[380px] lg:border-none lg:bg-transparent lg:rounded-none lg:p-0 lg:w-[45vw] lg:max-w-[500px] lg:shrink-0 lg:flex-col lg:justify-center lg:px-12 lg:border-l lg:border-ink/10 lg:h-[80vh] lg:min-h-0",
-                !event.enabled && "opacity-50 border-dashed"
+                "relative lg:border-none lg:bg-transparent lg:rounded-none lg:p-0 lg:w-[45vw] lg:max-w-[500px] lg:shrink-0 lg:flex-col lg:justify-center lg:px-12 lg:border-l lg:border-ink/10 lg:h-[80vh] lg:min-h-0",
+                !event.enabled && "opacity-50"
               )}
             >
-              {/* Year Indicator */}
-              <div className="absolute top-4 right-6 text-6xl font-bold font-serif text-ink/5 select-none pointer-events-none lg:top-4 lg:left-12 lg:right-auto lg:text-[10rem] lg:text-ink/[0.04] lg:leading-none">
+              {/* Year Indicator with staggered/faster parallax translation */}
+              <motion.div
+                style={{ x: mounted && !isMobile ? yearX : 0 }}
+                className="absolute top-4 left-12 text-[10rem] font-bold font-serif text-ink/[0.04] leading-none select-none pointer-events-none"
+              >
                 {event.year}
-              </div>
+              </motion.div>
 
               <div className="space-y-3 lg:mt-12 lg:space-y-4 lg:relative lg:z-10">
-                <span className="text-[0.6rem] font-bold uppercase tracking-[0.15em] text-ink/40 lg:text-[0.66rem] lg:tracking-[0.2em]">
+                <span className="text-[0.66rem] font-bold uppercase tracking-[0.2em] text-ink/40">
                   Krok {idx + 1} / {visibleEvents.length}
                 </span>
-                <h4 className="font-serif text-xl text-ink leading-tight lg:text-3xl lg:md:text-4xl">{event.title}</h4>
-                <p className="text-xs leading-5 text-graphite/75 lg:text-sm lg:leading-6 lg:max-w-lg">{event.description}</p>
+                <h4 className="font-serif text-3xl lg:md:text-4xl text-ink leading-tight">{event.title}</h4>
+                <p className="text-sm leading-6 text-graphite/75 lg:max-w-lg">{event.description}</p>
               </div>
 
               {event.image?.src && event.image.enabled !== false && (
-                <div className="mt-6 aspect-video overflow-hidden rounded-xl border border-ink/10 w-full lg:mt-8 lg:aspect-[16/10] lg:max-w-md lg:shadow-editorial relative">
+                <div className="mt-8 aspect-[16/10] max-w-md overflow-hidden rounded-xl border border-ink/10 w-full lg:shadow-editorial relative">
                   <motion.div
-                    style={{ x: mounted && !isMobile ? imgX : 0 }}
-                    className="relative w-full h-full lg:absolute lg:inset-0 lg:w-[120%] lg:h-full lg:-left-[10%]"
+                    style={{ x: mounted && !isMobile ? imgX : 0, scale: mounted && !isMobile ? 1.15 : 1 }}
+                    className="w-full h-full"
                   >
                     <CinematicImage
                       src={event.image.src}
@@ -348,6 +345,93 @@ export function About({
             </div>
           ))}
         </motion.div>
+
+        {/* Progress Bar (Desktop only) */}
+        {visibleEvents.length > 0 && (
+          <div className="absolute bottom-8 left-16 right-16 h-[2px] bg-ink/10">
+            <motion.div
+              style={{ scaleX: scrollYProgress, transformOrigin: "left" }}
+              className="h-full bg-ink timeline-progress-bar"
+            />
+          </div>
+        )}
+      </div>
+
+      {/* Mobile view (vertical intro, swipeable timeline carousel) - hidden on desktop */}
+      <div className="block lg:hidden w-full py-16 px-6 sm:px-10 space-y-16">
+        {/* Intro Slide */}
+        <div className="flex flex-col gap-8 w-full">
+          <div className="space-y-6">
+            <SectionHeading eyebrow={content.eyebrow} title={content.title} reverseDirection={reverseParallax} />
+            <p className="text-lg leading-8 text-graphite/80 sm:text-xl sm:leading-9 whitespace-pre-wrap">
+              {content.body}
+            </p>
+            <div className="pt-4">
+              <MagneticButton href="#contact" variant="outline">
+                {content.buttonText}
+              </MagneticButton>
+            </div>
+          </div>
+
+          {content.image.src && content.image.enabled !== false ? (
+            <div className="w-full max-w-md ornament-line pl-4 pt-4">
+              <div className="relative group overflow-hidden rounded-[1.5rem] rounded-tl-none border border-ink/10 shadow-editorial">
+                <CinematicImage
+                  src={content.image.src}
+                  alt={content.image.alt}
+                  className="aspect-[4/5] max-h-[480px] rounded-[1.5rem] rounded-tl-none"
+                />
+              </div>
+            </div>
+          ) : null}
+        </div>
+
+        {/* Timeline Events Carousel */}
+        {visibleEvents.length > 0 && (
+          <div className="space-y-6 -mx-6 sm:-mx-10 pl-6 sm:pl-10">
+            <div className="space-y-1">
+              <span className="text-[0.66rem] font-bold uppercase tracking-[0.2em] text-ink/40">Oś Czasu</span>
+              <h3 className="font-serif text-2xl text-ink">Droga twórcza</h3>
+            </div>
+
+            {/* Horizontal Swipeable Snap container */}
+            <div className="flex gap-5 overflow-x-auto snap-x snap-mandatory pb-6 pr-6 sm:pr-10 scrollbar-hide">
+              {visibleEvents.map((event, idx) => (
+                <div
+                  key={event.id}
+                  className={cn(
+                    "snap-center shrink-0 w-[80vw] max-w-[320px] border border-ink/10 bg-porcelain/30 rounded-2xl p-5 flex flex-col justify-between min-h-[360px] relative",
+                    !event.enabled && "opacity-50 border-dashed"
+                  )}
+                >
+                  <div className="absolute top-4 right-4 text-4xl font-bold font-serif text-ink/10 select-none pointer-events-none">
+                    {event.year}
+                  </div>
+
+                  <div className="space-y-2 mt-4">
+                    <span className="text-[0.6rem] font-bold uppercase tracking-[0.15em] text-ink/40">
+                      Krok {idx + 1} / {visibleEvents.length}
+                    </span>
+                    <h4 className="font-serif text-lg text-ink leading-tight">{event.title}</h4>
+                    <p className="text-xs leading-5 text-graphite/75">{event.description}</p>
+                  </div>
+
+                  {event.image?.src && event.image.enabled !== false && (
+                    <div className="mt-4 aspect-video overflow-hidden rounded-xl border border-ink/10 w-full relative">
+                      <CinematicImage
+                        src={event.image.src}
+                        alt={event.image.alt || event.title}
+                        className="w-full h-full object-cover"
+                        imageClassName="rounded-xl"
+                        disableScrollReveal
+                      />
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Main Section Settings Drawer */}
