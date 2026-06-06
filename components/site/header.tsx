@@ -8,11 +8,9 @@ import { useAdminEdit } from "@/components/admin/admin-edit-context";
 import { useBodyScrollLock } from "@/components/site/use-body-scroll-lock";
 
 export function Header({
-  monogram,
-  isLoaded = true
+  monogram
 }: {
   monogram: string;
-  isLoaded?: boolean;
 }) {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
@@ -106,16 +104,13 @@ export function Header({
   };
 
   return (
-    <motion.header
+    <header
       className={cn(
-        "fixed left-0 right-0 top-0 z-50 border-b transition-all duration-500",
+        "siteHeaderIntro fixed left-0 right-0 top-0 z-50 border-b transition-[background-color,border-color,box-shadow,backdrop-filter] duration-500",
         isScrolled
           ? "border-ink/10 bg-porcelain/88 shadow-[0_12px_40px_rgba(16,16,16,0.05)] backdrop-blur-xl"
           : "border-transparent bg-transparent"
       )}
-      initial={{ y: -24, opacity: 0 }}
-      animate={isLoaded ? { y: 0, opacity: 1 } : { y: -24, opacity: 0 }}
-      transition={{ duration: 0.72, ease: [0.22, 1, 0.36, 1] }}
     >
       <div className="section-shell relative z-50 flex h-20 items-center justify-between">
         <a
@@ -238,6 +233,6 @@ export function Header({
           </motion.div>
         )}
       </AnimatePresence>
-    </motion.header>
+    </header>
   );
 }
