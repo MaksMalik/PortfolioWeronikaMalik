@@ -62,7 +62,7 @@ export function useHorizontalRail() {
     rail.addEventListener("scroll", handleScroll, { passive: true });
     const resizeObserver = new ResizeObserver(updateScrollState);
     resizeObserver.observe(rail);
-    window.addEventListener("resize", updateScrollState);
+    window.addEventListener("resize", updateScrollState, { passive: true });
     const timer = window.setTimeout(updateScrollState, 120);
 
     return () => {
@@ -197,3 +197,4 @@ export function useHorizontalRail() {
     updateScrollState
   };
 }
+

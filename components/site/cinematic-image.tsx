@@ -54,10 +54,10 @@ function StaticCinematicImage({
         const rect = el.getBoundingClientRect();
         const nx = (clientX - rect.left) / rect.width - 0.5;
         const ny = (clientY - rect.top) / rect.height - 0.5;
-        el.style.setProperty("--tilt-x", `${ny * -5}deg`);
-        el.style.setProperty("--tilt-y", `${nx * 5}deg`);
-        el.style.setProperty("--spot-x", `${clientX - rect.left}px`);
-        el.style.setProperty("--spot-y", `${clientY - rect.top}px`);
+        
+        
+        
+        
       });
     },
     []
@@ -164,7 +164,7 @@ function ScrollRevealCinematicImage({
 
     updateMobileColorProgress();
     window.addEventListener("scroll", scheduleUpdate, { passive: true });
-    window.addEventListener("resize", scheduleUpdate);
+    window.addEventListener("resize", scheduleUpdate, { passive: true });
     mobileQuery.addEventListener("change", scheduleUpdate);
     reducedMotionQuery.addEventListener("change", scheduleUpdate);
 
@@ -267,10 +267,10 @@ function ScrollRevealCinematicImage({
         const rect = el.getBoundingClientRect();
         const nx = (clientX - rect.left) / rect.width - 0.5;
         const ny = (clientY - rect.top) / rect.height - 0.5;
-        el.style.setProperty("--tilt-x", `${ny * -5}deg`);
-        el.style.setProperty("--tilt-y", `${nx * 5}deg`);
-        el.style.setProperty("--spot-x", `${clientX - rect.left}px`);
-        el.style.setProperty("--spot-y", `${clientY - rect.top}px`);
+        
+        
+        
+        
       });
     },
     []
@@ -334,3 +334,5 @@ export const CinematicImage = memo(function CinematicImage(props: CinematicImage
   }
   return <ScrollRevealCinematicImage {...props} />;
 });
+
+

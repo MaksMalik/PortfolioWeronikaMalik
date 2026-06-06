@@ -71,7 +71,7 @@ export function Header({
 
     updateActiveSection();
     window.addEventListener("scroll", scheduleUpdate, { passive: true });
-    window.addEventListener("resize", scheduleUpdate);
+    window.addEventListener("resize", scheduleUpdate, { passive: true });
 
     return () => {
       window.cancelAnimationFrame(frame);
@@ -250,3 +250,4 @@ export function Header({
     </header>
   );
 }
+

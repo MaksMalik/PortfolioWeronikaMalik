@@ -54,12 +54,12 @@ export function SmoothScroll() {
   useEffect(() => {
     const createLenis = () => {
       const lenis = new Lenis({
-        duration: 1.45,
+        duration: 1.2,
         easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
         orientation: "vertical",
         smoothWheel: true,
-        wheelMultiplier: 1,
-        touchMultiplier: 2,
+        wheelMultiplier: 0.8,
+        touchMultiplier: 1.5,
         infinite: false,
       });
 
@@ -107,7 +107,7 @@ export function SmoothScroll() {
       const skipHorizontalSection = shouldSkipHorizontalSection(top, href);
       const distance = Math.abs(top - currentTop);
       const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-      const useSectionTransition = distance > 32 && (source === "header" || skipHorizontalSection);
+      const useSectionTransition = false;
       const finishDelay = useSectionTransition
         ? prefersReducedMotion
           ? ANCHOR_SKIP_FINISH_DELAY
@@ -277,3 +277,5 @@ export function SmoothScroll() {
     </AnimatePresence>
   );
 }
+
+

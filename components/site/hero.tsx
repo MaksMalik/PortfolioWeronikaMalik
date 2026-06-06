@@ -45,8 +45,8 @@ export function Hero({
   const lightOpacity = useTransform(scrollYProgress, [0, 0.55, 1], [0.62, 0.28, 0]);
   const rawNameX = useTransform(scrollYProgress, [0, 1], ["-22px", "22px"]);
   const rawMetaX = useTransform(scrollYProgress, [0, 1], ["22px", "-22px"]);
-  const nameX = useSpring(rawNameX, { stiffness: 80, damping: 25, restDelta: 0.001 });
-  const metaX = useSpring(rawMetaX, { stiffness: 80, damping: 25, restDelta: 0.001 });
+  const nameX = useSpring(rawNameX, { stiffness: 50, damping: 20, restDelta: 0.01 });
+  const metaX = useSpring(rawMetaX, { stiffness: 50, damping: 20, restDelta: 0.01 });
   const nameWords = content.name.split(" ").filter(Boolean);
 
   const handleImageUpload = async (event: ChangeEvent<HTMLInputElement>) => {
@@ -399,3 +399,4 @@ export function Hero({
     </section>
   );
 }
+

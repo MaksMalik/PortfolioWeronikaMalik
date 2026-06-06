@@ -49,7 +49,7 @@ export function MagneticButton({
   return (
     <motion.div
       animate={offset}
-      transition={{ type: "spring", stiffness: 170, damping: 18, mass: 0.55 }}
+      transition={{ type: "spring", stiffness: 100, damping: 15, mass: 0.8 }}
       onMouseMove={handleMove}
       onMouseLeave={() => setOffset({ x: 0, y: 0 })}
       className="inline-flex"
@@ -64,3 +64,4 @@ export function MagneticButton({
     </motion.div>
   );
 }
+

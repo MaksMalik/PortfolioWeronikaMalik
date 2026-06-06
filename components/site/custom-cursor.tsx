@@ -25,8 +25,8 @@ export function CustomCursor() {
 
   const x = useMotionValue(-80);
   const y = useMotionValue(-80);
-  const springX = useSpring(x, { stiffness: 600, damping: 42, mass: 0.18 });
-  const springY = useSpring(y, { stiffness: 600, damping: 42, mass: 0.18 });
+  const springX = useSpring(x, { stiffness: 400, damping: 30, mass: 0.5 });
+  const springY = useSpring(y, { stiffness: 400, damping: 30, mass: 0.5 });
   const [mode, setMode] = useState<"default" | "action" | "view" | "play">("default");
   const [visible, setVisible] = useState(false);
   const [cursorLabel, setCursorLabel] = useState("");
@@ -199,3 +199,4 @@ export function CustomCursor() {
     </motion.div>
   );
 }
+
