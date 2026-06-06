@@ -55,6 +55,9 @@ export function CustomCursor() {
 
     document.body.classList.add("has-custom-cursor");
     document.body.classList.remove("is-edit-mode");
+    const portalCursorEnabled = globalContent.portalCursorEnabled === true;
+    const magnetismEnabled = globalContent.mouseMagnetismEnabled !== false;
+    const magnetismStrength = Math.max(0, Math.min(1.5, (globalContent.mouseMagnetismStrength ?? 100) / 100));
 
     const cursorSize = (nextMode: typeof mode, hasPreview: boolean) => {
       if (hasPreview) return 90;
@@ -85,8 +88,7 @@ export function CustomCursor() {
       const labelEl = target?.closest("[data-cursor-label]") as HTMLElement | null;
       const nextCursorLabel = labelEl?.getAttribute("data-cursor-label")?.trim() ?? "";
       
-      const portalEnabled = globalContent?.portalCursorEnabled !== false;
-      const hasPreview = Boolean(cursorImg) && portalEnabled;
+      const hasPreview = Boolean(cursorImg) && portalCursorEnabled;
 
       const size = cursorSize(nextMode, hasPreview);
       
@@ -94,13 +96,12 @@ export function CustomCursor() {
       let targetX = event.clientX - size / 2;
       let targetY = event.clientY - size / 2;
 
-      if (magneticTarget) {
+      if (magneticTarget && magnetismEnabled && magnetismStrength > 0) {
         const rect = magneticTarget.getBoundingClientRect();
         const centerX = rect.left + rect.width / 2;
         const centerY = rect.top + rect.height / 2;
-        // Blend mouse position and target center (15% pull strength)
-        targetX = event.clientX + (centerX - event.clientX) * 0.15 - size / 2;
-        targetY = event.clientY + (centerY - event.clientY) * 0.15 - size / 2;
+        targetX = event.clientX + (centerX - event.clientX) * 0.15 * magnetismStrength - size / 2;
+        targetY = event.clientY + (centerY - event.clientY) * 0.15 * magnetismStrength - size / 2;
       }
 
       x.set(targetX);
@@ -115,7 +116,7 @@ export function CustomCursor() {
         setCursorLabel(nextCursorLabel);
       }
 
-      if (cursorImg && portalEnabled) {
+      if (cursorImg && portalCursorEnabled) {
         if (previewSrcRef.current !== cursorImg) {
           previewSrcRef.current = cursorImg;
           setPreviewSrc(cursorImg);
@@ -151,7 +152,15 @@ export function CustomCursor() {
       window.removeEventListener("mousemove", handleMove);
       window.removeEventListener("mouseleave", handleLeave);
     };
-  }, [editMode, isMobile, x, y]);
+  }, [
+    editMode,
+    globalContent.mouseMagnetismEnabled,
+    globalContent.mouseMagnetismStrength,
+    globalContent.portalCursorEnabled,
+    isMobile,
+    x,
+    y
+  ]);
 
   if (editMode || isMobile) {
     return null;

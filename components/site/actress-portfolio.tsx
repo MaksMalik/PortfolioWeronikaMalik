@@ -15,17 +15,26 @@ import { PortfolioHighlights } from "@/components/site/portfolio-highlights";
 import { ClientOnly } from "@/components/site/client-only";
 import { PressMentions } from "@/components/site/press-mentions";
 import { ScrollProgress } from "@/components/site/scroll-progress";
+import { SeoMetadata } from "@/components/site/seo-metadata";
 import { Showreel } from "@/components/site/showreel";
 import { AdminBar } from "@/components/admin/admin-bar";
 
 const FLOATING_SOCIALS_INTRO_DELAY = 0.95;
 
 export function ActressPortfolio() {
-  const { content, isAdmin, editMode } = useAdminEdit();
+  const { content, contentReady, isAdmin, editMode } = useAdminEdit();
 
   useEffect(() => {
     void startFirebaseAnalytics();
   }, []);
+
+  if (!contentReady) {
+    return (
+      <main className="min-h-screen bg-porcelain" aria-busy="true" suppressHydrationWarning>
+        <div className="min-h-screen" />
+      </main>
+    );
+  }
 
   const sectionsConfig = [
     {
@@ -115,6 +124,7 @@ export function ActressPortfolio() {
       transition={{ duration: 0.65, ease: "easeOut" }}
       suppressHydrationWarning
     >
+      <SeoMetadata />
       <ClientOnly>
         <ScrollProgress />
       </ClientOnly>

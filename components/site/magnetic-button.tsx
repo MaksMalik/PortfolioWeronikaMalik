@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { ArrowRight } from "lucide-react";
 import { Button, type ButtonProps } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { useAdminEdit } from "@/components/admin/admin-edit-context";
 
 type MagneticButtonProps = ButtonProps & {
   href?: string;
@@ -17,12 +18,20 @@ export function MagneticButton({
   variant = "default",
   ...props
 }: MagneticButtonProps) {
+  const { content } = useAdminEdit();
   const [offset, setOffset] = useState({ x: 0, y: 0 });
+  const magnetismEnabled = content.mouseMagnetismEnabled !== false;
+  const magnetismStrength = Math.max(0, Math.min(1.5, (content.mouseMagnetismStrength ?? 100) / 100));
 
   const handleMove = (event: React.MouseEvent<HTMLDivElement>) => {
+    if (!magnetismEnabled || magnetismStrength === 0) {
+      setOffset({ x: 0, y: 0 });
+      return;
+    }
+
     const rect = event.currentTarget.getBoundingClientRect();
-    const x = (event.clientX - rect.left - rect.width / 2) * 0.16;
-    const y = (event.clientY - rect.top - rect.height / 2) * 0.18;
+    const x = (event.clientX - rect.left - rect.width / 2) * 0.16 * magnetismStrength;
+    const y = (event.clientY - rect.top - rect.height / 2) * 0.18 * magnetismStrength;
     setOffset({ x, y });
   };
 

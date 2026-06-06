@@ -3,8 +3,9 @@
 import { useState } from "react";
 import { createPortal } from "react-dom";
 import { useAdminEdit } from "./admin-edit-context";
-import { Eye, EyeOff, Save, Rocket, LogOut, Loader2, History, Trash2, Clock, Undo, Redo, Moon, Sun, Sparkles, MousePointer } from "lucide-react";
+import { Eye, EyeOff, Save, Rocket, LogOut, Loader2, History, Trash2, Clock, Undo, Redo, Settings } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { AdminSettingsDrawer } from "@/components/admin/admin-settings-drawer";
 
 export function AdminBar() {
   const {
@@ -32,12 +33,11 @@ export function AdminBar() {
     redo,
     canUndo,
     canRedo,
-    statusMessage,
-    content,
-    updateContent
+    statusMessage
   } = useAdminEdit();
 
   const [showHistory, setShowHistory] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
 
   if (!isAdmin) {
     return null;
@@ -243,77 +243,22 @@ export function AdminBar() {
         <button
           type="button"
           onClick={() => {
-            updateContent((draft) => {
-              draft.accentColorsEnabled = !draft.accentColorsEnabled;
-            });
+            if (!editMode) {
+              setPreviewTarget("preview");
+              setEditMode(true);
+            }
+            setShowSettings(true);
           }}
           className={cn(
             "inline-flex h-9 items-center justify-center gap-1.5 rounded-full border px-2.5 sm:px-4 text-xs font-bold uppercase tracking-[0.12em] transition-all shrink-0",
-            content.accentColorsEnabled
-              ? "border-amber-500 bg-amber-500/10 text-amber-400"
-              : "border-white/15 bg-white/5 text-white/80 hover:bg-white/10 hover:text-white"
-          )}
-          title="Przełącz kolor akcentu (dla wszystkich)"
-        >
-          <Sparkles className="h-3.5 w-3.5" />
-          <span className="hidden lg:inline">{content.accentColorsEnabled ? "Kolor: Wł." : "Kolor: Wył."}</span>
-        </button>
-
-        {content.accentColorsEnabled && (
-          <div className="flex items-center gap-2 border border-white/15 bg-white/5 rounded-full px-2.5 h-9 shrink-0">
-            <input
-              type="color"
-              value={content.accentColor || "#c5a880"}
-              onChange={(e) => {
-                updateContent((draft) => {
-                  draft.accentColor = e.target.value;
-                });
-              }}
-              className="w-5 h-5 rounded-full border-0 cursor-pointer overflow-hidden p-0 bg-transparent shrink-0 [&::-webkit-color-swatch-wrapper]:p-0 [&::-webkit-color-swatch]:border-0 [&::-webkit-color-swatch]:rounded-full [&::-moz-color-swatch]:border-0 [&::-moz-color-swatch]:rounded-full"
-              title="Wybierz kolor akcentu"
-            />
-            <span className="text-[10px] font-mono text-white/60 select-none">
-              {(content.accentColor || "#c5a880").toUpperCase()}
-            </span>
-          </div>
-        )}
-
-        <button
-          type="button"
-          onClick={() => {
-            updateContent((draft) => {
-              draft.portalCursorEnabled = draft.portalCursorEnabled !== false ? false : true;
-            });
-          }}
-          className={cn(
-            "inline-flex h-9 items-center justify-center gap-1.5 rounded-full border px-2.5 sm:px-4 text-xs font-bold uppercase tracking-[0.12em] transition-all shrink-0",
-            content.portalCursorEnabled !== false
+            showSettings
               ? "border-emerald-500 bg-emerald-500/10 text-emerald-400"
               : "border-white/15 bg-white/5 text-white/80 hover:bg-white/10 hover:text-white"
           )}
-          title="Przełącz kursor portalowy (podgląd miniatur)"
+          title="Otwórz ustawienia strony"
         >
-          <MousePointer className="h-3.5 w-3.5" />
-          <span className="hidden lg:inline">{content.portalCursorEnabled !== false ? "Kursor: Portale" : "Kursor: Klasyczny"}</span>
-        </button>
-
-        <button
-          type="button"
-          onClick={() => {
-            updateContent((draft) => {
-              draft.theme = draft.theme === "dark" ? "light" : "dark";
-            });
-          }}
-          className={cn(
-            "inline-flex h-9 items-center justify-center gap-1.5 rounded-full border px-2.5 sm:px-4 text-xs font-bold uppercase tracking-[0.12em] transition-all shrink-0",
-            content.theme === "dark"
-              ? "border-purple-500 bg-purple-500/10 text-purple-400"
-              : "border-white/15 bg-white/5 text-white/80 hover:bg-white/10 hover:text-white"
-          )}
-          title="Przełącz motyw globalny (dla wszystkich)"
-        >
-          {content.theme === "dark" ? <Sun className="h-3.5 w-3.5" /> : <Moon className="h-3.5 w-3.5" />}
-          <span className="hidden lg:inline">{content.theme === "dark" ? "Ciemny" : "Jasny"}</span>
+          <Settings className="h-3.5 w-3.5" />
+          <span className="hidden lg:inline">Ustawienia</span>
         </button>
         
         
@@ -388,6 +333,7 @@ export function AdminBar() {
         )}
       </div>
       
+      <AdminSettingsDrawer isOpen={showSettings} onClose={() => setShowSettings(false)} />
       
     </div>
   );

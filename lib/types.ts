@@ -132,6 +132,11 @@ export type ContactContent = {
   footerDesignerTag?: string;
 };
 
+export type SeoContent = {
+  title: string;
+  description: string;
+  image: SiteImage;
+};
 
 export type SiteContent = {
   schemaVersion: number;
@@ -139,6 +144,9 @@ export type SiteContent = {
   accentColorsEnabled?: boolean;
   accentColor?: string;
   portalCursorEnabled?: boolean;
+  mouseMagnetismEnabled?: boolean;
+  mouseMagnetismStrength?: number;
+  seo?: SeoContent;
   sections: {
     hero: SectionSettings;
     about: SectionSettings;

@@ -74,6 +74,11 @@ function parseContentPayload(payload: unknown) {
         content as Record<string, unknown>
       );
     }
+
+    const incomingSchemaVersion = Number((content as { schemaVersion?: unknown })?.schemaVersion ?? 0);
+    if (incomingSchemaVersion < 8 && merged.portalCursorEnabled === true) {
+      merged.portalCursorEnabled = false;
+    }
     
     // Always force schemaVersion to current version
     merged.schemaVersion = SITE_CONTENT_SCHEMA_VERSION;

@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useCallback, useContext, useEffect, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 import { onAuthStateChanged, signOut, type User } from "firebase/auth";
 import { ADMIN_EMAIL, firebaseAuth } from "@/lib/firebase/client";
@@ -12,7 +12,7 @@ import {
   saveContentVersion,
   deleteContentVersion
 } from "@/lib/firebase/content";
-import { siteContent } from "@/lib/site-content";
+import { SITE_CONTENT_SCHEMA_VERSION, siteContent } from "@/lib/site-content";
 import type { SiteContent, ContentVersion } from "@/lib/types";
 import { cloneContent, createId } from "@/lib/utils";
 
@@ -25,6 +25,7 @@ type AdminEditContextType = {
   previewTarget: ContentTarget;
   setPreviewTarget: (target: ContentTarget) => void;
   content: SiteContent;
+  contentReady: boolean;
   updateContent: (recipe: (draft: SiteContent) => void) => void;
   isSaving: boolean;
   savedAt: string | null;
@@ -77,7 +78,12 @@ function getCachedContent(): SiteContent | null {
     // Try localStorage first (persists across browser restarts), then sessionStorage
     const raw = localStorage.getItem(SESSION_CACHE_KEY) ?? sessionStorage.getItem(SESSION_CACHE_KEY);
     if (!raw) return null;
-    return JSON.parse(raw) as SiteContent;
+    const parsed = JSON.parse(raw) as SiteContent;
+    if ((parsed.schemaVersion ?? 0) < 8 && parsed.portalCursorEnabled === true) {
+      parsed.portalCursorEnabled = false;
+      parsed.schemaVersion = SITE_CONTENT_SCHEMA_VERSION;
+    }
+    return parsed;
   } catch {
     return null;
   }
@@ -99,15 +105,20 @@ function setCachedContent(content: SiteContent) {
   }
 }
 
-export function AdminEditProvider({ children }: { children: React.ReactNode }) {
+export function AdminEditProvider({
+  children,
+  initialContent
+}: {
+  children: React.ReactNode;
+  initialContent?: SiteContent | null;
+}) {
   const [user, setUser] = useState<User | null>(null);
   const [authLoading, setAuthLoading] = useState(true);
   const [editMode, setEditMode] = useState(false);
   const [previewTarget, setPreviewTarget] = useState<ContentTarget>("live");
   
-  // Initialize content: on both server and client, start with siteContent defaults to prevent hydration mismatch!
-  // We will load the cached content in useEffect after hydration is complete.
-  const [content, setContent] = useState<SiteContent>(() => cloneContent(siteContent));
+  const [content, setContent] = useState<SiteContent>(() => cloneContent(initialContent ?? siteContent));
+  const [contentReady, setContentReady] = useState(Boolean(initialContent));
   
   const [isSaving, setIsSaving] = useState(false);
   const [savedAt, setSavedAt] = useState<string | null>(null);
@@ -123,6 +134,7 @@ export function AdminEditProvider({ children }: { children: React.ReactNode }) {
       queueMicrotask(() => {
         if (cached) {
           setContent(cached);
+          setContentReady(true);
         }
 
         if (backupExists) {
@@ -135,6 +147,8 @@ export function AdminEditProvider({ children }: { children: React.ReactNode }) {
   const [autosaveStatus, setAutosaveStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
   const [hasUnsavedEdits, setHasUnsavedEdits] = useState(false);
   const [remoteSaveBlocked, setRemoteSaveBlocked] = useState(false);
+  const hasUnsavedEditsRef = useRef(false);
+  const contentReadyRef = useRef(false);
   
   // Undo/Redo state stack
   const [historyStates, setHistoryStates] = useState<SiteContent[]>([]);
@@ -143,6 +157,14 @@ export function AdminEditProvider({ children }: { children: React.ReactNode }) {
   const isAdmin = user?.email?.toLowerCase() === ADMIN_EMAIL.toLowerCase();
   const pathname = usePathname();
   const isPreviewPage = pathname === "/preview";
+
+  useEffect(() => {
+    hasUnsavedEditsRef.current = hasUnsavedEdits;
+  }, [hasUnsavedEdits]);
+
+  useEffect(() => {
+    contentReadyRef.current = contentReady;
+  }, [contentReady]);
 
   // Listen to Auth State
   useEffect(() => {
@@ -238,12 +260,18 @@ export function AdminEditProvider({ children }: { children: React.ReactNode }) {
 
     return subscribeSiteContent(
       (nextContent) => {
+        if (contentReadyRef.current && hasUnsavedEditsRef.current) {
+          return;
+        }
+
         setContent(() => {
           const backup = typeof window !== "undefined" ? localStorage.getItem("strona_aktorska_draft_backup") : null;
           if (backup && target === "preview") {
             try {
               // If we have unsaved local backup and we are switching to preview target, automatically restore it
-              return JSON.parse(backup);
+              const restored = JSON.parse(backup);
+              setContentReady(true);
+              return restored;
             } catch (e) {
               console.error("Failed to parse local draft backup:", e);
             }
@@ -252,6 +280,7 @@ export function AdminEditProvider({ children }: { children: React.ReactNode }) {
           if (target === "live") {
             setCachedContent(nextContent);
           }
+          setContentReady(true);
           return nextContent;
         });
       },
@@ -264,7 +293,7 @@ export function AdminEditProvider({ children }: { children: React.ReactNode }) {
 
   // Synchronize Theme (Light / Dark) class on document and body
   useEffect(() => {
-    if (typeof window === "undefined") return;
+    if (typeof window === "undefined" || !contentReady) return;
     const isDark = content.theme === "dark";
     const root = document.documentElement;
     const body = document.body;
@@ -275,11 +304,11 @@ export function AdminEditProvider({ children }: { children: React.ReactNode }) {
       root.classList.remove("dark");
       body.classList.remove("dark");
     }
-  }, [content.theme]);
+  }, [content.theme, contentReady]);
 
   // Synchronize Premium Accent Colors class and custom properties on document and body
   useEffect(() => {
-    if (typeof window === "undefined") return;
+    if (typeof window === "undefined" || !contentReady) return;
     const hasAccents = !!content.accentColorsEnabled;
     const body = document.body;
     if (hasAccents) {
@@ -290,7 +319,7 @@ export function AdminEditProvider({ children }: { children: React.ReactNode }) {
       body.classList.remove("has-accents");
       body.style.removeProperty("--accent");
     }
-  }, [content.accentColorsEnabled, content.accentColor]);
+  }, [content.accentColorsEnabled, content.accentColor, contentReady]);
 
   // Debounced Autosave to Firestore preview target
   useEffect(() => {
@@ -611,6 +640,7 @@ export function AdminEditProvider({ children }: { children: React.ReactNode }) {
         previewTarget,
         setPreviewTarget: handleSetPreviewTarget,
         content,
+        contentReady,
         updateContent,
         isSaving,
         savedAt,
