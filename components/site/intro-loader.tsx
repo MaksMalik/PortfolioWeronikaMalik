@@ -1,12 +1,14 @@
 "use client";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { useBodyScrollLock } from "@/components/site/use-body-scroll-lock";
+import { cn } from "@/lib/utils";
 
 type IntroLoaderProps = {
   monogram: string;
   title?: string;
   subtitle?: string;
+  onStartExit: () => void;
   onComplete: () => void;
   animateExit?: boolean;
 };
@@ -15,27 +17,42 @@ export function IntroLoader({
   monogram,
   title = "Weronika Malik",
   subtitle = "Portfolio Aktorskie",
+  onStartExit,
   onComplete,
   animateExit = true
 }: IntroLoaderProps) {
   // Lock body scroll while loader is active
   useBodyScrollLock(true);
+  
+  const [isExiting, setIsExiting] = useState(false);
 
   useEffect(() => {
-    // End static loading phase after 3.2 seconds total, allowing SVG and text animations to settle
-    const timer = setTimeout(() => {
-      onComplete();
+    // Start exit transition after 3.2 seconds total, allowing SVG and text animations to settle
+    const exitTimer = setTimeout(() => {
+      setIsExiting(true);
+      onStartExit();
     }, 3200);
 
-    return () => clearTimeout(timer);
-  }, [onComplete]);
+    // Completely unmount after transition completes (3.2s + 1.1s = 4.3s)
+    const completeTimer = setTimeout(() => {
+      onComplete();
+    }, 4300);
+
+    return () => {
+      clearTimeout(exitTimer);
+      clearTimeout(completeTimer);
+    };
+  }, [onStartExit, onComplete]);
 
   return (
-    <motion.div
-      className="intro-loader-container fixed inset-0 z-[100] flex flex-col items-center justify-center bg-ink text-white"
-      initial={{ y: 0 }}
-      exit={animateExit ? { y: "-100%" } : { opacity: 0 }}
-      transition={animateExit ? { duration: 1.1, ease: [0.85, 0, 0.15, 1] } : { duration: 0 }}
+    <div
+      className={cn(
+        "intro-loader-container fixed inset-0 z-[100] flex flex-col items-center justify-center bg-ink text-white",
+        isExiting ? "translate-y-[-100%]" : "translate-y-0"
+      )}
+      style={{
+        transition: animateExit ? "transform 1100ms cubic-bezier(0.85, 0, 0.15, 1)" : "none"
+      }}
     >
       <div className="flex flex-col items-center">
         {/* Dedicated relative wrapper for the circle and monogram to guarantee perfect centering */}
@@ -92,6 +109,6 @@ export function IntroLoader({
           </p>
         </motion.div>
       </div>
-    </motion.div>
+    </div>
   );
 }

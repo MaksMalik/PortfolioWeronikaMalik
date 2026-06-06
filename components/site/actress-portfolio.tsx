@@ -19,6 +19,9 @@ import { IntroLoader } from "@/components/site/intro-loader";
 
 export function ActressPortfolio() {
   const { content, isAdmin, editMode } = useAdminEdit();
+  
+  // Mounted flag to ensure safe hydration matching the server structure
+  const [mounted, setMounted] = useState(false);
   const [isLoaderComplete, setIsLoaderComplete] = useState(() => {
     if (typeof window === "undefined") return false;
     return document.documentElement.classList.contains("skip-intro");
@@ -38,6 +41,7 @@ export function ActressPortfolio() {
   const isLoaded = isLoaderComplete || editMode || !introConfig.enabled;
 
   useEffect(() => {
+    setMounted(true);
     void startFirebaseAnalytics();
   }, []);
 
@@ -63,12 +67,19 @@ export function ActressPortfolio() {
     }
   }, [introConfig.enabled]);
 
-  const handleLoaderComplete = () => {
-    localStorage.setItem("intro-last-seen", Date.now().toString());
+  const handleStartExit = () => {
     setIsLoaderComplete(true);
   };
 
-  const shouldShowLoader = showLoader && !isLoaderComplete && !editMode && introConfig.enabled;
+  const handleLoaderComplete = () => {
+    localStorage.setItem("intro-last-seen", Date.now().toString());
+    setShowLoader(false);
+  };
+
+  const showMainContent = mounted && (isLoaderComplete || editMode);
+  const shouldShowLoader = !mounted
+    ? (introConfig.enabled && !editMode)
+    : (showLoader && !isLoaderComplete && !editMode && introConfig.enabled);
 
   const sectionsConfig = [
     {
@@ -148,7 +159,6 @@ export function ActressPortfolio() {
   const renderedSections = sortedSections.filter((sec) => editMode || sec.enabled);
 
   let nonHeroIndex = 0;
-  const showMainContent = isLoaderComplete || editMode;
 
   return (
     <motion.main
@@ -182,17 +192,16 @@ export function ActressPortfolio() {
       <CustomCursor />
       <AdminBar />
 
-      <AnimatePresence>
-        {shouldShowLoader && (
-          <IntroLoader
-            monogram={content.hero.monogram}
-            title={introConfig.title}
-            subtitle={introConfig.subtitle}
-            onComplete={handleLoaderComplete}
-            animateExit={shouldAnimateExit}
-          />
-        )}
-      </AnimatePresence>
+      {shouldShowLoader && (
+        <IntroLoader
+          monogram={content.hero.monogram}
+          title={introConfig.title}
+          subtitle={introConfig.subtitle}
+          onStartExit={handleStartExit}
+          onComplete={handleLoaderComplete}
+          animateExit={shouldAnimateExit}
+        />
+      )}
     </motion.main>
   );
 }

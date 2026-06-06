@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Bodoni_Moda, Manrope } from "next/font/google";
 import { AdminEditProvider } from "@/components/admin/admin-edit-context";
+import Script from "next/script";
 import "./globals.css";
 
 const display = Bodoni_Moda({
@@ -28,7 +29,9 @@ export default function RootLayout({
   return (
     <html lang="pl" className={`${display.variable} ${sans.variable}`} suppressHydrationWarning>
       <head>
-        <script
+        <Script
+          id="skip-intro-check"
+          strategy="beforeInteractive"
           dangerouslySetInnerHTML={{
             __html: `
               (function() {
