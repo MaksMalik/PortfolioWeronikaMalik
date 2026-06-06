@@ -1,13 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { createPortal } from "react-dom";
 import { useAdminEdit } from "./admin-edit-context";
-import { Eye, EyeOff, Save, Rocket, LogOut, Loader2, History, Trash2, Clock, Undo, Redo, Moon, Sun, ArrowUp, ArrowDown, ArrowUpDown } from "lucide-react";
+import { Eye, EyeOff, Save, Rocket, LogOut, Loader2, History, Trash2, Clock, Undo, Redo, Moon, Sun } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { AdminDrawer } from "./admin-drawer";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
 
 export function AdminBar() {
   const {
@@ -41,11 +38,6 @@ export function AdminBar() {
   } = useAdminEdit();
 
   const [showHistory, setShowHistory] = useState(false);
-  const [portalMounted, setPortalMounted] = useState(false);
-
-  useEffect(() => {
-    setPortalMounted(true);
-  }, []);
 
   if (!isAdmin) {
     return null;
@@ -279,7 +271,7 @@ export function AdminBar() {
         </button>
 
         {/* History Dropdown Panel — portalled to body to escape backdrop-blur containing block */}
-        {portalMounted && showHistory && createPortal(
+        {typeof document !== "undefined" && showHistory && createPortal(
           <div className="fixed bottom-16 right-4 z-[90] max-h-[min(24rem,calc(100svh-6rem))] w-72 overflow-y-auto rounded-xl border border-white/10 bg-ink p-3 text-white shadow-xl sm:bottom-20">
             <div className="flex items-center justify-between border-b border-white/10 pb-2 mb-2">
               <span className="text-[0.62rem] font-bold uppercase tracking-[0.12em] text-white/50">

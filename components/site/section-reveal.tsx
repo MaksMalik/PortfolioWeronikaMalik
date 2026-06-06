@@ -1,6 +1,6 @@
 "use client";
 
-import { type ReactNode, useRef, useEffect, useState } from "react";
+import { type ReactNode, useRef, useSyncExternalStore } from "react";
 import { motion, useScroll, useTransform, useSpring } from "framer-motion";
 import { cn } from "@/lib/utils";
 
@@ -12,6 +12,22 @@ type SectionRevealProps = {
 };
 
 const revealEase = [0.22, 1, 0.36, 1] as const;
+const desktopQuery = "(min-width: 1024px)";
+
+function subscribeDesktop(callback: () => void) {
+  if (typeof window === "undefined") return () => {};
+  const media = window.matchMedia(desktopQuery);
+  media.addEventListener("change", callback);
+  return () => media.removeEventListener("change", callback);
+}
+
+function getDesktopSnapshot() {
+  return typeof window !== "undefined" && window.matchMedia(desktopQuery).matches;
+}
+
+function getDesktopServerSnapshot() {
+  return false;
+}
 
 export function SectionReveal({ children, className, id, reveal = true }: SectionRevealProps) {
   const revealProps = reveal
@@ -206,15 +222,11 @@ export function SectionHeading(props: {
   className?: string;
   reverseDirection?: boolean;
 }) {
-  const [isDesktop, setIsDesktop] = useState(false);
-
-  useEffect(() => {
-    const media = window.matchMedia("(min-width: 1024px)");
-    setIsDesktop(media.matches);
-    const listener = (e: MediaQueryListEvent) => setIsDesktop(e.matches);
-    media.addEventListener("change", listener);
-    return () => media.removeEventListener("change", listener);
-  }, []);
+  const isDesktop = useSyncExternalStore(
+    subscribeDesktop,
+    getDesktopSnapshot,
+    getDesktopServerSnapshot
+  );
 
   if (isDesktop) {
     return <DesktopSectionHeading {...props} />;

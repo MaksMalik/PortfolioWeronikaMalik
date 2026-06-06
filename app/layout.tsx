@@ -31,6 +31,7 @@ export default function RootLayout({
       <body suppressHydrationWarning>
         <SmoothScroll />
         <AdminEditProvider>
+          <div className="cinematicAtmosphere" aria-hidden="true" />
           <div className="film-grain" aria-hidden="true" />
           {children}
         </AdminEditProvider>

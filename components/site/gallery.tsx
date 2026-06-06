@@ -839,8 +839,7 @@ export const Gallery = memo(function Gallery({
                 onClick={() => setActiveSessionId(null)}
               />
               <motion.div
-                className="fixed inset-0 z-[90] overflow-y-auto overscroll-contain bg-porcelain text-ink"
-                style={{ willChange: "transform", WebkitOverflowScrolling: "touch", height: '100vh' } as any}
+                className="fixed inset-0 z-[90] h-screen overflow-y-auto overscroll-contain bg-porcelain text-ink will-change-transform [-webkit-overflow-scrolling:touch]"
                 initial={{ opacity: 0, y: "100%" }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: "100%" }}

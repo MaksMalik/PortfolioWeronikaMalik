@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, ChangeEvent, memo } from "react";
+import { useCallback, useEffect, useMemo, useState, ChangeEvent, memo } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { ExternalLink, X, Plus, Trash2, ArrowUp, ArrowDown, Eye, EyeOff, Edit, Upload, Loader2, ChevronLeft, ChevronRight } from "lucide-react";
 import type { PortfolioProject, SiteImage } from "@/lib/types";
@@ -60,7 +60,10 @@ export const PortfolioHighlights = memo(function PortfolioHighlights({
 }) {
   const { editMode, updateContent, content: globalContent } = useAdminEdit();
   const projects = editMode ? globalContent.portfolio : initialProjects;
-  const visibleProjects = projects.filter((project) => editMode || project.enabled);
+  const visibleProjects = useMemo(
+    () => projects.filter((project) => editMode || project.enabled),
+    [projects, editMode]
+  );
 
   const handleCardMouseMove = (e: React.MouseEvent<HTMLButtonElement>) => {
     if (editMode) return;
@@ -97,14 +100,14 @@ export const PortfolioHighlights = memo(function PortfolioHighlights({
 
   useBodyScrollLock(activeProject !== null);
 
-  const goTo = (direction: "next" | "prev") => {
+  const goTo = useCallback((direction: "next" | "prev") => {
     if (visibleProjects.length <= 1) return;
     const currentIdx = visibleProjects.findIndex(p => p.id === activeProject?.id);
     let nextIdx = currentIdx + (direction === "next" ? 1 : -1);
     if (nextIdx >= visibleProjects.length) nextIdx = 0;
     if (nextIdx < 0) nextIdx = visibleProjects.length - 1;
     setActiveProject(visibleProjects[nextIdx]);
-  };
+  }, [activeProject?.id, visibleProjects]);
 
   useEffect(() => {
     if (!activeProject) return;
@@ -374,12 +377,12 @@ export const PortfolioHighlights = memo(function PortfolioHighlights({
             ref={railRef}
             {...railDragHandlers}
             className={cn(
-              "no-scrollbar grid auto-cols-[84%] grid-flow-col gap-5 overflow-x-auto pt-12 pb-20 -mt-12 -mb-16 select-none [scroll-snap-type:x_proximity] sm:auto-cols-[52%] lg:auto-cols-[36%]",
+              "no-scrollbar grid auto-cols-[84%] grid-flow-col gap-5 overflow-x-auto pt-12 pb-20 -mt-12 -mb-16 select-none [scroll-snap-type:x_proximity] sm:auto-cols-[52%] lg:auto-cols-[calc((100%_-_2.5rem)/3)]",
               isDragging ? "cursor-grabbing" : "cursor-grab"
             )}
           >
             {visibleProjects.map((project, index) => (
-              <div key={project.id} className="relative group scroll-ml-4 [scroll-snap-align:start]">
+              <div key={project.id} className="relative group h-full scroll-ml-4 [scroll-snap-align:start]">
                 <motion.button
                   type="button"
                   data-cursor="view"
@@ -820,8 +823,7 @@ export const PortfolioHighlights = memo(function PortfolioHighlights({
                 onClick={() => setActiveProject(null)}
               />
               <motion.div
-                className="fixed inset-0 z-[90] overflow-y-auto overscroll-contain bg-porcelain text-ink"
-                style={{ willChange: "transform", WebkitOverflowScrolling: "touch", height: '100vh' } as any}
+                className="fixed inset-0 z-[90] h-screen overflow-y-auto overscroll-contain bg-porcelain text-ink will-change-transform [-webkit-overflow-scrolling:touch]"
                 initial={{ opacity: 0, y: "100%" }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: "100%" }}

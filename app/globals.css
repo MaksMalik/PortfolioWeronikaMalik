@@ -208,10 +208,11 @@ body::before {
     linear-gradient(90deg, rgba(16, 16, 16, 0.08), transparent 16%, transparent 84%, rgba(16, 16, 16, 0.08)),
     linear-gradient(180deg, rgba(16, 16, 16, 0.08), transparent 18%, transparent 78%, rgba(16, 16, 16, 0.09)),
     radial-gradient(ellipse at 50% 12%, rgba(255, 255, 255, 0.42), transparent 42%);
-  opacity: 0.45;
+  opacity: 0.34;
   will-change: opacity;
   backface-visibility: hidden;
-  transform: translateZ(0);
+  transform: translate3d(0, 0, 0);
+  contain: strict;
 }
 
 .dark .cinematicAtmosphere {
@@ -507,7 +508,13 @@ a {
   .cinematicImage .cinematicImageColor {
     clip-path: none;
     opacity: 0;
-    transition: transform 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+    transition:
+      opacity 1.15s cubic-bezier(0.16, 1, 0.3, 1),
+      transform 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .cinematicImage.in-view-mobile .cinematicImageColor {
+    opacity: 1;
+    transform: scale(1.025);
   }
   .cinematicImage.in-view-mobile .cinematicImageBase {
     filter: grayscale(100%) contrast(1.04) saturate(0.98);

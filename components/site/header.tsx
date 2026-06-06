@@ -92,7 +92,7 @@ export function Header({ monogram, isLoaded = true }: { monogram: string; isLoad
       window.scrollTo({ top, behavior: "smooth" });
     };
 
-    window.requestAnimationFrame(scrollToSection);
+    window.dispatchEvent(new CustomEvent("portfolio:navigate", { detail: { href } }));
 
     if (wasMobileMenuOpen) {
       window.setTimeout(scrollToSection, 480);
