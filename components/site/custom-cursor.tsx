@@ -29,8 +29,10 @@ export function CustomCursor() {
   const springY = useSpring(y, { stiffness: 600, damping: 42, mass: 0.18 });
   const [mode, setMode] = useState<"default" | "action" | "view" | "play">("default");
   const [visible, setVisible] = useState(false);
+  const [cursorLabel, setCursorLabel] = useState("");
   const modeRef = useRef(mode);
   const visibleRef = useRef(visible);
+  const cursorLabelRef = useRef(cursorLabel);
 
   useEffect(() => {
     modeRef.current = mode;
@@ -39,6 +41,10 @@ export function CustomCursor() {
   useEffect(() => {
     visibleRef.current = visible;
   }, [visible]);
+
+  useEffect(() => {
+    cursorLabelRef.current = cursorLabel;
+  }, [cursorLabel]);
 
   useEffect(() => {
     if (editMode || isMobile) {
@@ -76,6 +82,8 @@ export function CustomCursor() {
 
       const imgEl = target?.closest("[data-cursor-img]") as HTMLElement | null;
       const cursorImg = imgEl ? imgEl.getAttribute("data-cursor-img") : null;
+      const labelEl = target?.closest("[data-cursor-label]") as HTMLElement | null;
+      const nextCursorLabel = labelEl?.getAttribute("data-cursor-label")?.trim() ?? "";
       
       const portalEnabled = globalContent?.portalCursorEnabled !== false;
       const hasPreview = Boolean(cursorImg) && portalEnabled;
@@ -102,6 +110,11 @@ export function CustomCursor() {
         setMode(nextMode);
       }
 
+      if (cursorLabelRef.current !== nextCursorLabel) {
+        cursorLabelRef.current = nextCursorLabel;
+        setCursorLabel(nextCursorLabel);
+      }
+
       if (cursorImg && portalEnabled) {
         if (previewSrcRef.current !== cursorImg) {
           previewSrcRef.current = cursorImg;
@@ -123,6 +136,8 @@ export function CustomCursor() {
     const handleLeave = () => {
       visibleRef.current = false;
       setVisible(false);
+      cursorLabelRef.current = "";
+      setCursorLabel("");
       previewSrcRef.current = null;
       setPreviewSrc(null);
     };
@@ -163,12 +178,12 @@ export function CustomCursor() {
         )}
         {mode === "view" && !previewSrc && (
           <span className="customCursorLabel">
-            Zobacz
+            {cursorLabel || "Zobacz"}
           </span>
         )}
         {mode === "play" && !previewSrc && (
           <span className="customCursorLabel">
-            Play
+            {cursorLabel || "Play"}
           </span>
         )}
       </span>

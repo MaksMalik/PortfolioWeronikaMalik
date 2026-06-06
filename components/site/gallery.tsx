@@ -19,6 +19,9 @@ import { createId, cn } from "@/lib/utils";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { formatTextTemplate } from "@/lib/text-template";
+
+const DEFAULT_GALLERY_IMAGE_COUNTER_TEMPLATE = "Zdjęcie {current} z {total}";
 
 function emptyImage(prefix: string): SiteImage {
   return {
@@ -164,6 +167,9 @@ export const Gallery = memo(function Gallery({
   }, [updateScrollState, visibleSessions.length]);
 
   const isSectionEnabled = globalContent.sections.gallery.enabled;
+  const galleryActionLabel = globalContent.sections.gallery.actionLabel ?? "Otwórz sesję";
+  const galleryImageCounterTemplate =
+    globalContent.sections.gallery.imageCounterTemplate ?? DEFAULT_GALLERY_IMAGE_COUNTER_TEMPLATE;
 
   const coverFor = (session: GallerySession) => {
     return session.cover?.enabled ? session.cover : emptyImage(`gallery-cover-${session.id}`);
@@ -459,6 +465,7 @@ export const Gallery = memo(function Gallery({
                     type="button"
                     data-cursor="view"
                     data-cursor-img={cover.src}
+                    data-cursor-label={galleryActionLabel}
                     className={cn(
                       "cinematic-card w-full group flex h-full min-h-[660px] flex-col border border-ink/10 bg-white text-left shadow-[0_18px_60px_rgba(16,16,16,0.04)] rounded-2xl",
                       !session.enabled && "opacity-50 border-dashed"
@@ -503,7 +510,7 @@ export const Gallery = memo(function Gallery({
                       </div>
                       {!editMode && (
                         <span className="mt-6 inline-flex border-b border-ink pb-1 text-xs font-bold uppercase tracking-[0.18em] text-ink w-fit">
-                          {globalContent.sections.gallery.actionLabel ?? "Otwórz sesję"}
+                          {galleryActionLabel}
                         </span>
                       )}
                       {!session.enabled && (
@@ -588,7 +595,7 @@ export const Gallery = memo(function Gallery({
             <Label htmlFor="gallery-action-label">Etykieta przycisku karty</Label>
             <Input
               id="gallery-action-label"
-              value={globalContent.sections.gallery.actionLabel ?? "Otwórz sesję"}
+              value={galleryActionLabel}
               onChange={(e) =>
                 updateContent((draft) => {
                   draft.sections.gallery.actionLabel = e.target.value;
@@ -596,6 +603,23 @@ export const Gallery = memo(function Gallery({
               }
               className="rounded-full"
             />
+          </div>
+
+          <div className="grid gap-1">
+            <Label htmlFor="gallery-image-counter-template">Format licznika zdjęć</Label>
+            <Input
+              id="gallery-image-counter-template"
+              value={galleryImageCounterTemplate}
+              onChange={(e) =>
+                updateContent((draft) => {
+                  draft.sections.gallery.imageCounterTemplate = e.target.value;
+                })
+              }
+              className="rounded-full"
+            />
+            <span className="text-[0.62rem] leading-5 text-ink/40">
+              Użyj {"{current}"} i {"{total}"}, np. Kadr {"{current}"} / {"{total}"}.
+            </span>
           </div>
 
           {/* List of sessions in drawer */}
@@ -1062,7 +1086,10 @@ export const Gallery = memo(function Gallery({
                 onClick={(e) => e.stopPropagation()}
               >
                 <span className="text-[0.62rem] font-bold uppercase tracking-[0.2em] text-white/55">
-                  Zdjęcie {currentImageIndex + 1} z {visibleImages.length}
+                  {formatTextTemplate(galleryImageCounterTemplate, DEFAULT_GALLERY_IMAGE_COUNTER_TEMPLATE, {
+                    current: currentImageIndex + 1,
+                    total: visibleImages.length
+                  })}
                 </span>
                 <div className="flex items-center gap-2">
                   <Button

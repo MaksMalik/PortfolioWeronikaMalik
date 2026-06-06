@@ -20,9 +20,13 @@ import { Button } from "@/components/ui/button";
 import { SectionReorderControls } from "@/components/admin/section-reorder-controls";
 import { useScroll, useTransform, useSpring, motion } from "framer-motion";
 import { AnimatePresence } from "framer-motion";
+import { formatTextTemplate } from "@/lib/text-template";
 
 const DESKTOP_TIMELINE_SCROLL_FACTOR = 1.08;
 const ANCHOR_NAVIGATION_FREEZE_MS = 1700;
+const DEFAULT_TIMELINE_EYEBROW = "Oś Czasu";
+const DEFAULT_TIMELINE_TITLE = "Droga twórcza";
+const DEFAULT_TIMELINE_STEP_TEMPLATE = "Krok {current} / {total}";
 
 type AnchorScrollEventDetail = {
   href?: string;
@@ -73,6 +77,8 @@ export function About({
   }, [content.timeline]);
   const visibleEvents = useMemo(() => timelineEvents.filter(e => editMode || e.enabled), [timelineEvents, editMode]);
   const hasVisibleTimelineEvents = visibleEvents.length > 0;
+  const timelineEyebrow = content.timelineEyebrow ?? DEFAULT_TIMELINE_EYEBROW;
+  const timelineTitle = content.timelineTitle ?? DEFAULT_TIMELINE_TITLE;
 
   // Framer Motion scroll logic for horizontal parallax on desktop
   const containerRef = useRef<HTMLDivElement>(null);
@@ -403,7 +409,10 @@ export function About({
 
               <div className="space-y-3 lg:mt-12 lg:space-y-4 lg:relative lg:z-10">
                 <span className="text-[0.66rem] font-bold uppercase tracking-[0.2em] text-ink/40">
-                  Krok {idx + 1} / {visibleEvents.length}
+                  {formatTextTemplate(content.timelineStepTemplate, DEFAULT_TIMELINE_STEP_TEMPLATE, {
+                    current: idx + 1,
+                    total: visibleEvents.length
+                  })}
                 </span>
                 <h4 className="font-serif text-3xl lg:md:text-4xl text-ink leading-tight">{event.title}</h4>
                 <p className="text-sm leading-6 text-graphite/75 lg:max-w-lg">{event.description}</p>
@@ -472,8 +481,8 @@ export function About({
         {visibleEvents.length > 0 && (
           <div className="space-y-6 -mx-6 sm:-mx-10 pl-6 sm:pl-10">
             <div className="space-y-1">
-              <span className="text-[0.66rem] font-bold uppercase tracking-[0.2em] text-ink/40">Oś Czasu</span>
-              <h3 className="font-serif text-2xl text-ink">Droga twórcza</h3>
+              <span className="text-[0.66rem] font-bold uppercase tracking-[0.2em] text-ink/40">{timelineEyebrow}</span>
+              <h3 className="font-serif text-2xl text-ink">{timelineTitle}</h3>
             </div>
 
             {/* Horizontal Swipeable Snap container */}
@@ -492,7 +501,10 @@ export function About({
 
                   <div className="space-y-2 mt-4">
                     <span className="text-[0.6rem] font-bold uppercase tracking-[0.15em] text-ink/40">
-                      Krok {idx + 1} / {visibleEvents.length}
+                      {formatTextTemplate(content.timelineStepTemplate, DEFAULT_TIMELINE_STEP_TEMPLATE, {
+                        current: idx + 1,
+                        total: visibleEvents.length
+                      })}
                     </span>
                     <h4 className="font-serif text-lg text-ink leading-tight">{event.title}</h4>
                     <p className="text-xs leading-5 text-graphite/75">{event.description}</p>
@@ -631,6 +643,58 @@ export function About({
               }
               className="rounded-full"
             />
+          </div>
+
+          <div className="grid gap-3 rounded-2xl border border-ink/10 bg-white p-4">
+            <Label className="text-xs font-bold uppercase tracking-[0.1em] text-ink/40">
+              Teksty osi czasu
+            </Label>
+            <div className="grid gap-2">
+              <div className="grid gap-1">
+                <Label htmlFor="about-timeline-eyebrow">Nadtytuł osi czasu</Label>
+                <Input
+                  id="about-timeline-eyebrow"
+                  value={timelineEyebrow}
+                  onChange={(e) =>
+                    updateContent((draft) => {
+                      draft.about.timelineEyebrow = e.target.value;
+                    })
+                  }
+                  className="rounded-full"
+                />
+              </div>
+
+              <div className="grid gap-1">
+                <Label htmlFor="about-timeline-title">Tytuł osi czasu</Label>
+                <Input
+                  id="about-timeline-title"
+                  value={timelineTitle}
+                  onChange={(e) =>
+                    updateContent((draft) => {
+                      draft.about.timelineTitle = e.target.value;
+                    })
+                  }
+                  className="rounded-xl font-serif text-lg"
+                />
+              </div>
+
+              <div className="grid gap-1">
+                <Label htmlFor="about-timeline-step-template">Format licznika wydarzenia</Label>
+                <Input
+                  id="about-timeline-step-template"
+                  value={content.timelineStepTemplate ?? DEFAULT_TIMELINE_STEP_TEMPLATE}
+                  onChange={(e) =>
+                    updateContent((draft) => {
+                      draft.about.timelineStepTemplate = e.target.value;
+                    })
+                  }
+                  className="rounded-full"
+                />
+                <span className="text-[0.62rem] leading-5 text-ink/40">
+                  Użyj {"{current}"} i {"{total}"}, np. Etap {"{current}"} z {"{total}"}.
+                </span>
+              </div>
+            </div>
           </div>
 
           {/* Timeline events in drawer */}
@@ -782,6 +846,17 @@ export function About({
                     />
                   </label>
                   <span className="text-[0.6rem] text-ink/40">Zalecany poziomy kadr</span>
+                  <Input
+                    value={editingEvent.image.alt}
+                    onChange={(e) =>
+                      updateEventField("image", {
+                        ...editingEvent.image,
+                        alt: e.target.value
+                      })
+                    }
+                    placeholder="Opis alternatywny"
+                    className="h-8 rounded-full text-xs"
+                  />
                 </div>
               </div>
             </div>

@@ -1,6 +1,6 @@
 import type { SiteContent } from "@/lib/types";
 
-export const SITE_CONTENT_SCHEMA_VERSION = 6;
+export const SITE_CONTENT_SCHEMA_VERSION = 7;
 
 export const siteContent: SiteContent = {
   schemaVersion: SITE_CONTENT_SCHEMA_VERSION,
@@ -13,7 +13,7 @@ export const siteContent: SiteContent = {
     about: { enabled: true, label: "O mnie" },
     portfolio: { enabled: true, eyebrow: "portfolio", title: "Wybrane role", label: "Role", actionLabel: "Czytaj więcej" },
     showreel: { enabled: true, label: "Showreel" },
-    gallery: { enabled: true, eyebrow: "galeria", title: "Sesje zdjęciowe", description: "Editorialowe portrety, kadry i fragmenty pracy przed obiektywem.", label: "Galeria", actionLabel: "Otwórz sesję" },
+    gallery: { enabled: true, eyebrow: "galeria", title: "Sesje zdjęciowe", description: "Editorialowe portrety, kadry i fragmenty pracy przed obiektywem.", label: "Galeria", actionLabel: "Otwórz sesję", imageCounterTemplate: "Zdjęcie {current} z {total}" },
     press: { enabled: true, eyebrow: "prasa", title: "W mediach", label: "Prasa" },
     contact: { enabled: true, label: "Kontakt" }
   },
@@ -38,6 +38,9 @@ export const siteContent: SiteContent = {
     title: "Opowieść zaczyna się w ciszy",
     body: "Jestem aktorką przyciąganą przez role z wewnętrznym napięciem, delikatnością i prawdą emocjonalną. W kinie, teatrze i pracy przed kamerą szukam momentów, które zostają z widzem dłużej niż ostatnie ujęcie.",
     buttonText: "Porozmawiajmy",
+    timelineEyebrow: "Oś Czasu",
+    timelineTitle: "Droga twórcza",
+    timelineStepTemplate: "Krok {current} / {total}",
     image: {
       id: "about-portrait",
       enabled: true,
@@ -110,6 +113,9 @@ export const siteContent: SiteContent = {
     title: "Krótki wgląd w mój świat",
     description: "Wybrane fragmenty z filmu, serialu i teatru zmontowane w spokojnym, kinowym rytmie.",
     buttonText: "Odtwórz showreel",
+    modalLabel: "Showreel",
+    loadingLabel: "Ładowanie wideo...",
+    playCursorLabel: "Play",
     thumbnail: {
       id: "showreel-thumb",
       enabled: true,
@@ -149,6 +155,11 @@ export const siteContent: SiteContent = {
     eyebrow: "kontakt",
     heading: "Stwórzmy coś pięknego.",
     intro: "W sprawie projektów filmowych, serialowych, teatralnych i editorialowych skontaktuj się bezpośrednio lub przez reprezentację.",
+    emailLabel: "Napisz bezpośrednio",
+    phoneLabel: "Zadzwoń",
+    phoneRevealLabel: "Pokaż numer telefonu",
+    locationLabel: "Baza / Lokalizacja",
+    representationLabel: "Reprezentacja / Agent",
     email: "kontakt@weronikamalik.pl",
     phone: "+48 501 234 567",
     location: "Warszawa / Londyn",

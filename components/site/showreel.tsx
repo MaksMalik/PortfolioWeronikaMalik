@@ -22,6 +22,9 @@ import { Textarea } from "@/components/ui/textarea";
 
 const PLACEHOLDER_IMAGE =
   "https://images.unsplash.com/photo-1524250502761-1ac6f2e30d43?auto=format&fit=crop&w=900&q=80";
+const DEFAULT_SHOWREEL_MODAL_LABEL = "Showreel";
+const DEFAULT_SHOWREEL_LOADING_LABEL = "Ładowanie wideo...";
+const DEFAULT_SHOWREEL_PLAY_CURSOR_LABEL = "Play";
 
 function emptyImage(prefix: string): SiteImage {
   return {
@@ -291,6 +294,9 @@ export function Showreel({
   };
 
   const isSectionEnabled = globalContent.sections.showreel.enabled;
+  const showreelModalLabel = content.modalLabel ?? DEFAULT_SHOWREEL_MODAL_LABEL;
+  const showreelLoadingLabel = content.loadingLabel ?? DEFAULT_SHOWREEL_LOADING_LABEL;
+  const showreelPlayCursorLabel = content.playCursorLabel ?? DEFAULT_SHOWREEL_PLAY_CURSOR_LABEL;
 
   return (
     <SectionReveal
@@ -432,6 +438,7 @@ export function Showreel({
                         type="button"
                         data-cursor="play"
                         data-cursor-img={thumbSrc}
+                        data-cursor-label={showreelPlayCursorLabel}
                         className={cn(
                           "cinematic-card w-full group text-left border border-ink/10 bg-white shadow-[0_18px_60px_rgba(16,16,16,0.04)] rounded-2xl flex flex-col h-full overflow-hidden",
                           !video.enabled && "opacity-50 border-dashed"
@@ -496,6 +503,7 @@ export function Showreel({
                 type="button"
                 data-cursor="play"
                 data-cursor-img={mainThumbnailSrc}
+                data-cursor-label={showreelPlayCursorLabel}
                 className="cinematic-card absolute inset-0 h-full w-full text-left cursor-pointer rounded-3xl overflow-hidden shadow-editorial border border-ink/10"
                 onClick={() => {
                   if (!editMode) {
@@ -609,6 +617,55 @@ export function Showreel({
               rows={4}
               className="rounded-xl text-sm"
             />
+          </div>
+
+          <div className="grid gap-3 rounded-2xl border border-ink/10 bg-white p-4">
+            <Label className="text-xs font-bold uppercase tracking-[0.1em] text-ink/40">
+              Teksty odtwarzacza
+            </Label>
+            <div className="grid gap-2">
+              <div className="grid gap-1">
+                <Label htmlFor="showreel-modal-label">Podpis modalu</Label>
+                <Input
+                  id="showreel-modal-label"
+                  value={showreelModalLabel}
+                  onChange={(e) =>
+                    updateContent((draft) => {
+                      draft.showreel.modalLabel = e.target.value;
+                    })
+                  }
+                  className="rounded-full"
+                />
+              </div>
+
+              <div className="grid gap-1">
+                <Label htmlFor="showreel-loading-label">Komunikat ładowania</Label>
+                <Input
+                  id="showreel-loading-label"
+                  value={showreelLoadingLabel}
+                  onChange={(e) =>
+                    updateContent((draft) => {
+                      draft.showreel.loadingLabel = e.target.value;
+                    })
+                  }
+                  className="rounded-full"
+                />
+              </div>
+
+              <div className="grid gap-1">
+                <Label htmlFor="showreel-play-cursor-label">Tekst kursora odtwarzania</Label>
+                <Input
+                  id="showreel-play-cursor-label"
+                  value={showreelPlayCursorLabel}
+                  onChange={(e) =>
+                    updateContent((draft) => {
+                      draft.showreel.playCursorLabel = e.target.value;
+                    })
+                  }
+                  className="rounded-full"
+                />
+              </div>
+            </div>
           </div>
 
           {/* List of scrollable videos */}
@@ -924,7 +981,7 @@ export function Showreel({
                 <div className="rounded-3xl overflow-hidden bg-black relative w-full h-full">
                   <div className="absolute left-6 top-5 z-30 max-w-[75%]">
                     <p className="text-[0.62rem] font-bold uppercase tracking-[0.16em] text-white/50 mb-0.5">
-                      Showreel
+                      {showreelModalLabel}
                     </p>
                     <h3 className="font-serif text-lg sm:text-xl text-white font-medium truncate">
                       {activeVideoTitle}
@@ -945,7 +1002,7 @@ export function Showreel({
                     <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/90 z-20">
                       <Loader2 className="h-8 w-8 animate-spin text-white mb-2" />
                       <span className="text-[0.62rem] font-bold uppercase tracking-[0.16em] text-white/50">
-                        Ładowanie wideo...
+                        {showreelLoadingLabel}
                       </span>
                     </div>
                   )}

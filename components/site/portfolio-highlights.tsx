@@ -146,6 +146,7 @@ export const PortfolioHighlights = memo(function PortfolioHighlights({
   }, [updateScrollState, visibleProjects.length]);
 
   const isSectionEnabled = globalContent.sections.portfolio.enabled;
+  const portfolioActionLabel = globalContent.sections.portfolio.actionLabel ?? "Czytaj więcej";
 
   // Reordering projects
   const moveProject = (fromIndex: number, toIndex: number) => {
@@ -402,6 +403,7 @@ export const PortfolioHighlights = memo(function PortfolioHighlights({
                   type="button"
                   data-cursor="view"
                   data-cursor-img={project.image.src}
+                  data-cursor-label={portfolioActionLabel}
                   className={cn(
                     "cinematic-card w-full group border border-ink/10 bg-white text-left rounded-2xl flex flex-col h-full",
                     !project.enabled && "opacity-50 border-dashed"
@@ -451,7 +453,7 @@ export const PortfolioHighlights = memo(function PortfolioHighlights({
                       </div>
                       {!editMode && (
                         <span className="mt-6 inline-flex border-b border-ink pb-1 text-xs font-bold uppercase tracking-[0.18em] text-ink">
-                          {globalContent.sections.portfolio.actionLabel ?? "Czytaj więcej"}
+                          {portfolioActionLabel}
                         </span>
                       )}
                       {!project.enabled && (
@@ -521,7 +523,7 @@ export const PortfolioHighlights = memo(function PortfolioHighlights({
             <Label htmlFor="portfolio-action-label">Etykieta przycisku karty</Label>
             <Input
               id="portfolio-action-label"
-              value={globalContent.sections.portfolio.actionLabel ?? "Czytaj więcej"}
+              value={portfolioActionLabel}
               onChange={(e) =>
                 updateContent((draft) => {
                   draft.sections.portfolio.actionLabel = e.target.value;

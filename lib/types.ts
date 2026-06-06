@@ -15,6 +15,7 @@ export type SectionSettings = {
   description?: string;
   label?: string;
   actionLabel?: string;
+  imageCounterTemplate?: string;
 };
 
 export type HeroContent = {
@@ -42,6 +43,9 @@ export type AboutContent = {
   body: string;
   buttonText: string;
   image: SiteImage;
+  timelineEyebrow?: string;
+  timelineTitle?: string;
+  timelineStepTemplate?: string;
   timeline?: TimelineEvent[];
 };
 
@@ -75,6 +79,9 @@ export type ShowreelContent = {
   title: string;
   description: string;
   buttonText: string;
+  modalLabel?: string;
+  loadingLabel?: string;
+  playCursorLabel?: string;
   thumbnail: SiteImage;
   videoUrl: string;
   youtubeThumbnailEnabled?: boolean;
@@ -110,6 +117,11 @@ export type ContactContent = {
   eyebrow: string;
   heading: string;
   intro: string;
+  emailLabel?: string;
+  phoneLabel?: string;
+  phoneRevealLabel?: string;
+  locationLabel?: string;
+  representationLabel?: string;
   email: string;
   phone: string;
   location: string;

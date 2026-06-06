@@ -101,6 +101,12 @@ const phoneSwap: Variants = {
   }
 };
 
+const DEFAULT_EMAIL_LABEL = "Napisz bezpośrednio";
+const DEFAULT_PHONE_LABEL = "Zadzwoń";
+const DEFAULT_PHONE_REVEAL_LABEL = "Pokaż numer telefonu";
+const DEFAULT_LOCATION_LABEL = "Baza / Lokalizacja";
+const DEFAULT_REPRESENTATION_LABEL = "Reprezentacja / Agent";
+
 export function Contact({
   content: initialContent,
   bgClass,
@@ -118,6 +124,11 @@ export function Contact({
 
   const isSectionEnabled = globalContent.sections.contact.enabled;
   const floatingSocialsEnabled = content.floatingSocialsEnabled ?? true;
+  const emailLabel = content.emailLabel ?? DEFAULT_EMAIL_LABEL;
+  const phoneLabel = content.phoneLabel ?? DEFAULT_PHONE_LABEL;
+  const phoneRevealLabel = content.phoneRevealLabel ?? DEFAULT_PHONE_REVEAL_LABEL;
+  const locationLabel = content.locationLabel ?? DEFAULT_LOCATION_LABEL;
+  const representationLabel = content.representationLabel ?? DEFAULT_REPRESENTATION_LABEL;
 
   const updateContactField = <K extends keyof ContactContent>(field: K, value: ContactContent[K]) => {
     updateContent((draft) => {
@@ -267,7 +278,7 @@ export function Contact({
               {content.email && (
                 <motion.div variants={contactDetailsItem} className="py-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 group/item">
                   <span className="text-[0.62rem] font-bold uppercase tracking-[0.22em] text-ink/45">
-                    Napisz bezpośrednio
+                    {emailLabel}
                   </span>
                   <a
                     href={`mailto:${content.email}`}
@@ -282,7 +293,7 @@ export function Contact({
               {content.phone && (
                 <motion.div variants={contactDetailsItem} className="min-h-[5.75rem] py-6 flex flex-col sm:min-h-[5.25rem] sm:flex-row sm:items-center sm:justify-between gap-3 group/item">
                   <span className="text-[0.62rem] font-bold uppercase tracking-[0.22em] text-ink/45">
-                    Zadzwoń
+                    {phoneLabel}
                   </span>
                   <AnimatePresence mode="wait" initial={false}>
                     {showPhone || editMode ? (
@@ -304,7 +315,7 @@ export function Contact({
                         type="button"
                         onClick={() => setShowPhone(true)}
                         className="inline-flex min-h-9 items-center gap-3 font-serif text-lg text-ink transition-colors hover:text-ink/60 sm:text-xl cursor-pointer text-left focus:outline-none"
-                        aria-label="Pokaż numer telefonu"
+                        aria-label={phoneRevealLabel}
                         aria-expanded={showPhone}
                         variants={phoneSwap}
                         initial="hidden"
@@ -329,7 +340,7 @@ export function Contact({
               {content.location && (
                 <motion.div variants={contactDetailsItem} className="py-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                   <span className="text-[0.62rem] font-bold uppercase tracking-[0.22em] text-ink/45">
-                    Baza / Lokalizacja
+                    {locationLabel}
                   </span>
                   <p className="inline-flex items-center gap-2.5 font-serif text-lg text-ink sm:text-xl">
                     {content.location}
@@ -341,7 +352,7 @@ export function Contact({
               {content.representation && (
                 <motion.div variants={contactDetailsItem} className="py-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                   <span className="text-[0.62rem] font-bold uppercase tracking-[0.22em] text-ink/45">
-                    Reprezentacja / Agent
+                    {representationLabel}
                   </span>
                   <h4 className="font-serif text-lg font-medium text-ink sm:text-xl">
                     {content.representation}
@@ -410,6 +421,59 @@ export function Contact({
               rows={3}
               className="rounded-xl text-sm"
             />
+          </div>
+
+          <div className="grid gap-3 rounded-2xl border border-ink/10 bg-white p-4">
+            <Label className="text-xs font-bold uppercase tracking-[0.1em] text-ink/40">
+              Etykiety danych kontaktowych
+            </Label>
+            <div className="grid grid-cols-2 gap-2">
+              <div className="grid gap-1">
+                <Label htmlFor="contact-email-label">Etykieta emaila</Label>
+                <Input
+                  id="contact-email-label"
+                  value={emailLabel}
+                  onChange={(e) => updateContactField("emailLabel", e.target.value)}
+                  className="rounded-full text-xs"
+                />
+              </div>
+              <div className="grid gap-1">
+                <Label htmlFor="contact-phone-label">Etykieta telefonu</Label>
+                <Input
+                  id="contact-phone-label"
+                  value={phoneLabel}
+                  onChange={(e) => updateContactField("phoneLabel", e.target.value)}
+                  className="rounded-full text-xs"
+                />
+              </div>
+              <div className="grid gap-1">
+                <Label htmlFor="contact-phone-reveal-label">Tekst odkrycia telefonu</Label>
+                <Input
+                  id="contact-phone-reveal-label"
+                  value={phoneRevealLabel}
+                  onChange={(e) => updateContactField("phoneRevealLabel", e.target.value)}
+                  className="rounded-full text-xs"
+                />
+              </div>
+              <div className="grid gap-1">
+                <Label htmlFor="contact-location-label">Etykieta lokalizacji</Label>
+                <Input
+                  id="contact-location-label"
+                  value={locationLabel}
+                  onChange={(e) => updateContactField("locationLabel", e.target.value)}
+                  className="rounded-full text-xs"
+                />
+              </div>
+              <div className="grid gap-1">
+                <Label htmlFor="contact-representation-label">Etykieta reprezentacji</Label>
+                <Input
+                  id="contact-representation-label"
+                  value={representationLabel}
+                  onChange={(e) => updateContactField("representationLabel", e.target.value)}
+                  className="rounded-full text-xs"
+                />
+              </div>
+            </div>
           </div>
 
           <div className="grid grid-cols-2 gap-2">
