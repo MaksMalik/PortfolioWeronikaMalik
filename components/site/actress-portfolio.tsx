@@ -19,8 +19,14 @@ import { IntroLoader } from "@/components/site/intro-loader";
 
 export function ActressPortfolio() {
   const { content, isAdmin, editMode } = useAdminEdit();
-  const [isLoaderComplete, setIsLoaderComplete] = useState(false);
-  const [showLoader, setShowLoader] = useState(true);
+  const [isLoaderComplete, setIsLoaderComplete] = useState(() => {
+    if (typeof window === "undefined") return false;
+    return document.documentElement.classList.contains("skip-intro");
+  });
+  const [showLoader, setShowLoader] = useState(() => {
+    if (typeof window === "undefined") return true;
+    return !document.documentElement.classList.contains("skip-intro");
+  });
   const [shouldAnimateExit, setShouldAnimateExit] = useState(true);
 
   const introConfig = content.introLoader ?? {
@@ -142,7 +148,7 @@ export function ActressPortfolio() {
   const renderedSections = sortedSections.filter((sec) => editMode || sec.enabled);
 
   let nonHeroIndex = 0;
-  const showMainContent = true; // Always mount to prevent flash & layout shifts
+  const showMainContent = isLoaderComplete || editMode;
 
   return (
     <motion.main
@@ -151,6 +157,7 @@ export function ActressPortfolio() {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.65, ease: "easeOut" }}
+      suppressHydrationWarning
     >
       {showMainContent && (
         <>
