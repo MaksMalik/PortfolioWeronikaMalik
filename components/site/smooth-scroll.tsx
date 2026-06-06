@@ -16,7 +16,9 @@ export function SmoothScroll() {
     });
 
     function raf(time: number) {
-      lenis.raf(time);
+      if (!document.body.dataset.scrollLocked) {
+        lenis.raf(time);
+      }
       requestAnimationFrame(raf);
     }
 

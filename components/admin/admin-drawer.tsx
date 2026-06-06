@@ -36,6 +36,7 @@ export function AdminDrawer({ isOpen, onClose, title, children }: AdminDrawerPro
               exit={{ x: "100%" }}
               transition={{ type: "spring", damping: 30, stiffness: 300 }}
               className="fixed inset-y-0 right-0 z-[130] flex w-full max-w-lg flex-col border-l border-ink/10 bg-porcelain pt-14 shadow-[0_0_50px_rgba(16,16,16,0.15)] sm:pt-0"
+              onClick={(e) => e.stopPropagation()}
             >
               {/* Header */}
               <div className="flex items-center justify-between border-b border-ink/10 bg-white px-5 py-4 sm:px-6 sm:py-5">
@@ -56,7 +57,7 @@ export function AdminDrawer({ isOpen, onClose, title, children }: AdminDrawerPro
               </div>
 
               {/* Scrollable Content */}
-              <div className="no-scrollbar flex-1 overscroll-contain overflow-y-auto p-5 space-y-6 sm:p-6">
+              <div className="no-scrollbar flex-1 overscroll-contain overflow-y-auto p-5 space-y-6 sm:p-6" onClick={(e) => e.stopPropagation()}>
                 {children}
               </div>
             </motion.div>
