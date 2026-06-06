@@ -218,6 +218,43 @@ const aspectOptions: Array<{ value: NonNullable<SiteImage["aspect"]>; label: str
   { value: "wide", label: "Panorama" }
 ];
 
+const linkLabelOptions = [
+  "Filmweb",
+  "Strona teatru",
+  "IMDb",
+  "YouTube",
+  "Vimeo",
+  "Instagram",
+  "Bilety",
+  "Oficjalna strona",
+  "Zobacz więcej"
+];
+
+function LinkLabelSelector({
+  value,
+  onChange
+}: {
+  value?: string;
+  onChange: (value: string) => void;
+}) {
+  return (
+    <div className="grid gap-2">
+      <Label>Typ linku</Label>
+      <select
+        value={value || "Zobacz więcej"}
+        onChange={(event) => onChange(event.target.value)}
+        className="h-11 rounded-md border border-ink/15 bg-white/70 px-3 py-2 text-sm text-ink outline-none transition-colors focus:border-ink focus:ring-1 focus:ring-ink"
+      >
+        {linkLabelOptions.map((option) => (
+          <option key={option} value={option}>
+            {option}
+          </option>
+        ))}
+      </select>
+    </div>
+  );
+}
+
 function AspectSelector({
   value,
   onChange
@@ -589,7 +626,7 @@ function PortfolioEditor({
                 onChange={(details) => updateProject(index, { ...project, details })}
               />
               <div className="grid gap-5 md:grid-cols-2">
-                <Field label="Tekst linku" value={project.linkLabel ?? ""} onChange={(linkLabel) => updateProject(index, { ...project, linkLabel })} />
+                <LinkLabelSelector value={project.linkLabel} onChange={(linkLabel) => updateProject(index, { ...project, linkLabel })} />
                 <Field label="Adres linku" value={project.linkUrl ?? ""} onChange={(linkUrl) => updateProject(index, { ...project, linkUrl })} />
               </div>
               <ImageField
@@ -1418,10 +1455,7 @@ export function AdminPanel() {
           animate={{ opacity: 1, y: 0, scale: 1 }}
           transition={{ duration: 0.65, ease: [0.22, 1, 0.36, 1] }}
         >
-          <p className="text-xs font-bold uppercase tracking-[0.22em] text-ink/40">
-            Studio treści
-          </p>
-          <h1 className="mt-3 font-serif text-5xl leading-none">Ładowanie panelu</h1>
+          <h1 className="font-serif text-5xl leading-none">Ładowanie panelu</h1>
           <div className="mt-7 h-px overflow-hidden bg-ink/10">
             <motion.span
               className="block h-full w-1/2 bg-ink"

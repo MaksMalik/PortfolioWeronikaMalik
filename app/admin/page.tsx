@@ -83,10 +83,7 @@ export default function AdminPage() {
           <ArrowLeft className="h-4 w-4" />
           Wróć do strony
         </Link>
-        <p className="text-xs font-bold uppercase tracking-[0.22em] text-ink/45">
-          Studio Treści
-        </p>
-        <h1 className="mt-2 font-serif text-5xl leading-none text-ink">Logowanie</h1>
+        <h1 className="font-serif text-5xl leading-none text-ink">Logowanie</h1>
         <div className="mt-8 grid gap-5">
           <div className="grid gap-2">
             <Label htmlFor="admin-email">Email</Label>

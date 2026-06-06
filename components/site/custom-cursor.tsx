@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion, useMotionValue, useSpring } from "framer-motion";
 import { cn } from "@/lib/utils";
 
@@ -14,6 +14,16 @@ export function CustomCursor() {
   const springY = useSpring(y, { stiffness: 980, damping: 42, mass: 0.18 });
   const [mode, setMode] = useState<"default" | "action" | "view" | "play">("default");
   const [visible, setVisible] = useState(false);
+  const modeRef = useRef(mode);
+  const visibleRef = useRef(visible);
+
+  useEffect(() => {
+    modeRef.current = mode;
+  }, [mode]);
+
+  useEffect(() => {
+    visibleRef.current = visible;
+  }, [visible]);
 
   useEffect(() => {
     if (editMode) {
@@ -51,11 +61,21 @@ export function CustomCursor() {
       const size = cursorSize(nextMode);
       x.set(event.clientX - size / 2);
       y.set(event.clientY - size / 2);
-      setMode(nextMode);
-      setVisible(true);
+      if (modeRef.current !== nextMode) {
+        modeRef.current = nextMode;
+        setMode(nextMode);
+      }
+
+      if (!visibleRef.current) {
+        visibleRef.current = true;
+        setVisible(true);
+      }
     };
 
-    const handleLeave = () => setVisible(false);
+    const handleLeave = () => {
+      visibleRef.current = false;
+      setVisible(false);
+    };
 
     window.addEventListener("mousemove", handleMove);
     window.addEventListener("mouseleave", handleLeave);

@@ -60,12 +60,9 @@ export function AdminBar() {
             hasUnsavedEdits ? "Masz niezapisane zmiany" : "Zmiany zapisane"
           }
         />
-        <span className="hidden xl:inline-block text-[0.62rem] font-bold uppercase tracking-[0.24em] text-porcelain/90">
-          Studio Treści
-        </span>
         <span
           className={cn(
-            "hidden md:inline-block text-[0.58rem] font-semibold border-l border-white/10 pl-2.5 ml-0.5 transition-colors duration-300 uppercase tracking-wider",
+            "hidden md:inline-block text-[0.58rem] font-semibold transition-colors duration-300 uppercase tracking-wider",
             autosaveStatus === "saving" && "text-amber-400 animate-pulse",
             autosaveStatus === "saved" && "text-emerald-400",
             autosaveStatus === "error" && "text-red-400 font-bold",
@@ -272,7 +269,7 @@ export function AdminBar() {
 
         {/* History Dropdown Panel */}
         {showHistory && (
-          <div className="absolute right-0 bottom-12 z-50 max-h-96 w-72 overflow-y-auto rounded-xl border border-white/10 bg-ink p-3 text-white shadow-xl">
+          <div className="fixed bottom-16 right-4 z-[90] max-h-[min(24rem,calc(100svh-6rem))] w-72 overflow-y-auto rounded-xl border border-white/10 bg-ink p-3 text-white shadow-xl sm:bottom-20">
             <div className="flex items-center justify-between border-b border-white/10 pb-2 mb-2">
               <span className="text-[0.62rem] font-bold uppercase tracking-[0.12em] text-white/50">
                 Wersje (Max 10)

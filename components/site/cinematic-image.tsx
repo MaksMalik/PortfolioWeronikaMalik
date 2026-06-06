@@ -9,6 +9,7 @@ type CinematicImageProps = {
   alt: string;
   className?: string;
   imageClassName?: string;
+  loading?: "eager" | "lazy";
   children?: React.ReactNode;
   onError?: () => void;
 };
@@ -18,16 +19,18 @@ export function CinematicImage({
   alt,
   className,
   imageClassName,
+  loading = "lazy",
   children,
   onError
 }: CinematicImageProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const colorRef = useRef<HTMLImageElement>(null);
   const revealAnim = useRef<Animation | null>(null);
+  const tiltFrame = useRef<number | null>(null);
 
   const isInView = useInView(containerRef, {
     margin: "-10% 0px -10% 0px",
-    once: false
+    once: true
   });
 
   /* ── Circle-reveal animation (desktop / fine-pointer only) ──── */
@@ -37,7 +40,10 @@ export function CinematicImage({
     if (!container || !color) return;
 
     // Skip JS animations on touch devices — mobile uses CSS opacity via in-view-mobile
-    if (window.matchMedia("(pointer: coarse)").matches) return;
+    if (
+      window.matchMedia("(pointer: coarse)").matches ||
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    ) return;
 
     // If this image is inside a .group card, listen on that so hovering
     // the card text area also triggers the reveal.
@@ -94,6 +100,9 @@ export function CinematicImage({
       hoverTarget.removeEventListener("mouseenter", onEnter);
       hoverTarget.removeEventListener("mouseleave", onLeave);
       revealAnim.current?.cancel();
+      if (tiltFrame.current !== null) {
+        window.cancelAnimationFrame(tiltFrame.current);
+      }
     };
   }, []);
 
@@ -102,13 +111,21 @@ export function CinematicImage({
     (e: React.MouseEvent<HTMLDivElement>) => {
       const el = containerRef.current;
       if (!el) return;
-      const rect = el.getBoundingClientRect();
-      const nx = (e.clientX - rect.left) / rect.width - 0.5;
-      const ny = (e.clientY - rect.top) / rect.height - 0.5;
-      el.style.setProperty("--tilt-x", `${ny * -5}deg`);
-      el.style.setProperty("--tilt-y", `${nx * 5}deg`);
-      el.style.setProperty("--spot-x", `${e.clientX - rect.left}px`);
-      el.style.setProperty("--spot-y", `${e.clientY - rect.top}px`);
+      const clientX = e.clientX;
+      const clientY = e.clientY;
+
+      if (tiltFrame.current !== null) return;
+
+      tiltFrame.current = window.requestAnimationFrame(() => {
+        tiltFrame.current = null;
+        const rect = el.getBoundingClientRect();
+        const nx = (clientX - rect.left) / rect.width - 0.5;
+        const ny = (clientY - rect.top) / rect.height - 0.5;
+        el.style.setProperty("--tilt-x", `${ny * -5}deg`);
+        el.style.setProperty("--tilt-y", `${nx * 5}deg`);
+        el.style.setProperty("--spot-x", `${clientX - rect.left}px`);
+        el.style.setProperty("--spot-y", `${clientY - rect.top}px`);
+      });
     },
     []
   );
@@ -116,6 +133,10 @@ export function CinematicImage({
   const handleMouseLeave = useCallback(() => {
     const el = containerRef.current;
     if (!el) return;
+    if (tiltFrame.current !== null) {
+      window.cancelAnimationFrame(tiltFrame.current);
+      tiltFrame.current = null;
+    }
     el.style.setProperty("--tilt-x", "0deg");
     el.style.setProperty("--tilt-y", "0deg");
   }, []);
@@ -135,6 +156,8 @@ export function CinematicImage({
         src={src}
         alt={alt}
         className={cn("cinematicImageBase", imageClassName)}
+        loading={loading}
+        decoding="async"
         draggable={false}
         onError={onError}
       />
@@ -144,6 +167,8 @@ export function CinematicImage({
         alt=""
         aria-hidden="true"
         className={cn("cinematicImageColor", imageClassName)}
+        loading={loading}
+        decoding="async"
         draggable={false}
         onError={onError}
       />

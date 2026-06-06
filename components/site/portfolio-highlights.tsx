@@ -23,6 +23,18 @@ import { Textarea } from "@/components/ui/textarea";
 const PLACEHOLDER_IMAGE =
   "https://images.unsplash.com/photo-1512316609839-ce289d3eba0a?auto=format&fit=crop&w=900&q=80";
 
+const linkLabelOptions = [
+  "Filmweb",
+  "Strona teatru",
+  "IMDb",
+  "YouTube",
+  "Vimeo",
+  "Instagram",
+  "Bilety",
+  "Oficjalna strona",
+  "Zobacz więcej"
+];
+
 function emptyImage(prefix: string): SiteImage {
   return {
     id: createId(prefix),
@@ -368,9 +380,11 @@ export function PortfolioHighlights({ projects: initialProjects, bgClass }: { pr
                       <h3 className="cinematic-heading-line mt-4 font-serif text-3xl leading-none text-ink">
                         {project.title}
                       </h3>
-                      <div className="mt-5 flex items-center justify-between text-sm text-ink/55">
-                        <span>{project.description}</span>
-                        <span className="ml-4 shrink-0 font-semibold">{project.year}</span>
+                      <div className="mt-5 grid min-h-[4.5rem] grid-cols-[1fr_auto] items-start gap-4 text-sm text-ink/55">
+                        <span className="line-clamp-3 leading-6">{project.description}</span>
+                        <span className="inline-flex h-8 w-14 shrink-0 items-center justify-center rounded-full border border-ink/10 text-xs font-semibold tabular-nums text-ink/55">
+                          {project.year}
+                        </span>
                       </div>
                       {!editMode && (
                         <span className="mt-6 inline-flex border-b border-ink pb-1 text-xs font-bold uppercase tracking-[0.18em] text-ink">
@@ -602,12 +616,19 @@ export function PortfolioHighlights({ projects: initialProjects, bgClass }: { pr
 
             <div className="grid grid-cols-2 gap-2">
               <div className="grid gap-1">
-                <Label>Etykieta linku (np. Filmweb)</Label>
-                <Input
-                  value={editingProject.linkLabel || ""}
+                <Label htmlFor="portfolio-link-label">Typ linku</Label>
+                <select
+                  id="portfolio-link-label"
+                  value={editingProject.linkLabel || "Zobacz więcej"}
                   onChange={(e) => updateProjectField("linkLabel", e.target.value)}
-                  className="rounded-full text-xs"
-                />
+                  className="h-11 rounded-full border border-ink/15 bg-white/70 px-3 text-xs text-ink outline-none transition-colors focus:border-ink"
+                >
+                  {linkLabelOptions.map((option) => (
+                    <option key={option} value={option}>
+                      {option}
+                    </option>
+                  ))}
+                </select>
               </div>
               <div className="grid gap-1">
                 <Label>Adres URL linku</Label>

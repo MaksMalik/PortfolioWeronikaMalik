@@ -2,7 +2,6 @@
 
 import { useEffect, useMemo, useState, type MouseEvent } from "react";
 import { motion, useScroll, useMotionValueEvent, AnimatePresence } from "framer-motion";
-import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useAdminEdit } from "@/components/admin/admin-edit-context";
@@ -146,16 +145,7 @@ export function Header({ monogram }: { monogram: string }) {
           ))}
         </nav>
 
-        <div className="hidden items-center gap-3 lg:flex">
-          <a
-            href="/admin"
-            className="flex h-9 w-9 items-center justify-center rounded-full border border-ink/15 text-ink transition-colors hover:border-ink hover:bg-ink hover:text-white"
-            aria-label="Otwórz panel admina"
-            title="Panel"
-          >
-            <Plus className="h-4 w-4" />
-          </a>
-        </div>
+        <div className="hidden h-9 w-9 lg:block" aria-hidden="true" />
 
         <Button
           variant="ghost"
@@ -211,17 +201,6 @@ export function Header({ monogram }: { monogram: string }) {
                   {item.label}
                 </motion.a>
               ))}
-              <motion.a
-                href="/admin"
-                initial={{ opacity: 0, y: 15 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 15 }}
-                transition={{ delay: activeNavItems.length * 0.05, duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
-                className="font-serif text-4xl font-medium tracking-wide text-ink/30"
-                onClick={() => setIsOpen(false)}
-              >
-                Panel
-              </motion.a>
             </div>
 
             <motion.div

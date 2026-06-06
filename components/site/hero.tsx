@@ -127,6 +127,7 @@ export function Hero({ content: initialContent }: { content: HeroContent }) {
               <CinematicImage
                 src={content.image.src}
                 alt={content.image.alt}
+                loading="eager"
                 className="h-full rounded-t-full border border-ink/10 shadow-editorial"
               />
             </div>

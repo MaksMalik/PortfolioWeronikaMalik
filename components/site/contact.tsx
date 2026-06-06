@@ -267,7 +267,7 @@ export function Contact({ content: initialContent, bgClass }: { content: Contact
               )}
 
               {content.phone && (
-                <motion.div variants={contactDetailsItem} className="py-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 group/item">
+                <motion.div variants={contactDetailsItem} className="min-h-[5.75rem] py-6 flex flex-col sm:min-h-[5.25rem] sm:flex-row sm:items-center sm:justify-between gap-3 group/item">
                   <span className="text-[0.62rem] font-bold uppercase tracking-[0.22em] text-ink/45">
                     Zadzwoń
                   </span>
@@ -276,7 +276,7 @@ export function Contact({ content: initialContent, bgClass }: { content: Contact
                       <motion.a
                         key="phone-visible"
                         href={`tel:${content.phone.replace(/\s+/g, "")}`}
-                        className="inline-flex items-center gap-2.5 font-serif text-lg text-ink transition-colors hover:text-ink/60 sm:text-xl"
+                        className="inline-flex min-h-9 items-center gap-2.5 font-serif text-lg text-ink transition-colors hover:text-ink/60 sm:text-xl"
                         variants={phoneSwap}
                         initial="hidden"
                         animate="visible"
@@ -290,7 +290,7 @@ export function Contact({ content: initialContent, bgClass }: { content: Contact
                         key="phone-hidden"
                         type="button"
                         onClick={() => setShowPhone(true)}
-                        className="inline-flex items-center gap-3 font-serif text-lg text-ink transition-colors hover:text-ink/60 sm:text-xl cursor-pointer text-left focus:outline-none"
+                        className="inline-flex min-h-9 items-center gap-3 font-serif text-lg text-ink transition-colors hover:text-ink/60 sm:text-xl cursor-pointer text-left focus:outline-none"
                         aria-label="Pokaż numer telefonu"
                         aria-expanded={showPhone}
                         variants={phoneSwap}
