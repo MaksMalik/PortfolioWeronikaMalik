@@ -342,5 +342,10 @@ export const siteContent: SiteContent = {
         url: "https://facebook.com"
       }
     ]
+  },
+  introLoader: {
+    enabled: true,
+    title: "Weronika Malik",
+    subtitle: "Portfolio Aktorskie"
   }
 };

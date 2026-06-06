@@ -123,14 +123,14 @@ export function Hero({
             style={{ y: imageY }}
             className="mx-auto h-[52svh] min-h-[340px] w-full max-w-[430px] lg:h-[68svh] lg:max-h-[690px]"
             initial={{ opacity: 0, scale: 0.96 }}
-            animate={{ opacity: 1, scale: 1 }}
+            animate={isLoaded ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.96 }}
             transition={{ duration: 1.25, ease: [0.22, 1, 0.36, 1] }}
           >
             <div className="relative h-full group">
               <motion.span
                 className="pointer-events-none absolute -inset-3 rounded-t-full border border-ink/10"
                 initial={{ opacity: 0, scale: 0.985 }}
-                animate={{ opacity: 1, scale: 1 }}
+                animate={isLoaded ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.985 }}
                 transition={{ delay: 0.22, duration: 1.1, ease: [0.22, 1, 0.36, 1] }}
                 aria-hidden="true"
               />
@@ -152,7 +152,7 @@ export function Hero({
           <motion.div
             className="mb-9 flex items-center gap-4 text-[0.66rem] font-bold uppercase tracking-[0.24em] text-ink/45"
             initial={{ opacity: 0, y: 18 }}
-            animate={{ opacity: 1, y: 0 }}
+            animate={isLoaded ? { opacity: 1, y: 0 } : { opacity: 0, y: 18 }}
             transition={{ delay: 0.4, duration: 0.8 }}
           >
             <span className="h-px w-16 bg-silver" />
@@ -170,7 +170,7 @@ export function Hero({
                       key={`${word}-${letter}-${letterIndex}`}
                       className="inline-block"
                       initial={{ opacity: 0, y: 54, rotateX: -18 }}
-                      animate={{ opacity: 1, y: 0, rotateX: 0 }}
+                      animate={isLoaded ? { opacity: 1, y: 0, rotateX: 0 } : { opacity: 0, y: 54, rotateX: -18 }}
                       transition={{
                         delay: 0.1 + index * 0.035,
                         duration: 0.72,
@@ -188,7 +188,7 @@ export function Hero({
           <motion.div
             className="mt-8 max-w-xl space-y-7"
             initial="hidden"
-            animate="visible"
+            animate={isLoaded ? "visible" : "hidden"}
             variants={{
               hidden: {},
               visible: {

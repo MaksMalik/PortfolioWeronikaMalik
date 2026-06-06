@@ -27,6 +27,36 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="pl" className={`${display.variable} ${sans.variable}`}>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                try {
+                  var cached = localStorage.getItem("strona_aktorska_live_cache");
+                  if (cached) {
+                    var content = JSON.parse(cached);
+                    if (content && content.introLoader && content.introLoader.enabled === false) {
+                      document.documentElement.classList.add("skip-intro");
+                      return;
+                    }
+                  }
+                  var lastSeen = localStorage.getItem("intro-last-seen");
+                  if (lastSeen) {
+                    var now = Date.now();
+                    var fiveMinutes = 5 * 60 * 1000;
+                    if (now - parseInt(lastSeen, 10) < fiveMinutes) {
+                      document.documentElement.classList.add("skip-intro");
+                    }
+                  }
+                } catch (e) {
+                  console.error(e);
+                }
+              })();
+            `
+          }}
+        />
+      </head>
       <body suppressHydrationWarning>
         <AdminEditProvider>
           <div className="film-grain" aria-hidden="true" />

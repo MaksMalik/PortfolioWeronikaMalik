@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 import { useAdminEdit } from "@/components/admin/admin-edit-context";
 import { useBodyScrollLock } from "@/components/site/use-body-scroll-lock";
 
-export function Header({ monogram }: { monogram: string }) {
+export function Header({ monogram, isLoaded = true }: { monogram: string; isLoaded?: boolean }) {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [activeHref, setActiveHref] = useState("#home");
@@ -108,7 +108,7 @@ export function Header({ monogram }: { monogram: string }) {
           : "border-transparent bg-transparent"
       )}
       initial={{ y: -24, opacity: 0 }}
-      animate={{ y: 0, opacity: 1 }}
+      animate={isLoaded ? { y: 0, opacity: 1 } : { y: -24, opacity: 0 }}
       transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
     >
       <div className="section-shell relative z-50 flex h-20 items-center justify-between">

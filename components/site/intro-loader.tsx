@@ -1,61 +1,75 @@
 "use client";
-
 import { useEffect } from "react";
 import { motion } from "framer-motion";
+import { useBodyScrollLock } from "@/components/site/use-body-scroll-lock";
 
 type IntroLoaderProps = {
   monogram: string;
+  title?: string;
+  subtitle?: string;
   onComplete: () => void;
   animateExit?: boolean;
 };
 
-export function IntroLoader({ monogram, onComplete, animateExit = true }: IntroLoaderProps) {
+export function IntroLoader({
+  monogram,
+  title = "Weronika Malik",
+  subtitle = "Portfolio Aktorskie",
+  onComplete,
+  animateExit = true
+}: IntroLoaderProps) {
+  // Lock body scroll while loader is active
+  useBodyScrollLock(true);
+
   useEffect(() => {
-    // End loading animation after 2.4 seconds total
+    // End static loading phase after 3.2 seconds total, allowing SVG and text animations to settle
     const timer = setTimeout(() => {
       onComplete();
-    }, 2400);
+    }, 3200);
 
     return () => clearTimeout(timer);
   }, [onComplete]);
 
   return (
     <motion.div
-      className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-ink text-white"
+      className="intro-loader-container fixed inset-0 z-[100] flex flex-col items-center justify-center bg-ink text-white"
       initial={{ y: 0 }}
       exit={animateExit ? { y: "-100%" } : { opacity: 0 }}
       transition={animateExit ? { duration: 1.1, ease: [0.85, 0, 0.15, 1] } : { duration: 0 }}
     >
-      <div className="relative flex flex-col items-center justify-center">
-        {/* Animated SVG Circle */}
-        <motion.svg
-          width="130"
-          height="130"
-          viewBox="0 0 100 100"
-          fill="none"
-          className="mb-6"
-        >
-          <motion.circle
-            cx="50"
-            cy="50"
-            r="44"
-            stroke="rgba(255, 255, 255, 0.85)"
-            strokeWidth="0.8"
-            initial={{ pathLength: 0, rotate: -90 }}
-            animate={{ pathLength: 1 }}
-            transition={{ duration: 1.6, ease: [0.22, 1, 0.36, 1] }}
-          />
-        </motion.svg>
+      <div className="flex flex-col items-center">
+        {/* Dedicated relative wrapper for the circle and monogram to guarantee perfect centering */}
+        <div className="relative flex h-[130px] w-[130px] items-center justify-center mb-6">
+          {/* Animated SVG Circle */}
+          <motion.svg
+            width="130"
+            height="130"
+            viewBox="0 0 100 100"
+            fill="none"
+            className="absolute inset-0"
+          >
+            <motion.circle
+              cx="50"
+              cy="50"
+              r="44"
+              stroke="rgba(255, 255, 255, 0.85)"
+              strokeWidth="0.8"
+              initial={{ pathLength: 0, rotate: -90 }}
+              animate={{ pathLength: 1 }}
+              transition={{ duration: 1.6, ease: [0.22, 1, 0.36, 1] }}
+            />
+          </motion.svg>
 
-        {/* Monogram Text in Center */}
-        <motion.div
-          className="absolute font-serif text-3xl font-semibold uppercase tracking-[0.12em] text-white"
-          initial={{ opacity: 0, scale: 0.92 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.4, duration: 0.8, ease: "easeOut" }}
-        >
-          {monogram}
-        </motion.div>
+          {/* Monogram Text in Center (pl-[0.12em] offsets the right tracking space for perfect optical centering) */}
+          <motion.div
+            className="font-serif text-3xl font-semibold uppercase tracking-[0.12em] pl-[0.12em] text-white flex items-center justify-center"
+            initial={{ opacity: 0, scale: 0.92 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.4, duration: 0.8, ease: "easeOut" }}
+          >
+            {monogram}
+          </motion.div>
+        </div>
 
         {/* Name and Tagline */}
         <motion.div
@@ -65,16 +79,16 @@ export function IntroLoader({ monogram, onComplete, animateExit = true }: IntroL
           transition={{ delay: 0.9, duration: 0.8 }}
         >
           <motion.h2
-            className="font-sans text-[0.64rem] font-bold uppercase tracking-[0.34em] text-white/70"
+            className="font-sans text-[0.64rem] font-bold uppercase tracking-[0.34em] text-white/70 text-center"
             initial={{ letterSpacing: "0.2em" }}
             animate={{ letterSpacing: "0.34em" }}
             transition={{ delay: 0.9, duration: 1.1, ease: "easeOut" }}
           >
-            Weronika Malik
+            {title}
           </motion.h2>
           <span className="h-[1px] w-8 bg-white/20 my-1" />
-          <p className="text-[0.52rem] font-medium uppercase tracking-[0.22em] text-white/40">
-            Portfolio Aktorskie
+          <p className="text-[0.52rem] font-medium uppercase tracking-[0.22em] text-white/40 text-center">
+            {subtitle}
           </p>
         </motion.div>
       </div>

@@ -23,31 +23,52 @@ export function ActressPortfolio() {
   const [showLoader, setShowLoader] = useState(true);
   const [shouldAnimateExit, setShouldAnimateExit] = useState(true);
 
+  const introConfig = content.introLoader ?? {
+    enabled: true,
+    title: "Weronika Malik",
+    subtitle: "Portfolio Aktorskie"
+  };
+
+  const isLoaded = isLoaderComplete || editMode || !introConfig.enabled;
+
   useEffect(() => {
     void startFirebaseAnalytics();
   }, []);
 
   useEffect(() => {
-    const hasSeenIntro = sessionStorage.getItem("has-seen-intro");
-    if (hasSeenIntro === "true") {
+    if (!introConfig.enabled) {
       setShouldAnimateExit(false);
       setShowLoader(false);
       setIsLoaderComplete(true);
+      return;
     }
-  }, []);
+
+    const lastSeenStr = localStorage.getItem("intro-last-seen");
+    if (lastSeenStr) {
+      const lastSeen = parseInt(lastSeenStr, 10);
+      const now = Date.now();
+      const fiveMinutes = 5 * 60 * 1000;
+      if (now - lastSeen < fiveMinutes) {
+        setShouldAnimateExit(false);
+        setShowLoader(false);
+        setIsLoaderComplete(true);
+        return;
+      }
+    }
+  }, [introConfig.enabled]);
 
   const handleLoaderComplete = () => {
-    sessionStorage.setItem("has-seen-intro", "true");
+    localStorage.setItem("intro-last-seen", Date.now().toString());
     setIsLoaderComplete(true);
   };
 
-  const shouldShowLoader = showLoader && !isLoaderComplete && !editMode;
+  const shouldShowLoader = showLoader && !isLoaderComplete && !editMode && introConfig.enabled;
 
   const sectionsConfig = [
     {
       id: "hero",
       enabled: content.sections.hero.enabled,
-      render: () => <Hero key="hero" content={content.hero} isLoaded={isLoaderComplete} />
+      render: () => <Hero key="hero" content={content.hero} isLoaded={isLoaded} />
     },
     {
       id: "about",
@@ -121,7 +142,7 @@ export function ActressPortfolio() {
   const renderedSections = sortedSections.filter((sec) => editMode || sec.enabled);
 
   let nonHeroIndex = 0;
-  const showMainContent = isLoaderComplete || editMode;
+  const showMainContent = true; // Always mount to prevent flash & layout shifts
 
   return (
     <motion.main
@@ -134,7 +155,7 @@ export function ActressPortfolio() {
       {showMainContent && (
         <>
           <ScrollProgress />
-          <Header monogram={content.hero.monogram} />
+          <Header monogram={content.hero.monogram} isLoaded={isLoaded} />
 
           {renderedSections.map((sec) => {
             let bgClass = "bg-white";
@@ -158,6 +179,8 @@ export function ActressPortfolio() {
         {shouldShowLoader && (
           <IntroLoader
             monogram={content.hero.monogram}
+            title={introConfig.title}
+            subtitle={introConfig.subtitle}
             onComplete={handleLoaderComplete}
             animateExit={shouldAnimateExit}
           />

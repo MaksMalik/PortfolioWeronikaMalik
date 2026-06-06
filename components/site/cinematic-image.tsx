@@ -1,7 +1,7 @@
 "use client";
 
-import { useRef, useEffect, useCallback } from "react";
-import { useInView } from "framer-motion";
+import { useRef, useEffect, useCallback, useState } from "react";
+import { motion, useInView, useScroll, useTransform, useSpring } from "framer-motion";
 import { cn } from "@/lib/utils";
 
 type CinematicImageProps = {
@@ -32,6 +32,32 @@ export function CinematicImage({
     margin: "-10% 0px -10% 0px",
     once: true
   });
+
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(
+        window.matchMedia("(pointer: coarse)").matches || window.innerWidth < 1024
+      );
+    };
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
+
+  const { scrollYProgress } = useScroll({
+    target: containerRef,
+    offset: ["start end", "end start"]
+  });
+
+  const opacityTransform = useTransform(
+    scrollYProgress,
+    [0.18, 0.42, 0.58, 0.82],
+    [0, 1, 1, 0]
+  );
+  
+  const springOpacity = useSpring(opacityTransform, { stiffness: 70, damping: 24, mass: 0.8 });
 
   /* ── Circle-reveal animation (desktop / fine-pointer only) ──── */
   useEffect(() => {
@@ -161,7 +187,7 @@ export function CinematicImage({
         draggable={false}
         onError={onError}
       />
-      <img
+      <motion.img
         ref={colorRef}
         src={src}
         alt=""
@@ -171,6 +197,7 @@ export function CinematicImage({
         decoding="async"
         draggable={false}
         onError={onError}
+        style={{ opacity: isMobile ? springOpacity : undefined } as any}
       />
       <span className="cinematicImageVeil" aria-hidden="true" />
       {children}

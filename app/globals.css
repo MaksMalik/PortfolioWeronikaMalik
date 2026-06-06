@@ -477,17 +477,17 @@ a {
   opacity: 1;
 }
 
+/* Zero-flash start screen skip */
+html.skip-intro .intro-loader-container {
+  display: none !important;
+}
+
 /* Touch / mobile: simple opacity fade when image scrolls into view */
 @media (pointer: coarse), (max-width: 1024px) {
   .cinematicImage .cinematicImageColor {
     clip-path: none;
     opacity: 0;
-    transition:
-      opacity 1.2s cubic-bezier(0.16, 1, 0.3, 1),
-      transform 1.2s cubic-bezier(0.16, 1, 0.3, 1);
-  }
-  .cinematicImage.in-view-mobile .cinematicImageColor {
-    opacity: 1;
+    transition: transform 1.2s cubic-bezier(0.16, 1, 0.3, 1);
   }
   .cinematicImage.in-view-mobile .cinematicImageBase {
     filter: grayscale(100%) contrast(1.04) saturate(0.98);
