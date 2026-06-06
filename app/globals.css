@@ -593,6 +593,7 @@ a {
   }
   .cinematicImage.in-view-mobile .cinematicImageBase {
     filter: grayscale(100%) contrast(1.04) saturate(0.98);
+    transform: scale(1.025);
   }
   .cinematicImage.in-view-mobile .cinematicImageVeil {
     opacity: calc(var(--mobile-color-progress, 0) * 0.8);
