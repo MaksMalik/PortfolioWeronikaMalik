@@ -1,20 +1,23 @@
 "use client";
 
-import { useState, ChangeEvent } from "react";
-import type { AboutContent } from "@/lib/types";
+import { useState, ChangeEvent, useRef, useEffect, useMemo } from "react";
+import type { AboutContent, TimelineEvent } from "@/lib/types";
 import { AboutImageFrame } from "@/components/site/about-image-frame";
 import { CinematicImage } from "@/components/site/cinematic-image";
 import { MagneticButton } from "@/components/site/magnetic-button";
 import { RevealBlock, SectionHeading, SectionReveal } from "@/components/site/section-reveal";
 import { useAdminEdit } from "@/components/admin/admin-edit-context";
 import { uploadImageFile } from "@/lib/firebase/content";
-import { Upload, Loader2, Edit } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { Upload, Loader2, Edit, Plus, Trash2, ArrowUp, ArrowDown, Eye, EyeOff } from "lucide-react";
+import { createId, cn } from "@/lib/utils";
 import { AdminDrawer } from "@/components/admin/admin-drawer";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
 import { SectionReorderControls } from "@/components/admin/section-reorder-controls";
+import { useScroll, useTransform, useSpring, motion } from "framer-motion";
+import { AnimatePresence } from "framer-motion";
 
 export function About({
   content: initialContent,
@@ -30,6 +33,62 @@ export function About({
 
   const [isUploading, setIsUploading] = useState(false);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+
+  // Timeline event editing states
+  const [editingEvent, setEditingEvent] = useState<TimelineEvent | null>(null);
+  const [uploadingImageId, setUploadingImageId] = useState<string | null>(null);
+
+  const [isMobile, setIsMobile] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+    const checkMobile = () => {
+      setIsMobile(
+        window.matchMedia("(pointer: coarse)").matches || window.innerWidth < 1024
+      );
+    };
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
+
+  const timelineEvents = useMemo(() => content.timeline ?? [], [content.timeline]);
+  const visibleEvents = useMemo(() => timelineEvents.filter(e => editMode || e.enabled), [timelineEvents, editMode]);
+
+  // Framer Motion scroll logic for horizontal parallax on desktop
+  const containerRef = useRef<HTMLDivElement>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  const { scrollYProgress } = useScroll({
+    target: containerRef,
+  });
+
+  const [translateXVal, setTranslateXVal] = useState(0);
+
+  useEffect(() => {
+    if (isMobile) return;
+    const handleResize = () => {
+      if (scrollRef.current) {
+        const scrollWidth = scrollRef.current.scrollWidth;
+        const clientWidth = scrollRef.current.clientWidth;
+        setTranslateXVal(-(scrollWidth - clientWidth));
+      }
+    };
+    // Let a short delay pass to ensure DOM is fully rendered before measuring
+    const timer = setTimeout(handleResize, 100);
+    window.addEventListener("resize", handleResize);
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener("resize", handleResize);
+    };
+  }, [visibleEvents, isMobile]);
+
+  const x = useTransform(scrollYProgress, [0, 1], [0, translateXVal]);
+  const springX = useSpring(x, { stiffness: 90, damping: 22, mass: 0.4 });
+
+  // Parallax translation for images
+  const imgX = useTransform(scrollYProgress, [0, 1], [60, -60]);
 
   const handleImageUpload = async (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -51,13 +110,102 @@ export function About({
     }
   };
 
+  const addTimelineEvent = () => {
+    const newEvent: TimelineEvent = {
+      id: createId("timeline-event"),
+      enabled: true,
+      year: new Date().getFullYear().toString(),
+      title: "Nowy kamień milowy",
+      description: "Opis ważnego momentu biograficznego.",
+      image: {
+        id: createId("timeline-img"),
+        enabled: true,
+        src: "https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?auto=format&fit=crop&w=800&q=80",
+        alt: "Domyślny placeholder",
+        aspect: "landscape"
+      }
+    };
+    updateContent((draft) => {
+      if (!draft.about.timeline) {
+        draft.about.timeline = [];
+      }
+      draft.about.timeline.push(newEvent);
+    });
+    setIsDrawerOpen(false);
+    setEditingEvent(newEvent);
+  };
+
+  const deleteTimelineEvent = (id: string) => {
+    if (confirm("Czy na pewno chcesz usunąć to wydarzenie z osi czasu?")) {
+      updateContent((draft) => {
+        draft.about.timeline = (draft.about.timeline ?? []).filter((e) => e.id !== id);
+      });
+      if (editingEvent?.id === id) setEditingEvent(null);
+    }
+  };
+
+  const toggleTimelineEventEnabled = (index: number) => {
+    updateContent((draft) => {
+      if (draft.about.timeline) {
+        draft.about.timeline[index].enabled = !draft.about.timeline[index].enabled;
+      }
+    });
+  };
+
+  const moveTimelineEvent = (index: number, direction: -1 | 1) => {
+    const toIndex = index + direction;
+    if (toIndex < 0 || toIndex >= timelineEvents.length) return;
+    updateContent((draft) => {
+      const list = [...(draft.about.timeline ?? [])];
+      const [item] = list.splice(index, 1);
+      list.splice(toIndex, 0, item);
+      draft.about.timeline = list;
+    });
+  };
+
+  const updateEventField = <K extends keyof TimelineEvent>(field: K, value: TimelineEvent[K]) => {
+    if (!editingEvent) return;
+    const nextEvent = { ...editingEvent, [field]: value };
+    setEditingEvent(nextEvent);
+    updateContent((draft) => {
+      if (draft.about.timeline) {
+        draft.about.timeline = draft.about.timeline.map((e) => (e.id === nextEvent.id ? nextEvent : e));
+      }
+    });
+  };
+
+  const handleEventImageUpload = async (event: ChangeEvent<HTMLInputElement>, eventId: string) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    try {
+      setUploadingImageId(eventId);
+      const url = await uploadImageFile(file, `about-timeline-${eventId}`);
+      const nextImg = { 
+        id: editingEvent?.image.id || createId("timeline-img"),
+        enabled: true, 
+        src: url, 
+        alt: file.name.replace(/\.[^.]+$/, ""),
+        aspect: "landscape" as const
+      };
+      updateEventField("image", nextImg);
+    } catch (err) {
+      console.error(err);
+      alert("Błąd przesyłania obrazu wydarzenia: " + (err instanceof Error ? err.message : String(err)));
+    } finally {
+      setUploadingImageId(null);
+    }
+  };
+
   const isSectionEnabled = globalContent.sections.about.enabled;
+  const currentX = mounted && !isMobile ? springX : 0;
 
   return (
-    <SectionReveal
+    <div
+      ref={containerRef}
       id="about"
       className={cn(
-        "relative border-y border-ink/10 py-24 transition-all duration-300 group/section",
+        "relative border-y border-ink/10 py-20 transition-all duration-300 lg:border-none lg:py-0 lg:h-[300vh]",
         bgClass || "bg-white",
         editMode && "hover:ring-1 hover:ring-ink/20",
         editMode && !isSectionEnabled && "opacity-60 border-2 border-dashed border-ink/15 bg-ink/[0.01]"
@@ -104,40 +252,94 @@ export function About({
         </div>
       )}
 
-      <div className="section-shell grid items-center gap-12 lg:grid-cols-[1.12fr_0.88fr]">
-        <div className="max-w-2xl space-y-6">
-          <SectionHeading eyebrow={content.eyebrow} title={content.title} reverseDirection={reverseParallax} />
-          <RevealBlock delay={0.12}>
-            <p className="mt-8 text-lg leading-8 text-graphite/80 sm:text-xl sm:leading-9 whitespace-pre-wrap">
-              {content.body}
-            </p>
-          </RevealBlock>
-          <RevealBlock delay={0.22} className="mt-10">
-            <MagneticButton href="#contact" variant="outline">
-              {content.buttonText}
-            </MagneticButton>
-          </RevealBlock>
-        </div>
-
-        {content.image.src && content.image.enabled !== false ? (
-          <RevealBlock className="ornament-line pl-5 pt-5" delay={0.14} x={34} y={18}>
-            <div className="relative group overflow-hidden rounded-[1.5rem] rounded-tl-none border border-ink/10 shadow-editorial">
-              <AboutImageFrame className="hidden lg:block" />
-              <CinematicImage
-                src={content.image.src}
-                alt={content.image.alt}
-                className="aspect-[4/5] max-h-[640px] rounded-[1.5rem] rounded-tl-none"
-              />
+      {/* Sticky viewport container (sticky on desktop, static flow on mobile) */}
+      <div className="relative h-auto w-full overflow-visible flex flex-col py-16 px-6 sm:px-10 lg:sticky lg:top-0 lg:h-screen lg:w-full lg:overflow-hidden lg:flex-row lg:items-center lg:py-0 lg:px-0 lg:border-y lg:border-ink/10">
+        <motion.div
+          ref={scrollRef}
+          style={{ x: currentX }}
+          className="flex flex-col gap-12 w-full lg:flex-row lg:h-full lg:items-center lg:pl-16 lg:pr-32 lg:gap-0 lg:w-auto"
+        >
+          {/* Slide 0: Biography Intro */}
+          <div className="flex flex-col gap-8 w-full lg:w-screen lg:shrink-0 lg:flex-row lg:gap-16 lg:pr-24 lg:h-[80vh] lg:items-center lg:justify-start">
+            <div className="max-w-2xl space-y-6">
+              <SectionHeading eyebrow={content.eyebrow} title={content.title} reverseDirection={reverseParallax} />
+              <RevealBlock delay={0.12}>
+                <p className="mt-6 text-lg leading-8 text-graphite/80 sm:text-xl sm:leading-9 whitespace-pre-wrap">
+                  {content.body}
+                </p>
+              </RevealBlock>
+              <RevealBlock delay={0.22} className="mt-8">
+                <MagneticButton href="#contact" variant="outline">
+                  {content.buttonText}
+                </MagneticButton>
+              </RevealBlock>
             </div>
-          </RevealBlock>
-        ) : (
-          <RevealBlock className="ornament-line pl-5 pt-5" delay={0.14} x={34} y={18}>
-            <div className="aspect-[4/5] max-h-[640px] rounded-[1.5rem] rounded-tl-none bg-porcelain" />
-          </RevealBlock>
-        )}
+
+            {content.image.src && content.image.enabled !== false ? (
+              <RevealBlock className="w-full max-w-md ornament-line pl-4 pt-4 lg:shrink-0 lg:w-[420px] lg:pl-5 lg:pt-5 lg:ornament-line" delay={0.14} x={34} y={18}>
+                <div className="relative group overflow-hidden rounded-[1.5rem] rounded-tl-none border border-ink/10 shadow-editorial">
+                  <AboutImageFrame className="hidden lg:block" />
+                  <CinematicImage
+                    src={content.image.src}
+                    alt={content.image.alt}
+                    className="aspect-[4/5] max-h-[480px] lg:max-h-[520px] rounded-[1.5rem] rounded-tl-none"
+                  />
+                </div>
+              </RevealBlock>
+            ) : null}
+          </div>
+
+          {/* Mobile-only header for timeline events */}
+          {visibleEvents.length > 0 && (
+            <div className="text-center max-w-lg mx-auto space-y-2 lg:hidden mt-8">
+              <span className="text-[0.66rem] font-bold uppercase tracking-[0.2em] text-ink/40">Oś Czasu</span>
+              <h3 className="font-serif text-2xl text-ink">Droga twórcza</h3>
+            </div>
+          )}
+
+          {/* Slides 1-N: Timeline Milestones */}
+          {visibleEvents.map((event, idx) => (
+            <div
+              key={event.id}
+              className={cn(
+                "relative border border-ink/10 bg-porcelain/30 rounded-2xl p-6 flex flex-col justify-between min-h-[380px] lg:border-none lg:bg-transparent lg:rounded-none lg:p-0 lg:w-[65vw] lg:max-w-[720px] lg:shrink-0 lg:flex-col lg:justify-center lg:px-12 lg:border-l lg:border-ink/10 lg:h-[80vh] lg:min-h-0",
+                !event.enabled && "opacity-50 border-dashed"
+              )}
+            >
+              {/* Year Indicator */}
+              <div className="absolute top-4 right-6 text-6xl font-bold font-serif text-ink/5 select-none pointer-events-none lg:top-4 lg:left-12 lg:right-auto lg:text-[10rem] lg:text-ink/[0.04] lg:leading-none">
+                {event.year}
+              </div>
+
+              <div className="space-y-3 lg:mt-12 lg:space-y-4 lg:relative lg:z-10">
+                <span className="text-[0.6rem] font-bold uppercase tracking-[0.15em] text-ink/40 lg:text-[0.66rem] lg:tracking-[0.2em]">
+                  Krok {idx + 1} / {visibleEvents.length}
+                </span>
+                <h4 className="font-serif text-xl text-ink leading-tight lg:text-3xl lg:md:text-4xl">{event.title}</h4>
+                <p className="text-xs leading-5 text-graphite/75 lg:text-sm lg:leading-6 lg:max-w-lg">{event.description}</p>
+              </div>
+
+              {event.image?.src && event.image.enabled !== false && (
+                <div className="mt-6 aspect-video overflow-hidden rounded-xl border border-ink/10 w-full lg:mt-8 lg:aspect-[16/10] lg:max-w-md lg:shadow-editorial relative">
+                  <motion.div
+                    style={{ x: mounted && !isMobile ? imgX : 0 }}
+                    className="relative w-full h-full lg:absolute lg:inset-0 lg:w-[120%] lg:h-full lg:-left-[10%]"
+                  >
+                    <CinematicImage
+                      src={event.image.src}
+                      alt={event.image.alt || event.title}
+                      className="w-full h-full object-cover"
+                      imageClassName="rounded-xl lg:rounded-2xl"
+                    />
+                  </motion.div>
+                </div>
+              )}
+            </div>
+          ))}
+        </motion.div>
       </div>
 
-      {/* Edit Drawer */}
+      {/* Main Section Settings Drawer */}
       <AdminDrawer
         isOpen={isDrawerOpen}
         onClose={() => setIsDrawerOpen(false)}
@@ -196,7 +398,7 @@ export function About({
                   draft.about.body = e.target.value;
                 })
               }
-              rows={8}
+              rows={6}
               className="rounded-xl text-sm"
             />
           </div>
@@ -254,8 +456,162 @@ export function About({
               className="rounded-full"
             />
           </div>
+
+          {/* Timeline events in drawer */}
+          <div className="border-t border-ink/10 pt-4 mt-2">
+            <div className="flex items-center justify-between mb-3">
+              <Label className="text-xs font-bold uppercase tracking-[0.1em] text-ink/40">
+                Wydarzenia na osi czasu ({timelineEvents.length})
+              </Label>
+              <Button type="button" variant="outline" size="sm" onClick={addTimelineEvent} className="h-8 rounded-full text-xs">
+                <Plus className="h-3.5 w-3.5" /> Dodaj wydarzenie
+              </Button>
+            </div>
+
+            <div className="grid gap-2">
+              <AnimatePresence initial={false}>
+                {timelineEvents.map((event, idx) => (
+                  <motion.div
+                    layout
+                    key={event.id}
+                    className="flex items-center justify-between gap-2 rounded-xl border border-ink/10 bg-white p-2.5"
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -8 }}
+                    transition={{ duration: 0.22, ease: "easeOut" }}
+                  >
+                    <div className="truncate">
+                      <p className="text-[0.62rem] font-bold uppercase text-ink/40 truncate">Rok {event.year}</p>
+                      <p className="text-xs font-serif font-bold text-ink truncate">{event.title}</p>
+                    </div>
+                    <div className="flex items-center shrink-0">
+                      <button
+                        type="button"
+                        onClick={() => moveTimelineEvent(idx, -1)}
+                        disabled={idx === 0}
+                        className="flex h-7 w-7 items-center justify-center rounded-full hover:bg-ink/5 text-ink/50 disabled:opacity-30"
+                      >
+                        <ArrowUp className="h-4 w-4" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => moveTimelineEvent(idx, 1)}
+                        disabled={idx === timelineEvents.length - 1}
+                        className="flex h-7 w-7 items-center justify-center rounded-full hover:bg-ink/5 text-ink/50 disabled:opacity-30"
+                      >
+                        <ArrowDown className="h-4 w-4" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => toggleTimelineEventEnabled(idx)}
+                        className="flex h-7 w-7 items-center justify-center rounded-full hover:bg-ink/5 text-ink/50"
+                      >
+                        {event.enabled ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsDrawerOpen(false);
+                          setEditingEvent(event);
+                        }}
+                        className="flex h-7 w-7 items-center justify-center rounded-full bg-ink text-white hover:bg-graphite"
+                        title="Edytuj szczegóły"
+                      >
+                        <Edit className="h-3.5 w-3.5" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => deleteTimelineEvent(event.id)}
+                        className="flex h-7 w-7 items-center justify-center rounded-full text-red-500 hover:bg-red-500/10"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </div>
+                  </motion.div>
+                ))}
+              </AnimatePresence>
+            </div>
+          </div>
         </div>
       </AdminDrawer>
-    </SectionReveal>
+
+      {/* Individual Event Edit Drawer */}
+      <AdminDrawer
+        isOpen={editingEvent !== null}
+        onClose={() => {
+          setEditingEvent(null);
+          setIsDrawerOpen(true); // Return to about list
+        }}
+        title={`Edycja wydarzenia: ${editingEvent?.year || ""}`}
+      >
+        {editingEvent && (
+          <div className="grid gap-5">
+            <div className="grid gap-1">
+              <Label>Rok (np. 2019)</Label>
+              <Input
+                value={editingEvent.year}
+                onChange={(e) => updateEventField("year", e.target.value)}
+                className="rounded-full"
+              />
+            </div>
+
+            <div className="grid gap-1">
+              <Label>Tytuł wydarzenia</Label>
+              <Input
+                value={editingEvent.title}
+                onChange={(e) => updateEventField("title", e.target.value)}
+                className="rounded-full"
+              />
+            </div>
+
+            <div className="grid gap-1">
+              <Label>Opis wydarzenia</Label>
+              <Textarea
+                value={editingEvent.description}
+                onChange={(e) => updateEventField("description", e.target.value)}
+                rows={4}
+                className="rounded-xl text-sm"
+              />
+            </div>
+
+            {/* Event Image field */}
+            <div className="grid gap-3 p-4 border border-ink/10 rounded-2xl bg-white">
+              <Label className="text-xs font-bold uppercase tracking-[0.1em] text-ink/40">
+                Zdjęcie wydarzenia
+              </Label>
+              <div className="grid grid-cols-[100px_1fr] gap-4 items-center">
+                <div className="aspect-[4/3] overflow-hidden border border-ink/10 bg-porcelain rounded-lg">
+                  {editingEvent.image.src && (
+                    <img
+                      src={editingEvent.image.src}
+                      alt=""
+                      className="h-full w-full object-cover"
+                    />
+                  )}
+                </div>
+                <div className="grid gap-2">
+                  <label className="inline-flex h-9 cursor-pointer items-center justify-center gap-2 rounded-full border border-ink/15 bg-white px-4 text-xs font-bold uppercase tracking-[0.12em] text-ink/65 hover:border-ink hover:text-ink transition-colors">
+                    {uploadingImageId === editingEvent.id ? (
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    ) : (
+                      <Upload className="h-3.5 w-3.5" />
+                    )}
+                    Wyślij plik
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="sr-only"
+                      onChange={(e) => handleEventImageUpload(e, editingEvent.id)}
+                      disabled={uploadingImageId !== null}
+                    />
+                  </label>
+                  <span className="text-[0.6rem] text-ink/40">Zalecany poziomy kadr</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </AdminDrawer>
+    </div>
   );
 }

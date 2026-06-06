@@ -401,6 +401,7 @@ export const PortfolioHighlights = memo(function PortfolioHighlights({
                 <motion.button
                   type="button"
                   data-cursor="view"
+                  data-cursor-img={project.image.src}
                   className={cn(
                     "cinematic-card w-full group border border-ink/10 bg-white text-left rounded-2xl flex flex-col h-full",
                     !project.enabled && "opacity-50 border-dashed"

@@ -9,6 +9,8 @@ import { useAdminEdit } from "@/components/admin/admin-edit-context";
 export function CustomCursor() {
   const { editMode } = useAdminEdit();
   const [isMobile, setIsMobile] = useState(false);
+  const [previewSrc, setPreviewSrc] = useState<string | null>(null);
+  const previewSrcRef = useRef<string | null>(null);
 
   useEffect(() => {
     const checkMobile = () => {
@@ -48,7 +50,8 @@ export function CustomCursor() {
     document.body.classList.add("has-custom-cursor");
     document.body.classList.remove("is-edit-mode");
 
-    const cursorSize = (nextMode: typeof mode) => {
+    const cursorSize = (nextMode: typeof mode, hasPreview: boolean) => {
+      if (hasPreview) return 90;
       if (nextMode === "view" || nextMode === "play") return 72;
       if (nextMode === "action") return 54;
       return 38;
@@ -71,7 +74,11 @@ export function CustomCursor() {
         nextMode = "action";
       }
 
-      const size = cursorSize(nextMode);
+      const imgEl = target?.closest("[data-cursor-img]") as HTMLElement | null;
+      const cursorImg = imgEl ? imgEl.getAttribute("data-cursor-img") : null;
+      const hasPreview = Boolean(cursorImg);
+
+      const size = cursorSize(nextMode, hasPreview);
       
       const magneticTarget = target?.closest("a, button, [role='button']");
       let targetX = event.clientX - size / 2;
@@ -93,6 +100,18 @@ export function CustomCursor() {
         setMode(nextMode);
       }
 
+      if (cursorImg) {
+        if (previewSrcRef.current !== cursorImg) {
+          previewSrcRef.current = cursorImg;
+          setPreviewSrc(cursorImg);
+        }
+      } else {
+        if (previewSrcRef.current !== null) {
+          previewSrcRef.current = null;
+          setPreviewSrc(null);
+        }
+      }
+
       if (!visibleRef.current) {
         visibleRef.current = true;
         setVisible(true);
@@ -102,6 +121,8 @@ export function CustomCursor() {
     const handleLeave = () => {
       visibleRef.current = false;
       setVisible(false);
+      previewSrcRef.current = null;
+      setPreviewSrc(null);
     };
 
     window.addEventListener("mousemove", handleMove);
@@ -121,17 +142,29 @@ export function CustomCursor() {
 
   return (
     <motion.div
-      className={cn("customCursor", visible && "isVisible", `is-${mode}`)}
+      className={cn(
+        "customCursor",
+        visible && "isVisible",
+        `is-${mode}`,
+        previewSrc && "hasPreview"
+      )}
       style={{ x: springX, y: springY }}
       aria-hidden="true"
     >
       <span className="customCursorRing">
-        {mode === "view" && (
+        {previewSrc && (
+          <img
+            src={previewSrc}
+            alt=""
+            className="customCursorImage"
+          />
+        )}
+        {mode === "view" && !previewSrc && (
           <span className="customCursorLabel">
             Zobacz
           </span>
         )}
-        {mode === "play" && (
+        {mode === "play" && !previewSrc && (
           <span className="customCursorLabel">
             Play
           </span>

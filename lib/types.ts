@@ -27,12 +27,22 @@ export type HeroContent = {
   image: SiteImage;
 };
 
+export type TimelineEvent = {
+  id: string;
+  enabled: boolean;
+  year: string;
+  title: string;
+  description: string;
+  image: SiteImage;
+};
+
 export type AboutContent = {
   eyebrow: string;
   title: string;
   body: string;
   buttonText: string;
   image: SiteImage;
+  timeline?: TimelineEvent[];
 };
 
 export type PortfolioProject = {

@@ -458,6 +458,7 @@ export const Gallery = memo(function Gallery({
                   <motion.button
                     type="button"
                     data-cursor="view"
+                    data-cursor-img={cover.src}
                     className={cn(
                       "cinematic-card w-full group flex h-full min-h-[660px] flex-col border border-ink/10 bg-white text-left shadow-[0_18px_60px_rgba(16,16,16,0.04)] rounded-2xl",
                       !session.enabled && "opacity-50 border-dashed"

@@ -431,6 +431,7 @@ export function Showreel({
                       <motion.button
                         type="button"
                         data-cursor="play"
+                        data-cursor-img={thumbSrc}
                         className={cn(
                           "cinematic-card w-full group text-left border border-ink/10 bg-white shadow-[0_18px_60px_rgba(16,16,16,0.04)] rounded-2xl flex flex-col h-full overflow-hidden",
                           !video.enabled && "opacity-50 border-dashed"
@@ -494,6 +495,7 @@ export function Showreel({
               <button
                 type="button"
                 data-cursor="play"
+                data-cursor-img={mainThumbnailSrc}
                 className="cinematic-card absolute inset-0 h-full w-full text-left cursor-pointer rounded-3xl overflow-hidden shadow-editorial border border-ink/10"
                 onClick={() => {
                   if (!editMode) {
