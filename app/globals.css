@@ -474,6 +474,7 @@ a {
 .cinematicImage {
   position: relative;
   overflow: hidden;
+  --mobile-color-progress: 0;
   --tilt-x: 0deg;
   --tilt-y: 0deg;
   --spot-x: 50%;
@@ -577,24 +578,24 @@ a {
 }
 
 
-/* Touch / mobile: simple opacity fade when image scrolls into view */
+/* Touch / mobile: color strength follows distance from the viewport center */
 @media (pointer: coarse), (max-width: 1024px) {
   .cinematicImage .cinematicImageColor {
     clip-path: none;
-    opacity: 0;
+    opacity: var(--mobile-color-progress, 0);
     transition:
-      opacity 1.15s cubic-bezier(0.16, 1, 0.3, 1),
+      opacity 160ms linear,
       transform 1.2s cubic-bezier(0.16, 1, 0.3, 1);
   }
   .cinematicImage.in-view-mobile .cinematicImageColor {
-    opacity: 1;
+    opacity: var(--mobile-color-progress, 0);
     transform: scale(1.025);
   }
   .cinematicImage.in-view-mobile .cinematicImageBase {
     filter: grayscale(100%) contrast(1.04) saturate(0.98);
   }
   .cinematicImage.in-view-mobile .cinematicImageVeil {
-    opacity: 0.8;
+    opacity: calc(var(--mobile-color-progress, 0) * 0.8);
   }
   /* Isolate repaints inside modals for smoother scroll */
   .cinematicImage.isStatic {

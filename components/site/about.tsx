@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, ChangeEvent, useRef, useEffect, useMemo } from "react";
+import { flushSync } from "react-dom";
 import type { AboutContent, TimelineEvent } from "@/lib/types";
 import { siteContent as defaultSiteContent } from "@/lib/site-content";
 import { AboutImageFrame } from "@/components/site/about-image-frame";
@@ -19,6 +20,13 @@ import { Button } from "@/components/ui/button";
 import { SectionReorderControls } from "@/components/admin/section-reorder-controls";
 import { useScroll, useTransform, useSpring, motion } from "framer-motion";
 import { AnimatePresence } from "framer-motion";
+
+const DESKTOP_TIMELINE_SCROLL_FACTOR = 1.08;
+const ANCHOR_NAVIGATION_FREEZE_MS = 1700;
+
+type AnchorScrollEventDetail = {
+  href?: string;
+};
 
 export function About({
   content: initialContent,
@@ -41,6 +49,12 @@ export function About({
 
   const [isMobile, setIsMobile] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [desktopScrollHeight, setDesktopScrollHeight] = useState<number | null>(null);
+  const [anchorNavigationOffsets, setAnchorNavigationOffsets] = useState<{
+    imageX: string;
+    railX: number;
+    yearX: string;
+  } | null>(null);
 
   useEffect(() => {
     setMounted(true);
@@ -58,6 +72,7 @@ export function About({
     return content.timeline ?? defaultSiteContent.about.timeline ?? [];
   }, [content.timeline]);
   const visibleEvents = useMemo(() => timelineEvents.filter(e => editMode || e.enabled), [timelineEvents, editMode]);
+  const hasVisibleTimelineEvents = visibleEvents.length > 0;
 
   // Framer Motion scroll logic for horizontal parallax on desktop
   const containerRef = useRef<HTMLDivElement>(null);
@@ -65,22 +80,32 @@ export function About({
 
   const { scrollYProgress } = useScroll({
     target: containerRef,
+    offset: ["start start", "end end"]
   });
 
   const [translateXVal, setTranslateXVal] = useState(0);
 
   useEffect(() => {
-    if (isMobile) return;
+    if (isMobile || !hasVisibleTimelineEvents) {
+      setTranslateXVal(0);
+      setDesktopScrollHeight(null);
+      return;
+    }
+
     const element = scrollRef.current;
     if (!element) return;
 
     const measure = () => {
-      // offsetWidth = full rendered width of the max-content rail
-      // window.innerWidth = visible viewport
       const railWidth = element.offsetWidth;
       const viewportWidth = window.innerWidth;
+      const viewportHeight = window.innerHeight;
       const overflow = railWidth - viewportWidth;
-      setTranslateXVal(overflow > 0 ? -overflow : 0);
+      const safeOverflow = Math.max(0, overflow);
+
+      setTranslateXVal(safeOverflow > 0 ? -safeOverflow : 0);
+      setDesktopScrollHeight(
+        Math.round(viewportHeight + safeOverflow * DESKTOP_TIMELINE_SCROLL_FACTOR)
+      );
     };
 
     // ResizeObserver catches font/image loads that change dimensions
@@ -93,7 +118,7 @@ export function About({
       ro.disconnect();
       window.removeEventListener("resize", measure);
     };
-  }, [visibleEvents, isMobile]);
+  }, [hasVisibleTimelineEvents, isMobile, visibleEvents.length]);
 
   const x = useTransform(scrollYProgress, [0, 1], [0, translateXVal]);
   const springX = useSpring(x, { stiffness: 90, damping: 22, mass: 0.4 });
@@ -102,6 +127,49 @@ export function About({
   const imgX = useTransform(scrollYProgress, [0, 1], ["-6%", "6%"]);
   // Year indicator translation (slightly faster to create depth/stagger)
   const yearX = useTransform(scrollYProgress, [0, 1], ["8%", "-8%"]);
+
+  useEffect(() => {
+    let freezeTimer = 0;
+
+    const clearFreezeTimer = () => {
+      if (freezeTimer) {
+        window.clearTimeout(freezeTimer);
+        freezeTimer = 0;
+      }
+    };
+
+    const freezeHorizontalMotion = (event: Event) => {
+      const href = (event as CustomEvent<AnchorScrollEventDetail>).detail?.href;
+      if (!href || href === "#about") return;
+
+      clearFreezeTimer();
+      flushSync(() => {
+        setAnchorNavigationOffsets({
+          imageX: imgX.get(),
+          railX: springX.get(),
+          yearX: yearX.get()
+        });
+      });
+      freezeTimer = window.setTimeout(() => {
+        setAnchorNavigationOffsets(null);
+        freezeTimer = 0;
+      }, ANCHOR_NAVIGATION_FREEZE_MS);
+    };
+
+    const releaseHorizontalMotion = () => {
+      clearFreezeTimer();
+      setAnchorNavigationOffsets(null);
+    };
+
+    window.addEventListener("portfolio:anchor-scroll-start", freezeHorizontalMotion);
+    window.addEventListener("portfolio:anchor-scroll-end", releaseHorizontalMotion);
+
+    return () => {
+      clearFreezeTimer();
+      window.removeEventListener("portfolio:anchor-scroll-start", freezeHorizontalMotion);
+      window.removeEventListener("portfolio:anchor-scroll-end", releaseHorizontalMotion);
+    };
+  }, [imgX, springX, yearX]);
 
   const handleImageUpload = async (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -211,14 +279,28 @@ export function About({
   };
 
   const isSectionEnabled = globalContent.sections.about.enabled;
-  const currentX = mounted && !isMobile ? springX : 0;
+  const shouldUseDesktopTimeline = mounted && !isMobile && hasVisibleTimelineEvents;
+  const currentX = shouldUseDesktopTimeline
+    ? anchorNavigationOffsets?.railX ?? springX
+    : 0;
+  const currentImageX = shouldUseDesktopTimeline
+    ? anchorNavigationOffsets?.imageX ?? imgX
+    : 0;
+  const currentYearX = shouldUseDesktopTimeline
+    ? anchorNavigationOffsets?.yearX ?? yearX
+    : 0;
 
   return (
     <div
       ref={containerRef}
       id="about"
+      style={
+        mounted && !isMobile && hasVisibleTimelineEvents && desktopScrollHeight
+          ? { height: `${desktopScrollHeight}px` }
+          : undefined
+      }
       className={cn(
-        "relative border-y border-ink/10 py-20 transition-all duration-300 lg:border-none lg:py-0 lg:h-[480vh]",
+        "relative border-y border-ink/10 py-20 transition-all duration-300 lg:border-none lg:py-0",
         bgClass || "bg-white",
         editMode && "hover:ring-1 hover:ring-ink/20",
         editMode && !isSectionEnabled && "opacity-60 border-2 border-dashed border-ink/15 bg-ink/[0.01]"
@@ -313,7 +395,7 @@ export function About({
             >
               {/* Year Indicator with staggered/faster parallax translation */}
               <motion.div
-                style={{ x: mounted && !isMobile ? yearX : 0 }}
+                style={{ x: currentYearX }}
                 className="absolute top-4 left-12 text-[10rem] font-bold font-serif text-ink/[0.04] leading-none select-none pointer-events-none"
               >
                 {event.year}
@@ -330,7 +412,7 @@ export function About({
               {event.image?.src && event.image.enabled !== false && (
                 <div className="mt-8 aspect-[16/10] max-w-md overflow-hidden rounded-xl border border-ink/10 w-full lg:shadow-editorial relative">
                   <motion.div
-                    style={{ x: mounted && !isMobile ? imgX : 0, scale: mounted && !isMobile ? 1.15 : 1 }}
+                    style={{ x: currentImageX, scale: shouldUseDesktopTimeline ? 1.15 : 1 }}
                     className="w-full h-full"
                   >
                     <CinematicImage
@@ -423,7 +505,6 @@ export function About({
                         alt={event.image.alt || event.title}
                         className="w-full h-full object-cover"
                         imageClassName="rounded-xl"
-                        disableScrollReveal
                       />
                     </div>
                   )}
