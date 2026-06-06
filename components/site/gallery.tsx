@@ -847,6 +847,12 @@ export const Gallery = memo(function Gallery({
                 transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
                 role="dialog"
                 aria-modal="true"
+                onClick={(e) => {
+                  // Check if click is outside the rounded card
+                  const target = e.target as HTMLElement;
+                  if (target.closest('.rounded-3xl')) return;
+                  setActiveSessionId(null);
+                }}
               >
               <motion.div
                 className="mx-auto max-w-7xl rounded-3xl bg-porcelain my-8 border border-ink/10 shadow-editorial relative overflow-hidden"
@@ -887,36 +893,47 @@ export const Gallery = memo(function Gallery({
                       </div>
 
                       <div className="flex items-center gap-2">
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          className="rounded-full"
-                          onClick={() => goTo("prev")}
-                          aria-label="Poprzednia sesja"
-                        >
-                          <ChevronLeft className="h-5 w-5" />
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          className="rounded-full"
-                          onClick={() => goTo("next")}
-                          aria-label="Następna sesja"
-                        >
-                          <ChevronRight className="h-5 w-5" />
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          className="rounded-full"
-                          onClick={() => {
-                            setActiveImage(null);
-                            setActiveSessionId(null);
-                          }}
-                          aria-label="Zamknij galerię"
-                        >
-                          <X className="h-5 w-5" />
-                        </Button>
+                        <AnimatePresence mode="wait" initial={false}>
+                          <motion.div
+                            key={activeSession.id}
+                            className="flex items-center gap-2"
+                            initial={{ opacity: 0, x: sessionDirection * 20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: sessionDirection * -20 }}
+                            transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+                          >
+                            <Button
+                              variant="outline"
+                              size="icon"
+                              className="rounded-full"
+                              onClick={() => goTo("prev")}
+                              aria-label="Poprzednia sesja"
+                            >
+                              <ChevronLeft className="h-5 w-5" />
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="icon"
+                              className="rounded-full"
+                              onClick={() => goTo("next")}
+                              aria-label="Następna sesja"
+                            >
+                              <ChevronRight className="h-5 w-5" />
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="icon"
+                              className="rounded-full"
+                              onClick={() => {
+                                setActiveImage(null);
+                                setActiveSessionId(null);
+                              }}
+                              aria-label="Zamknij galerię"
+                            >
+                              <X className="h-5 w-5" />
+                            </Button>
+                          </motion.div>
+                        </AnimatePresence>
                       </div>
                     </div>
                   </div>

@@ -828,6 +828,12 @@ export const PortfolioHighlights = memo(function PortfolioHighlights({
                 transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
                 role="dialog"
                 aria-modal="true"
+                onClick={(e) => {
+                  // Check if click is outside the rounded card
+                  const target = e.target as HTMLElement;
+                  if (target.closest('.rounded-3xl')) return;
+                  setActiveProject(null);
+                }}
               >
               <motion.div
                 className="mx-auto max-w-6xl rounded-3xl bg-porcelain my-8 border border-ink/10 shadow-editorial relative overflow-hidden"
@@ -867,33 +873,44 @@ export const PortfolioHighlights = memo(function PortfolioHighlights({
                         </AnimatePresence>
                       </div>
                       <div className="flex items-center gap-2">
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          className="rounded-full"
-                          onClick={() => goTo("prev")}
-                          aria-label="Poprzedni projekt"
-                        >
-                          <ChevronLeft className="h-5 w-5" />
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          className="rounded-full"
-                          onClick={() => goTo("next")}
-                          aria-label="Następny projekt"
-                        >
-                          <ChevronRight className="h-5 w-5" />
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          className="rounded-full"
-                          onClick={() => setActiveProject(null)}
-                          aria-label="Zamknij szczegóły roli"
-                        >
-                          <X className="h-5 w-5" />
-                        </Button>
+                        <AnimatePresence mode="wait" initial={false}>
+                          <motion.div
+                            key={activeProject.id}
+                            className="flex items-center gap-2"
+                            initial={{ opacity: 0, x: 20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: -20 }}
+                            transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+                          >
+                            <Button
+                              variant="outline"
+                              size="icon"
+                              className="rounded-full"
+                              onClick={() => goTo("prev")}
+                              aria-label="Poprzedni projekt"
+                            >
+                              <ChevronLeft className="h-5 w-5" />
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="icon"
+                              className="rounded-full"
+                              onClick={() => goTo("next")}
+                              aria-label="Następny projekt"
+                            >
+                              <ChevronRight className="h-5 w-5" />
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="icon"
+                              className="rounded-full"
+                              onClick={() => setActiveProject(null)}
+                              aria-label="Zamknij szczegóły roli"
+                            >
+                              <X className="h-5 w-5" />
+                            </Button>
+                          </motion.div>
+                        </AnimatePresence>
                       </div>
                     </div>
                   </div>
@@ -950,12 +967,20 @@ export const PortfolioHighlights = memo(function PortfolioHighlights({
                   </AnimatePresence>
                   </div>
 
-                  {(activeProject.images ?? []).filter((image) => image.enabled).length > 0 && (
-                    <div className="mt-10 border-t border-ink/10 pt-10 grid gap-5 px-6 pb-10 sm:grid-cols-2 sm:px-8 lg:grid-cols-3">
-                      {(activeProject.images ?? [])
-                        .filter((image) => image.enabled)
-                        .map((image) => (
-                          <figure key={image.id} className="border border-ink/10 bg-white rounded-2xl overflow-hidden shadow-sm">
+                  <AnimatePresence mode="wait" initial={false}>
+                    {(activeProject.images ?? []).filter((image) => image.enabled).length > 0 && (
+                      <motion.div
+                        key={activeProject.id}
+                        initial={{ opacity: 0, x: 20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: -20 }}
+                        transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+                        className="mt-10 border-t border-ink/10 pt-10 grid gap-5 px-6 pb-10 sm:grid-cols-2 sm:px-8 lg:grid-cols-3"
+                      >
+                        {(activeProject.images ?? [])
+                          .filter((image) => image.enabled)
+                          .map((image) => (
+                            <figure key={image.id} className="border border-ink/10 bg-white rounded-2xl overflow-hidden shadow-sm">
                             <CinematicImage
                               src={image.src}
                               alt={image.alt}
@@ -984,8 +1009,9 @@ export const PortfolioHighlights = memo(function PortfolioHighlights({
                             )}
                           </figure>
                         ))}
-                    </div>
-                  )}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </div>
               </motion.div>
             </motion.div>
