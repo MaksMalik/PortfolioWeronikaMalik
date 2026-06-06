@@ -392,7 +392,7 @@ export function Gallery({ sessions: initialSessions, bgClass }: { sessions: Gall
             ref={railRef}
             {...railDragHandlers}
             className={cn(
-              "no-scrollbar grid auto-cols-[84%] grid-flow-col gap-5 overflow-x-auto pt-12 pb-20 -mt-12 -mb-16 select-none [scroll-snap-type:x_mandatory] [touch-action:pan-y] sm:auto-cols-[52%] lg:auto-cols-[calc((100%_-_2.5rem)/3)]",
+              "no-scrollbar grid auto-cols-[84%] grid-flow-col gap-5 overflow-x-auto pt-12 pb-20 -mt-12 -mb-16 select-none [scroll-snap-type:x_proximity] [touch-action:pan-y] sm:auto-cols-[52%] lg:auto-cols-[calc((100%_-_2.5rem)/3)]",
               isDragging ? "cursor-grabbing" : "cursor-grab"
             )}
           >
@@ -885,9 +885,8 @@ export function Gallery({ sessions: initialSessions, bgClass }: { sessions: Gall
                         key={image.id}
                         className="mb-5 break-inside-avoid overflow-hidden border border-ink/10 bg-white rounded-2xl shadow-sm"
                       >
-                        <motion.button
+                        <button
                           type="button"
-                          layoutId={`session-image-${image.id}`}
                           className="block w-full text-left cursor-zoom-in"
                           onClick={() => setActiveImage(image)}
                           aria-label={`Powiększ zdjęcie ${image.title ?? image.alt}`}
@@ -901,7 +900,7 @@ export function Gallery({ sessions: initialSessions, bgClass }: { sessions: Gall
                               (image.title || image.description) && "rounded-b-none"
                             )}
                           />
-                        </motion.button>
+                        </button>
                         {(image.title || image.description) && (
                           <figcaption className="px-4 py-4 border-t border-ink/5">
                             {image.title && (

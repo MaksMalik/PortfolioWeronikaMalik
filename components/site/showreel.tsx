@@ -359,7 +359,7 @@ export function Showreel({ content: initialContent, bgClass }: { content: Showre
                 ref={railRef}
                 {...railDragHandlers}
                 className={cn(
-                  "no-scrollbar grid auto-cols-[88%] grid-flow-col gap-6 overflow-x-auto pt-8 pb-16 -mt-8 select-none [scroll-snap-type:x_mandatory] [touch-action:pan-y] sm:auto-cols-[56%] lg:auto-cols-[40%]",
+                  "no-scrollbar grid auto-cols-[88%] grid-flow-col gap-6 overflow-x-auto pt-8 pb-16 -mt-8 select-none [scroll-snap-type:x_proximity] [touch-action:pan-y] sm:auto-cols-[56%] lg:auto-cols-[40%]",
                   isDragging ? "cursor-grabbing" : "cursor-grab"
                 )}
               >
@@ -851,19 +851,21 @@ export function Showreel({ content: initialContent, bgClass }: { content: Showre
         <AnimatePresence>
           {activeVideoUrl && (
             <motion.div
-              className="fixed inset-0 z-[80] flex items-center justify-center bg-ink/82 p-4 backdrop-blur-sm"
+              className="fixed inset-0 z-[80] flex items-center justify-center bg-ink/82 p-4 backdrop-blur-sm cursor-pointer"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               role="dialog"
               aria-modal="true"
+              onClick={() => setActiveVideoUrl(null)}
             >
               <motion.div
-                className="relative w-full max-w-5xl overflow-hidden bg-black rounded-3xl border border-white/10 shadow-editorial"
+                className="relative w-full max-w-5xl overflow-hidden bg-black rounded-3xl border border-white/10 shadow-editorial cursor-default"
                 initial={{ opacity: 0, scale: 0.96, y: 12 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.96, y: 12 }}
                 transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+                onClick={(e) => e.stopPropagation()}
               >
                 <div className="rounded-3xl overflow-hidden bg-black relative w-full h-full">
                   <div className="absolute left-6 top-5 z-30 max-w-[75%]">

@@ -258,7 +258,7 @@ export function Contact({ content: initialContent, bgClass }: { content: Contact
                   </span>
                   <a
                     href={`mailto:${content.email}`}
-                    className="inline-flex items-center gap-2.5 break-all font-serif text-lg text-ink transition-colors hover:text-ink/60 sm:text-xl"
+                    className="inline-flex items-center gap-2.5 pr-2 break-all font-serif text-lg text-ink transition-colors hover:text-ink/60 sm:text-xl"
                   >
                     {content.email}
                     <Mail className="h-4 w-4 text-ink/45 group-hover/item:translate-x-1 transition-transform duration-300" />
@@ -276,7 +276,7 @@ export function Contact({ content: initialContent, bgClass }: { content: Contact
                       <motion.a
                         key="phone-visible"
                         href={`tel:${content.phone.replace(/\s+/g, "")}`}
-                        className="inline-flex min-h-9 items-center gap-2.5 font-serif text-lg text-ink transition-colors hover:text-ink/60 sm:text-xl"
+                        className="inline-flex min-h-9 items-center gap-2.5 pr-2 font-serif text-lg text-ink transition-colors hover:text-ink/60 sm:text-xl"
                         variants={phoneSwap}
                         initial="hidden"
                         animate="visible"

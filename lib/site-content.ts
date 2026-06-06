@@ -14,6 +14,7 @@ export const siteContent: SiteContent = {
     press: { enabled: true, eyebrow: "prasa", title: "W mediach", label: "Prasa" },
     contact: { enabled: true, label: "Kontakt" }
   },
+  sectionsOrder: ["hero", "about", "portfolio", "showreel", "gallery", "press", "contact"],
   hero: {
     monogram: "WM",
     monogramTagline: "film / teatr / głos",

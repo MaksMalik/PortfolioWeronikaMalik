@@ -128,6 +128,7 @@ export type SiteContent = {
   gallery: GallerySession[];
   press: PressMention[];
   contact: ContactContent;
+  sectionsOrder?: string[];
 };
 
 export type ContentVersion = {

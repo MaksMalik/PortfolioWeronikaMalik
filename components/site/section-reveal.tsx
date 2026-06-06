@@ -1,7 +1,7 @@
 "use client";
 
-import type { ReactNode } from "react";
-import { motion } from "framer-motion";
+import { type ReactNode, useRef, useEffect, useState } from "react";
+import { motion, useScroll, useTransform, useSpring } from "framer-motion";
 import { cn } from "@/lib/utils";
 
 type SectionRevealProps = {
@@ -73,45 +73,68 @@ export function SectionHeading({
   align?: "left" | "center";
   className?: string;
 }) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [isDesktop, setIsDesktop] = useState(false);
+
+  useEffect(() => {
+    const media = window.matchMedia("(min-width: 1024px)");
+    setIsDesktop(media.matches);
+    const listener = (e: MediaQueryListEvent) => setIsDesktop(e.matches);
+    media.addEventListener("change", listener);
+    return () => media.removeEventListener("change", listener);
+  }, []);
+
+  const { scrollYProgress } = useScroll({
+    target: containerRef,
+    offset: ["start end", "end start"]
+  });
+
+  const rawX = useTransform(scrollYProgress, [0, 1], [-40, 40]);
+  const springX = useSpring(rawX, { stiffness: 80, damping: 25, restDelta: 0.001 });
+  const x = isDesktop ? springX : 0;
+
   return (
-    <motion.div
-      className={cn(
-        "space-y-4",
-        align === "center" && "mx-auto max-w-3xl text-center",
-        className
-      )}
-      initial="hidden"
-      whileInView="visible"
-      viewport={{ once: true, amount: 0.45, margin: "0px 0px -10% 0px" }}
-      variants={{
-        hidden: {},
-        visible: {
-          transition: {
-            staggerChildren: 0.12
-          }
-        }
-      }}
-    >
-      <motion.span
-        className={cn("eyebrow", align === "center" && "justify-center")}
-        variants={{
-          hidden: { opacity: 0, x: align === "center" ? 0 : -22, y: 10 },
-          visible: { opacity: 1, x: 0, y: 0 }
-        }}
-        transition={{ duration: 0.72, ease: revealEase }}
-      >
-        {eyebrow}
-      </motion.span>
-      <motion.h2
-        className="font-serif text-4xl font-medium leading-none text-ink sm:text-6xl lg:text-7xl"
-        variants={{
-          hidden: { opacity: 0, y: 24 },
-          visible: { opacity: 1, y: 0 }
-        }}
-        transition={{ duration: 0.92, ease: revealEase }}
-      >
-        {title}
-      </motion.h2>
-    </motion.div>
+    <div ref={containerRef} className={cn("overflow-visible", className)}>
+      <motion.div style={{ x }}>
+        <motion.div
+          className={cn(
+            "space-y-4",
+            align === "center" && "mx-auto max-w-3xl text-center"
+          )}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.45, margin: "0px 0px -10% 0px" }}
+          variants={{
+            hidden: {},
+            visible: {
+              transition: {
+                staggerChildren: 0.12
+              }
+            }
+          }}
+        >
+          <motion.span
+            className={cn("eyebrow", align === "center" && "justify-center")}
+            variants={{
+              hidden: { opacity: 0, x: align === "center" ? 0 : -22, y: 10 },
+              visible: { opacity: 1, x: 0, y: 0 }
+            }}
+            transition={{ duration: 0.72, ease: revealEase }}
+          >
+            {eyebrow}
+          </motion.span>
+          <motion.h2
+            className="font-serif text-4xl font-medium leading-none text-ink sm:text-6xl lg:text-7xl"
+            variants={{
+              hidden: { opacity: 0, y: 24 },
+              visible: { opacity: 1, y: 0 }
+            }}
+            transition={{ duration: 0.92, ease: revealEase }}
+          >
+            {title}
+          </motion.h2>
+        </motion.div>
+      </motion.div>
+    </div>
   );
 }

@@ -384,6 +384,8 @@ a {
 /* ── Cinematic image: circle-reveal color on hover ────────────── */
 
 .cinematicImage {
+  position: relative;
+  overflow: hidden;
   --tilt-x: 0deg;
   --tilt-y: 0deg;
   --spot-x: 50%;
@@ -549,6 +551,12 @@ body.is-edit-mode * {
   border-radius: 999px;
   background: #ffffff;
   transform: translate(-50%, -50%);
+  transition: opacity 240ms ease;
+}
+
+.customCursor.is-view .customCursorRing::after,
+.customCursor.is-play .customCursorRing::after {
+  opacity: 0;
 }
 
 .customCursorLabel {

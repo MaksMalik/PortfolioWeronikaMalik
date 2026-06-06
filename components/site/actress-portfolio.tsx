@@ -79,7 +79,17 @@ export function ActressPortfolio() {
     }
   ];
 
-  const renderedSections = sectionsConfig.filter((sec) => editMode || sec.enabled);
+  const defaultOrder = ["hero", "about", "portfolio", "showreel", "gallery", "press", "contact"];
+  const order = content.sectionsOrder ?? defaultOrder;
+  const orderMap = new Map(order.map((id, idx) => [id, idx]));
+
+  const sortedSections = [...sectionsConfig].sort((a, b) => {
+    const aIndex = orderMap.has(a.id) ? orderMap.get(a.id)! : defaultOrder.indexOf(a.id);
+    const bIndex = orderMap.has(b.id) ? orderMap.get(b.id)! : defaultOrder.indexOf(b.id);
+    return aIndex - bIndex;
+  });
+
+  const renderedSections = sortedSections.filter((sec) => editMode || sec.enabled);
 
   let nonHeroIndex = 0;
 
@@ -92,7 +102,6 @@ export function ActressPortfolio() {
       transition={{ duration: 0.65, ease: "easeOut" }}
     >
       <ScrollProgress />
-      <div className="cinematicAtmosphere" aria-hidden="true" />
       <CustomCursor />
       <AdminBar />
       <Header monogram={content.hero.monogram} />
@@ -101,7 +110,7 @@ export function ActressPortfolio() {
         let bgClass = "bg-white";
         
         if (sec.id !== "hero") {
-          bgClass = nonHeroIndex % 2 === 0 ? "bg-white" : "bg-porcelain";
+          bgClass = nonHeroIndex % 2 === 0 ? "bg-porcelain" : "bg-white";
           nonHeroIndex++;
         }
         
