@@ -21,6 +21,8 @@ const DRAG_THRESHOLD = 6;
 export function useHorizontalRail() {
   const railRef = useRef<HTMLDivElement>(null);
   const scrollFrameRef = useRef<number | null>(null);
+  const dragFrameRef = useRef<number | null>(null);
+  const pendingDragScrollLeftRef = useRef<number | null>(null);
   const dragState = useRef<DragState>({
     active: false,
     didDrag: false,
@@ -69,6 +71,11 @@ export function useHorizontalRail() {
         window.cancelAnimationFrame(scrollFrameRef.current);
         scrollFrameRef.current = null;
       }
+      if (dragFrameRef.current !== null) {
+        window.cancelAnimationFrame(dragFrameRef.current);
+        dragFrameRef.current = null;
+      }
+      pendingDragScrollLeftRef.current = null;
       rail.removeEventListener("scroll", handleScroll);
       resizeObserver.disconnect();
       window.removeEventListener("resize", updateScrollState);
@@ -116,7 +123,17 @@ export function useHorizontalRail() {
         // Disable scroll snap while dragging
         rail.style.scrollSnapType = "none";
       }
-      rail.scrollLeft = startScrollLeft - deltaX;
+      pendingDragScrollLeftRef.current = startScrollLeft - deltaX;
+      if (dragFrameRef.current === null) {
+        dragFrameRef.current = window.requestAnimationFrame(() => {
+          dragFrameRef.current = null;
+          if (pendingDragScrollLeftRef.current !== null) {
+            const nextScrollLeft = pendingDragScrollLeftRef.current;
+            pendingDragScrollLeftRef.current = null;
+            rail.scrollLeft = nextScrollLeft;
+          }
+        });
+      }
       e.preventDefault();
     };
 
@@ -127,6 +144,14 @@ export function useHorizontalRail() {
       window.removeEventListener("pointercancel", onUp);
 
       if (didDrag) {
+        if (dragFrameRef.current !== null) {
+          window.cancelAnimationFrame(dragFrameRef.current);
+          dragFrameRef.current = null;
+        }
+        if (pendingDragScrollLeftRef.current !== null) {
+          rail.scrollLeft = pendingDragScrollLeftRef.current;
+          pendingDragScrollLeftRef.current = null;
+        }
         ignoreClickRef.current = true;
         window.setTimeout(() => {
           ignoreClickRef.current = false;

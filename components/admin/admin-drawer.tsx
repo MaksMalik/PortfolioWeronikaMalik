@@ -59,6 +59,7 @@ export function AdminDrawer({ isOpen, onClose, title, children }: AdminDrawerPro
               {/* Scrollable Content */}
               <div
                 className="no-scrollbar h-[calc(100vh-5rem)] max-h-[calc(100vh-5rem)] flex-1 overscroll-contain overflow-y-auto p-5 space-y-6 sm:p-6"
+                data-lenis-prevent
                 onClick={(e) => e.stopPropagation()}
               >
                 {children}

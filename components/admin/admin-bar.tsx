@@ -272,7 +272,10 @@ export function AdminBar() {
 
         {/* History Dropdown Panel — portalled to body to escape backdrop-blur containing block */}
         {typeof document !== "undefined" && showHistory && createPortal(
-          <div className="fixed bottom-16 right-4 z-[90] max-h-[min(24rem,calc(100svh-6rem))] w-72 overflow-y-auto rounded-xl border border-white/10 bg-ink p-3 text-white shadow-xl sm:bottom-20">
+          <div
+            className="fixed bottom-16 right-4 z-[90] max-h-[min(24rem,calc(100svh-6rem))] w-72 overflow-y-auto rounded-xl border border-white/10 bg-ink p-3 text-white shadow-xl sm:bottom-20"
+            data-lenis-prevent
+          >
             <div className="flex items-center justify-between border-b border-white/10 pb-2 mb-2">
               <span className="text-[0.62rem] font-bold uppercase tracking-[0.12em] text-white/50">
                 Wersje (Max 10)
