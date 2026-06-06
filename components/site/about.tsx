@@ -2,6 +2,7 @@
 
 import { useState, ChangeEvent, useRef, useEffect, useMemo } from "react";
 import type { AboutContent, TimelineEvent } from "@/lib/types";
+import { siteContent as defaultSiteContent } from "@/lib/site-content";
 import { AboutImageFrame } from "@/components/site/about-image-frame";
 import { CinematicImage } from "@/components/site/cinematic-image";
 import { MagneticButton } from "@/components/site/magnetic-button";
@@ -53,7 +54,9 @@ export function About({
     return () => window.removeEventListener("resize", checkMobile);
   }, []);
 
-  const timelineEvents = useMemo(() => content.timeline ?? [], [content.timeline]);
+  const timelineEvents = useMemo(() => {
+    return content.timeline ?? defaultSiteContent.about.timeline ?? [];
+  }, [content.timeline]);
   const visibleEvents = useMemo(() => timelineEvents.filter(e => editMode || e.enabled), [timelineEvents, editMode]);
 
   // Framer Motion scroll logic for horizontal parallax on desktop
@@ -260,7 +263,7 @@ export function About({
           className="flex flex-col gap-12 w-full lg:flex-row lg:h-full lg:items-center lg:pl-16 lg:pr-32 lg:gap-0 lg:w-auto"
         >
           {/* Slide 0: Biography Intro */}
-          <div className="flex flex-col gap-8 w-full lg:w-screen lg:shrink-0 lg:flex-row lg:gap-16 lg:pr-24 lg:h-[80vh] lg:items-center lg:justify-start">
+          <div className="flex flex-col gap-8 w-full lg:w-auto lg:shrink-0 lg:flex-row lg:gap-16 lg:pr-24 lg:h-[80vh] lg:items-center lg:justify-start lg:pl-16 xl:pl-[calc((100vw-1240px)/2+4rem)]">
             <div className="max-w-2xl space-y-6">
               <SectionHeading eyebrow={content.eyebrow} title={content.title} reverseDirection={reverseParallax} />
               <RevealBlock delay={0.12}>
@@ -302,7 +305,7 @@ export function About({
             <div
               key={event.id}
               className={cn(
-                "relative border border-ink/10 bg-porcelain/30 rounded-2xl p-6 flex flex-col justify-between min-h-[380px] lg:border-none lg:bg-transparent lg:rounded-none lg:p-0 lg:w-[65vw] lg:max-w-[720px] lg:shrink-0 lg:flex-col lg:justify-center lg:px-12 lg:border-l lg:border-ink/10 lg:h-[80vh] lg:min-h-0",
+                "relative border border-ink/10 bg-porcelain/30 rounded-2xl p-6 flex flex-col justify-between min-h-[380px] lg:border-none lg:bg-transparent lg:rounded-none lg:p-0 lg:w-[45vw] lg:max-w-[500px] lg:shrink-0 lg:flex-col lg:justify-center lg:px-12 lg:border-l lg:border-ink/10 lg:h-[80vh] lg:min-h-0",
                 !event.enabled && "opacity-50 border-dashed"
               )}
             >

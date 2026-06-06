@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 import { useAdminEdit } from "@/components/admin/admin-edit-context";
 
 export function CustomCursor() {
-  const { editMode } = useAdminEdit();
+  const { editMode, content: globalContent } = useAdminEdit();
   const [isMobile, setIsMobile] = useState(false);
   const [previewSrc, setPreviewSrc] = useState<string | null>(null);
   const previewSrcRef = useRef<string | null>(null);
@@ -76,7 +76,9 @@ export function CustomCursor() {
 
       const imgEl = target?.closest("[data-cursor-img]") as HTMLElement | null;
       const cursorImg = imgEl ? imgEl.getAttribute("data-cursor-img") : null;
-      const hasPreview = Boolean(cursorImg);
+      
+      const portalEnabled = globalContent?.portalCursorEnabled !== false;
+      const hasPreview = Boolean(cursorImg) && portalEnabled;
 
       const size = cursorSize(nextMode, hasPreview);
       
@@ -100,7 +102,7 @@ export function CustomCursor() {
         setMode(nextMode);
       }
 
-      if (cursorImg) {
+      if (cursorImg && portalEnabled) {
         if (previewSrcRef.current !== cursorImg) {
           previewSrcRef.current = cursorImg;
           setPreviewSrc(cursorImg);

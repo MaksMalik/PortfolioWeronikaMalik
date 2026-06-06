@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { createPortal } from "react-dom";
 import { useAdminEdit } from "./admin-edit-context";
-import { Eye, EyeOff, Save, Rocket, LogOut, Loader2, History, Trash2, Clock, Undo, Redo, Moon, Sun, Sparkles } from "lucide-react";
+import { Eye, EyeOff, Save, Rocket, LogOut, Loader2, History, Trash2, Clock, Undo, Redo, Moon, Sun, Sparkles, MousePointer } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export function AdminBar() {
@@ -277,6 +277,25 @@ export function AdminBar() {
             </span>
           </div>
         )}
+
+        <button
+          type="button"
+          onClick={() => {
+            updateContent((draft) => {
+              draft.portalCursorEnabled = draft.portalCursorEnabled !== false ? false : true;
+            });
+          }}
+          className={cn(
+            "inline-flex h-9 items-center justify-center gap-1.5 rounded-full border px-2.5 sm:px-4 text-xs font-bold uppercase tracking-[0.12em] transition-all shrink-0",
+            content.portalCursorEnabled !== false
+              ? "border-emerald-500 bg-emerald-500/10 text-emerald-400"
+              : "border-white/15 bg-white/5 text-white/80 hover:bg-white/10 hover:text-white"
+          )}
+          title="Przełącz kursor portalowy (podgląd miniatur)"
+        >
+          <MousePointer className="h-3.5 w-3.5" />
+          <span className="hidden lg:inline">{content.portalCursorEnabled !== false ? "Kursor: Portale" : "Kursor: Klasyczny"}</span>
+        </button>
 
         <button
           type="button"

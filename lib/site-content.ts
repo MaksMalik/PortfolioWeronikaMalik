@@ -7,6 +7,7 @@ export const siteContent: SiteContent = {
   theme: "light",
   accentColorsEnabled: false,
   accentColor: "#c5a880",
+  portalCursorEnabled: true,
   sections: {
     hero: { enabled: true, label: "Start" },
     about: { enabled: true, label: "O mnie" },

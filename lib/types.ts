@@ -126,6 +126,7 @@ export type SiteContent = {
   theme?: "light" | "dark";
   accentColorsEnabled?: boolean;
   accentColor?: string;
+  portalCursorEnabled?: boolean;
   sections: {
     hero: SectionSettings;
     about: SectionSettings;
