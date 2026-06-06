@@ -9,12 +9,10 @@ import { useBodyScrollLock } from "@/components/site/use-body-scroll-lock";
 
 export function Header({
   monogram,
-  isLoaded = true,
-  delay = 0
+  isLoaded = true
 }: {
   monogram: string;
   isLoaded?: boolean;
-  delay?: number;
 }) {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
@@ -117,7 +115,7 @@ export function Header({
       )}
       initial={{ y: -24, opacity: 0 }}
       animate={isLoaded ? { y: 0, opacity: 1 } : { y: -24, opacity: 0 }}
-      transition={{ delay, duration: 0.82, ease: [0.22, 1, 0.36, 1] }}
+      transition={{ duration: 0.72, ease: [0.22, 1, 0.36, 1] }}
     >
       <div className="section-shell relative z-50 flex h-20 items-center justify-between">
         <a

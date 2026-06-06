@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState, ChangeEvent } from "react";
-import { motion, useScroll, useTransform } from "framer-motion";
+import { motion, useScroll, useSpring, useTransform } from "framer-motion";
 import type { HeroContent } from "@/lib/types";
 import { CinematicImage } from "@/components/site/cinematic-image";
 import { MagneticButton } from "@/components/site/magnetic-button";
@@ -16,12 +16,12 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 
-const HERO_NAME_DELAY = 0.18;
-const HERO_WORD_DELAY = 0.86;
-const HERO_META_DELAY = 2.35;
-const HERO_TAGLINE_DELAY = 2.72;
-const HERO_QUOTE_DELAY = 3.12;
-const HERO_BUTTON_DELAY = 3.56;
+const HERO_NAME_DELAY = 0;
+const HERO_WORD_DELAY = 0.18;
+const HERO_META_DELAY = 0.28;
+const HERO_TAGLINE_DELAY = 0.5;
+const HERO_QUOTE_DELAY = 0.72;
+const HERO_BUTTON_DELAY = 0.95;
 
 export function Hero({
   content: initialContent,
@@ -43,6 +43,10 @@ export function Hero({
   const imageY = useTransform(scrollYProgress, [0, 1], ["0%", "11%"]);
   const textY = useTransform(scrollYProgress, [0, 1], ["0%", "-6%"]);
   const lightOpacity = useTransform(scrollYProgress, [0, 0.55, 1], [0.62, 0.28, 0]);
+  const rawNameX = useTransform(scrollYProgress, [0, 1], ["-22px", "22px"]);
+  const rawMetaX = useTransform(scrollYProgress, [0, 1], ["22px", "-22px"]);
+  const nameX = useSpring(rawNameX, { stiffness: 80, damping: 25, restDelta: 0.001 });
+  const metaX = useSpring(rawMetaX, { stiffness: 80, damping: 25, restDelta: 0.001 });
   const nameWords = content.name.split(" ").filter(Boolean);
 
   const handleImageUpload = async (event: ChangeEvent<HTMLInputElement>) => {
@@ -168,6 +172,7 @@ export function Hero({
         <motion.div style={{ y: textY }} className="pb-0 lg:pt-6">
           <motion.div
             className="mb-9 flex items-center gap-4 text-[0.66rem] font-bold uppercase tracking-[0.24em] text-ink/45"
+            style={{ x: metaX }}
             initial={{ opacity: 0, y: 18 }}
             animate={isLoaded ? { opacity: 1, y: 0 } : { opacity: 0, y: 18 }}
             transition={{ delay: HERO_META_DELAY, duration: 0.82, ease: [0.22, 1, 0.36, 1] }}
@@ -176,7 +181,10 @@ export function Hero({
             <span>{content.monogramTagline ?? "film / teatr / głos"}</span>
           </motion.div>
 
-          <h1 className="hero-written-name max-w-[760px] font-serif text-[2.85rem] font-medium leading-[0.92] text-ink min-[380px]:text-[3.2rem] sm:text-[5.1rem] lg:text-[6.2rem] xl:text-[6.8rem]">
+          <motion.h1
+            className="hero-written-name max-w-[760px] font-serif text-[2.85rem] font-medium leading-[0.92] text-ink min-[380px]:text-[3.2rem] sm:text-[5.1rem] lg:text-[6.2rem] xl:text-[6.8rem]"
+            style={{ x: nameX }}
+          >
             {nameWords.map((word, wordIndex) => (
               <motion.span
                 key={`${word}-${wordIndex}`}
@@ -189,7 +197,7 @@ export function Hero({
                 }
                 transition={{
                   delay: HERO_NAME_DELAY + wordIndex * HERO_WORD_DELAY,
-                  duration: 1.15,
+                  duration: 0.74,
                   ease: [0.22, 1, 0.36, 1]
                 }}
               >
@@ -204,14 +212,14 @@ export function Hero({
                   }
                   transition={{
                     delay: HERO_NAME_DELAY + wordIndex * HERO_WORD_DELAY,
-                    duration: 1.15,
+                    duration: 0.74,
                     ease: [0.22, 1, 0.36, 1]
                   }}
                   aria-hidden="true"
                 />
               </motion.span>
             ))}
-          </h1>
+          </motion.h1>
 
           <div className="mt-8 max-w-xl space-y-7">
             <motion.p
