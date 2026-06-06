@@ -392,7 +392,7 @@ export function Gallery({ sessions: initialSessions, bgClass }: { sessions: Gall
             ref={railRef}
             {...railDragHandlers}
             className={cn(
-              "no-scrollbar grid auto-cols-[84%] grid-flow-col gap-5 overflow-x-auto pt-12 pb-20 -mt-12 -mb-16 select-none [scroll-snap-type:x_mandatory] [touch-action:pan-y] sm:auto-cols-[52%] lg:auto-cols-[36%]",
+              "no-scrollbar grid auto-cols-[84%] grid-flow-col gap-5 overflow-x-auto pt-12 pb-20 -mt-12 -mb-16 select-none [scroll-snap-type:x_mandatory] [touch-action:pan-y] sm:auto-cols-[52%] lg:auto-cols-[calc((100%_-_2.5rem)/3)]",
               isDragging ? "cursor-grabbing" : "cursor-grab"
             )}
           >
@@ -400,12 +400,12 @@ export function Gallery({ sessions: initialSessions, bgClass }: { sessions: Gall
               const cover = coverFor(session);
 
               return (
-                <div key={session.id} className="relative group scroll-ml-4 [scroll-snap-align:start]">
+                <div key={session.id} className="relative group h-full scroll-ml-4 [scroll-snap-align:start]">
                   <motion.button
                     type="button"
                     data-cursor="view"
                     className={cn(
-                      "cinematic-card w-full group grid min-h-[520px] border border-ink/10 bg-white text-left shadow-[0_18px_60px_rgba(16,16,16,0.04)] rounded-2xl",
+                      "cinematic-card w-full group flex h-full min-h-[660px] flex-col border border-ink/10 bg-white text-left shadow-[0_18px_60px_rgba(16,16,16,0.04)] rounded-2xl",
                       !session.enabled && "opacity-50 border-dashed"
                     )}
                     onClick={() => {
@@ -423,18 +423,15 @@ export function Gallery({ sessions: initialSessions, bgClass }: { sessions: Gall
                     transition={{ delay: index * 0.08, duration: 0.58, ease: [0.22, 1, 0.36, 1] }}
                     whileHover={editMode ? {} : { y: -8 }}
                   >
-                    <div className="relative">
+                    <div className="relative shrink-0">
                       <CinematicImage
                         src={cover.src}
                         alt={cover.alt}
-                        className={cn(
-                          "min-h-[390px] w-full rounded-t-2xl",
-                          index % 2 === 0 ? "aspect-[4/5]" : "aspect-[5/4]"
-                        )}
+                        className="h-[390px] w-full rounded-t-2xl sm:h-[430px]"
                       />
                       <CinematicCardFrame />
                     </div>
-                    <div className="p-6 w-full flex flex-col justify-between">
+                    <div className="flex min-h-[230px] w-full flex-1 flex-col justify-between p-6">
                       <div>
                         <p className="text-[0.66rem] font-bold uppercase tracking-[0.2em] text-ink/45">
                           {session.subtitle}
@@ -443,7 +440,7 @@ export function Gallery({ sessions: initialSessions, bgClass }: { sessions: Gall
                           {session.title}
                         </h3>
                         {session.description && (
-                          <p className="mt-4 line-clamp-2 text-sm leading-6 text-ink/55">
+                          <p className="mt-4 line-clamp-3 text-sm leading-6 text-ink/55">
                             {session.description}
                           </p>
                         )}
