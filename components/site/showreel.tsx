@@ -81,7 +81,15 @@ function getYoutubeVideoId(url: string) {
   return null;
 }
 
-export function Showreel({ content: initialContent, bgClass }: { content: ShowreelContent; bgClass?: string }) {
+export function Showreel({
+  content: initialContent,
+  bgClass,
+  reverseParallax
+}: {
+  content: ShowreelContent;
+  bgClass?: string;
+  reverseParallax?: boolean;
+}) {
   const { editMode, updateContent, content: globalContent } = useAdminEdit();
   const content = editMode ? globalContent.showreel : initialContent;
 
@@ -297,7 +305,7 @@ export function Showreel({ content: initialContent, bgClass }: { content: Showre
           // Multi video layout: Horizontal scrolling list (rail)
           <div>
             <div className="flex flex-col justify-between gap-8 md:flex-row md:items-end w-full mb-10">
-              <SectionHeading eyebrow={content.eyebrow} title={content.title} />
+              <SectionHeading eyebrow={content.eyebrow} title={content.title} reverseDirection={reverseParallax} />
               {content.description && (
                 <RevealBlock delay={0.14} x={24} y={18}>
                   <p className="max-w-sm text-sm leading-7 text-ink/55">
@@ -469,14 +477,7 @@ export function Showreel({ content: initialContent, bgClass }: { content: Showre
             </RevealBlock>
 
             <div className="max-w-xl lg:pl-8 space-y-6">
-              <RevealBlock delay={0.08} y={12}>
-                <span className="eyebrow-simple">{content.eyebrow}</span>
-              </RevealBlock>
-              <RevealBlock delay={0.16}>
-                <h2 className="mt-5 font-serif text-5xl font-medium leading-none text-ink sm:text-7xl">
-                  {content.title}
-                </h2>
-              </RevealBlock>
+              <SectionHeading eyebrow={content.eyebrow} title={content.title} reverseDirection={reverseParallax} />
               <RevealBlock delay={0.25}>
                 <p className="mt-6 text-lg leading-8 text-graphite/75">{content.description}</p>
               </RevealBlock>

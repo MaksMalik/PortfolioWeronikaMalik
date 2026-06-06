@@ -14,7 +14,15 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 
-export function PressMentions({ mentions: initialMentions, bgClass }: { mentions: PressMention[]; bgClass?: string }) {
+export function PressMentions({
+  mentions: initialMentions,
+  bgClass,
+  reverseParallax
+}: {
+  mentions: PressMention[];
+  bgClass?: string;
+  reverseParallax?: boolean;
+}) {
   const { editMode, updateContent, content: globalContent } = useAdminEdit();
   const mentions = editMode ? globalContent.press : initialMentions;
 
@@ -124,6 +132,7 @@ export function PressMentions({ mentions: initialMentions, bgClass }: { mentions
             title={globalContent.sections.press.title ?? "W mediach"}
             align="center"
             className="w-full"
+            reverseDirection={reverseParallax}
           />
         </div>
 

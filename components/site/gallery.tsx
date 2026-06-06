@@ -35,7 +35,15 @@ function emptyImage(prefix: string): SiteImage {
   };
 }
 
-export function Gallery({ sessions: initialSessions, bgClass }: { sessions: GallerySession[]; bgClass?: string }) {
+export function Gallery({
+  sessions: initialSessions,
+  bgClass,
+  reverseParallax
+}: {
+  sessions: GallerySession[];
+  bgClass?: string;
+  reverseParallax?: boolean;
+}) {
   const { editMode, updateContent, content: globalContent } = useAdminEdit();
   const sessions = editMode ? globalContent.gallery : initialSessions;
   const visibleSessions = sessions.filter((session) => editMode || session.enabled);
@@ -332,6 +340,7 @@ export function Gallery({ sessions: initialSessions, bgClass }: { sessions: Gall
           <SectionHeading
             eyebrow={globalContent.sections.gallery.eyebrow ?? "galeria"}
             title={globalContent.sections.gallery.title ?? "Sesje zdjęciowe"}
+            reverseDirection={reverseParallax}
           />
           <RevealBlock delay={0.14} x={24} y={18}>
             <p className="max-w-sm text-sm leading-7 text-ink/55">

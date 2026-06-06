@@ -15,7 +15,15 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { SectionReorderControls } from "@/components/admin/section-reorder-controls";
 
-export function About({ content: initialContent, bgClass }: { content: AboutContent; bgClass?: string }) {
+export function About({
+  content: initialContent,
+  bgClass,
+  reverseParallax
+}: {
+  content: AboutContent;
+  bgClass?: string;
+  reverseParallax?: boolean;
+}) {
   const { editMode, updateContent, content: globalContent } = useAdminEdit();
   const content = editMode ? globalContent.about : initialContent;
 
@@ -97,7 +105,7 @@ export function About({ content: initialContent, bgClass }: { content: AboutCont
 
       <div className="section-shell grid items-center gap-12 lg:grid-cols-[1.12fr_0.88fr]">
         <div className="max-w-2xl space-y-6">
-          <SectionHeading eyebrow={content.eyebrow} title={content.title} />
+          <SectionHeading eyebrow={content.eyebrow} title={content.title} reverseDirection={reverseParallax} />
           <RevealBlock delay={0.12}>
             <p className="mt-8 text-lg leading-8 text-graphite/80 sm:text-xl sm:leading-9 whitespace-pre-wrap">
               {content.body}

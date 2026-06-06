@@ -52,7 +52,15 @@ function isFilmwebLink(label?: string, url?: string) {
   return `${label ?? ""} ${url ?? ""}`.toLowerCase().includes("filmweb");
 }
 
-export function PortfolioHighlights({ projects: initialProjects, bgClass }: { projects: PortfolioProject[]; bgClass?: string }) {
+export function PortfolioHighlights({
+  projects: initialProjects,
+  bgClass,
+  reverseParallax
+}: {
+  projects: PortfolioProject[];
+  bgClass?: string;
+  reverseParallax?: boolean;
+}) {
   const { editMode, updateContent, content: globalContent } = useAdminEdit();
   const projects = editMode ? globalContent.portfolio : initialProjects;
   const visibleProjects = projects.filter((project) => editMode || project.enabled);
@@ -274,10 +282,12 @@ export function PortfolioHighlights({ projects: initialProjects, bgClass }: { pr
       )}
 
       <div className="section-shell">
-        <div className="flex flex-col justify-between gap-8 md:flex-row md:items-end w-full">
+        <div className="flex flex-col gap-8 md:flex-row md:items-end md:justify-end w-full">
           <SectionHeading
             eyebrow={globalContent.sections.portfolio.eyebrow ?? "portfolio"}
             title={globalContent.sections.portfolio.title ?? "Wybrane role"}
+            align="right"
+            reverseDirection={reverseParallax}
           />
         </div>
 

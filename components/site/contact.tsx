@@ -101,7 +101,15 @@ const phoneSwap: Variants = {
   }
 };
 
-export function Contact({ content: initialContent, bgClass }: { content: ContactContent; bgClass?: string }) {
+export function Contact({
+  content: initialContent,
+  bgClass,
+  reverseParallax
+}: {
+  content: ContactContent;
+  bgClass?: string;
+  reverseParallax?: boolean;
+}) {
   const { editMode, updateContent, content: globalContent } = useAdminEdit();
   const content = editMode ? globalContent.contact : initialContent;
 
@@ -215,7 +223,7 @@ export function Contact({ content: initialContent, bgClass }: { content: Contact
         <div className="grid gap-10 border-t border-ink/10 py-12 lg:grid-cols-[0.95fr_1.05fr] lg:gap-16 lg:py-16">
           <div className="flex flex-col justify-between">
             <div>
-              <SectionHeading eyebrow={content.eyebrow} title={content.heading} />
+              <SectionHeading eyebrow={content.eyebrow} title={content.heading} reverseDirection={reverseParallax} />
               <RevealBlock delay={0.12}>
                 <p className="mt-7 max-w-xl whitespace-pre-wrap text-base leading-8 text-graphite/75 sm:text-lg">
                   {content.intro}

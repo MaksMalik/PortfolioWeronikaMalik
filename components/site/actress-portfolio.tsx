@@ -32,50 +32,59 @@ export function ActressPortfolio() {
     {
       id: "about",
       enabled: content.sections.about.enabled,
-      render: (bgClass: string) => <About key="about" content={content.about} bgClass={bgClass} />
+      render: (bgClass: string, reverseParallax?: boolean) => (
+        <About key="about" content={content.about} bgClass={bgClass} reverseParallax={reverseParallax} />
+      )
     },
     {
       id: "portfolio",
       enabled: content.sections.portfolio.enabled,
-      render: (bgClass: string) => (
+      render: (bgClass: string, reverseParallax?: boolean) => (
         <PortfolioHighlights
           key="portfolio"
           projects={editMode ? content.portfolio : content.portfolio.filter((project) => project.enabled)}
           bgClass={bgClass}
+          reverseParallax={reverseParallax}
         />
       )
     },
     {
       id: "showreel",
       enabled: content.sections.showreel.enabled,
-      render: (bgClass: string) => <Showreel key="showreel" content={content.showreel} bgClass={bgClass} />
+      render: (bgClass: string, reverseParallax?: boolean) => (
+        <Showreel key="showreel" content={content.showreel} bgClass={bgClass} reverseParallax={reverseParallax} />
+      )
     },
     {
       id: "gallery",
       enabled: content.sections.gallery.enabled,
-      render: (bgClass: string) => (
+      render: (bgClass: string, reverseParallax?: boolean) => (
         <Gallery
           key="gallery"
           sessions={editMode ? content.gallery : content.gallery.filter((session) => session.enabled)}
           bgClass={bgClass}
+          reverseParallax={reverseParallax}
         />
       )
     },
     {
       id: "press",
       enabled: content.sections.press.enabled,
-      render: (bgClass: string) => (
+      render: (bgClass: string, reverseParallax?: boolean) => (
         <PressMentions
           key="press"
           mentions={editMode ? content.press : content.press.filter((mention) => mention.enabled)}
           bgClass={bgClass}
+          reverseParallax={reverseParallax}
         />
       )
     },
     {
       id: "contact",
       enabled: content.sections.contact.enabled,
-      render: (bgClass: string) => <Contact key="contact" content={content.contact} bgClass={bgClass} />
+      render: (bgClass: string, reverseParallax?: boolean) => (
+        <Contact key="contact" content={content.contact} bgClass={bgClass} reverseParallax={reverseParallax} />
+      )
     }
   ];
 
@@ -108,13 +117,15 @@ export function ActressPortfolio() {
 
       {renderedSections.map((sec) => {
         let bgClass = "bg-white";
+        let reverseParallax = false;
         
         if (sec.id !== "hero") {
           bgClass = nonHeroIndex % 2 === 0 ? "bg-porcelain" : "bg-white";
+          reverseParallax = nonHeroIndex % 2 !== 0;
           nonHeroIndex++;
         }
         
-        return sec.render(bgClass);
+        return sec.render(bgClass, reverseParallax);
       })}
     </motion.main>
   );
