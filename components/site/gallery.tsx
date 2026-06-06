@@ -830,16 +830,24 @@ export const Gallery = memo(function Gallery({
       <ModalPortal>
         <AnimatePresence>
           {activeSession && (
-            <motion.div
-              className="fixed inset-0 z-[90] overflow-y-auto overscroll-contain bg-porcelain text-ink"
-              style={{ willChange: "transform", WebkitOverflowScrolling: "touch", height: '100vh' } as any}
-              initial={{ opacity: 0, y: "100%" }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: "100%" }}
-              transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
-              role="dialog"
-              aria-modal="true"
-            >
+            <>
+              <motion.div
+                className="fixed inset-0 z-[89] bg-ink/30 backdrop-blur-[2px]"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                onClick={() => setActiveSessionId(null)}
+              />
+              <motion.div
+                className="fixed inset-0 z-[90] overflow-y-auto overscroll-contain bg-porcelain text-ink"
+                style={{ willChange: "transform", WebkitOverflowScrolling: "touch", height: '100vh' } as any}
+                initial={{ opacity: 0, y: "100%" }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: "100%" }}
+                transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
+                role="dialog"
+                aria-modal="true"
+              >
               <motion.div
                 className="mx-auto max-w-7xl rounded-3xl bg-porcelain my-8 border border-ink/10 shadow-editorial relative overflow-hidden"
                 initial={{ opacity: 0, y: 24 }}
@@ -852,12 +860,30 @@ export const Gallery = memo(function Gallery({
                   <div className="sticky top-0 z-20 mb-6 border-b border-ink/10 bg-porcelain px-4 py-4 shadow-[0_16px_50px_rgba(16,16,16,0.04)] sm:px-6">
                     <div className="mx-auto flex max-w-7xl flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                       <div>
-                        <p className="text-xs font-bold uppercase tracking-[0.22em] text-ink/45">
-                          {activeSession.subtitle}
-                        </p>
-                        <h2 className="font-serif text-4xl leading-none sm:text-6xl text-ink">
-                          {activeSession.title}
-                        </h2>
+                        <AnimatePresence mode="wait" initial={false}>
+                          <motion.p
+                            key={activeSession.id}
+                            className="text-xs font-bold uppercase tracking-[0.22em] text-ink/45"
+                            initial={{ opacity: 0, x: sessionDirection * 20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: sessionDirection * -20 }}
+                            transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+                          >
+                            {activeSession.subtitle}
+                          </motion.p>
+                        </AnimatePresence>
+                        <AnimatePresence mode="wait" initial={false}>
+                          <motion.h2
+                            key={activeSession.id}
+                            className="font-serif text-4xl leading-none sm:text-6xl text-ink"
+                            initial={{ opacity: 0, x: sessionDirection * 20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: sessionDirection * -20 }}
+                            transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+                          >
+                            {activeSession.title}
+                          </motion.h2>
+                        </AnimatePresence>
                       </div>
 
                       <div className="flex items-center gap-2">
@@ -895,11 +921,20 @@ export const Gallery = memo(function Gallery({
                     </div>
                   </div>
 
-                  {activeSession.description && (
-                    <p className="mb-8 max-w-3xl px-4 text-lg leading-8 text-graphite/70 sm:px-6 whitespace-pre-wrap">
-                      {activeSession.description}
-                    </p>
-                  )}
+                  <AnimatePresence mode="wait" initial={false}>
+                    {activeSession.description && (
+                      <motion.p
+                        key={activeSession.id}
+                        className="mb-8 max-w-3xl px-4 text-lg leading-8 text-graphite/70 sm:px-6 whitespace-pre-wrap"
+                        initial={{ opacity: 0, x: sessionDirection * 20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: sessionDirection * -20 }}
+                        transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+                      >
+                        {activeSession.description}
+                      </motion.p>
+                    )}
+                  </AnimatePresence>
 
                   <AnimatePresence mode="wait" initial={false}>
                     <motion.div
@@ -952,6 +987,7 @@ export const Gallery = memo(function Gallery({
                 </div>
               </motion.div>
             </motion.div>
+            </>
           )}
         </AnimatePresence>
       </ModalPortal>

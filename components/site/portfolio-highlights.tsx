@@ -97,18 +97,31 @@ export const PortfolioHighlights = memo(function PortfolioHighlights({
 
   useBodyScrollLock(activeProject !== null);
 
+  const goTo = (direction: "next" | "prev") => {
+    if (visibleProjects.length <= 1) return;
+    const currentIdx = visibleProjects.findIndex(p => p.id === activeProject?.id);
+    let nextIdx = currentIdx + (direction === "next" ? 1 : -1);
+    if (nextIdx >= visibleProjects.length) nextIdx = 0;
+    if (nextIdx < 0) nextIdx = visibleProjects.length - 1;
+    setActiveProject(visibleProjects[nextIdx]);
+  };
+
   useEffect(() => {
     if (!activeProject) return;
 
     const handleKey = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
         setActiveProject(null);
+      } else if (event.key === "ArrowLeft") {
+        goTo("prev");
+      } else if (event.key === "ArrowRight") {
+        goTo("next");
       }
     };
 
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
-  }, [activeProject]);
+  }, [activeProject, goTo]);
 
   useEffect(() => {
     updateScrollState();
@@ -798,16 +811,24 @@ export const PortfolioHighlights = memo(function PortfolioHighlights({
       <ModalPortal>
         <AnimatePresence>
           {activeProject && (
-            <motion.div
-              className="fixed inset-0 z-[90] overflow-y-auto overscroll-contain bg-porcelain text-ink"
-              style={{ willChange: "transform", WebkitOverflowScrolling: "touch", height: '100vh' } as any}
-              initial={{ opacity: 0, y: "100%" }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: "100%" }}
-              transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
-              role="dialog"
-              aria-modal="true"
-            >
+            <>
+              <motion.div
+                className="fixed inset-0 z-[89] bg-ink/30 backdrop-blur-[2px]"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                onClick={() => setActiveProject(null)}
+              />
+              <motion.div
+                className="fixed inset-0 z-[90] overflow-y-auto overscroll-contain bg-porcelain text-ink"
+                style={{ willChange: "transform", WebkitOverflowScrolling: "touch", height: '100vh' } as any}
+                initial={{ opacity: 0, y: "100%" }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: "100%" }}
+                transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
+                role="dialog"
+                aria-modal="true"
+              >
               <motion.div
                 className="mx-auto max-w-6xl rounded-3xl bg-porcelain my-8 border border-ink/10 shadow-editorial relative overflow-hidden"
                 initial={{ opacity: 0, y: 24 }}
@@ -820,26 +841,73 @@ export const PortfolioHighlights = memo(function PortfolioHighlights({
                   <div className="sticky top-0 z-20 mb-8 border-b border-ink/10 bg-porcelain px-4 py-4 shadow-[0_16px_50px_rgba(16,16,16,0.04)] sm:px-6">
                     <div className="mx-auto flex max-w-6xl items-center justify-between gap-4">
                       <div>
-                        <p className="text-xs font-bold uppercase tracking-[0.22em] text-ink/45">
-                          {activeProject.type} / {activeProject.role} / {activeProject.year}
-                        </p>
-                        <h2 className="font-serif text-4xl leading-none sm:text-6xl text-ink">
-                          {activeProject.title}
-                        </h2>
+                        <AnimatePresence mode="wait" initial={false}>
+                          <motion.p
+                            key={activeProject.id}
+                            className="text-xs font-bold uppercase tracking-[0.22em] text-ink/45"
+                            initial={{ opacity: 0, x: 20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: -20 }}
+                            transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+                          >
+                            {activeProject.type} / {activeProject.role} / {activeProject.year}
+                          </motion.p>
+                        </AnimatePresence>
+                        <AnimatePresence mode="wait" initial={false}>
+                          <motion.h2
+                            key={activeProject.id}
+                            className="font-serif text-4xl leading-none sm:text-6xl text-ink"
+                            initial={{ opacity: 0, x: 20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: -20 }}
+                            transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+                          >
+                            {activeProject.title}
+                          </motion.h2>
+                        </AnimatePresence>
                       </div>
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        className="rounded-full"
-                        onClick={() => setActiveProject(null)}
-                        aria-label="Zamknij szczegóły roli"
-                      >
-                        <X className="h-5 w-5" />
-                      </Button>
+                      <div className="flex items-center gap-2">
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          className="rounded-full"
+                          onClick={() => goTo("prev")}
+                          aria-label="Poprzedni projekt"
+                        >
+                          <ChevronLeft className="h-5 w-5" />
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          className="rounded-full"
+                          onClick={() => goTo("next")}
+                          aria-label="Następny projekt"
+                        >
+                          <ChevronRight className="h-5 w-5" />
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          className="rounded-full"
+                          onClick={() => setActiveProject(null)}
+                          aria-label="Zamknij szczegóły roli"
+                        >
+                          <X className="h-5 w-5" />
+                        </Button>
+                      </div>
                     </div>
                   </div>
 
                   <div className="grid gap-8 px-6 pb-10 sm:px-8 lg:grid-cols-[0.92fr_1.08fr]">
+                  <AnimatePresence mode="wait" initial={false}>
+                    <motion.div
+                      key={activeProject.id}
+                      className="contents"
+                      initial={{ opacity: 0, x: 20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: -20 }}
+                      transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+                    >
                   {(activeProject.image.src && activeProject.image.enabled !== false) && (
                       <CinematicImage
                         src={activeProject.image.src}
@@ -878,6 +946,8 @@ export const PortfolioHighlights = memo(function PortfolioHighlights({
                         </Button>
                       )}
                     </div>
+                    </motion.div>
+                  </AnimatePresence>
                   </div>
 
                   {(activeProject.images ?? []).filter((image) => image.enabled).length > 0 && (
@@ -919,6 +989,7 @@ export const PortfolioHighlights = memo(function PortfolioHighlights({
                 </div>
               </motion.div>
             </motion.div>
+            </>
           )}
         </AnimatePresence>
       </ModalPortal>
