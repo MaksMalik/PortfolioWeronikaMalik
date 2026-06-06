@@ -107,7 +107,7 @@ export function SmoothScroll() {
       const skipHorizontalSection = shouldSkipHorizontalSection(top, href);
       const distance = Math.abs(top - currentTop);
       const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-      const useSectionTransition = false;
+      const useSectionTransition = distance > 32 && (source === "header" || skipHorizontalSection);
       const finishDelay = useSectionTransition
         ? prefersReducedMotion
           ? ANCHOR_SKIP_FINISH_DELAY
@@ -277,5 +277,6 @@ export function SmoothScroll() {
     </AnimatePresence>
   );
 }
+
 
 
