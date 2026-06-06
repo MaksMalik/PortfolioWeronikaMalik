@@ -64,6 +64,38 @@ export const Gallery = memo(function Gallery({
   const [uploadingImageId, setUploadingImageId] = useState<string | null>(null);
   const [sessionDirection, setSessionDirection] = useState<-1 | 1>(1);
 
+  const handleCardMouseMove = (e: React.MouseEvent<HTMLElement>) => {
+    if (editMode || isMobile) return;
+    const card = e.currentTarget;
+    const rect = card.getBoundingClientRect();
+    const nx = (e.clientX - rect.left) / rect.width - 0.5;
+    const ny = (e.clientY - rect.top) / rect.height - 0.5;
+    
+    card.style.setProperty("--tilt-x", `${ny * -8}deg`);
+    card.style.setProperty("--tilt-y", `${nx * 8}deg`);
+
+    const cinematicImg = card.querySelector(".cinematicImage") as HTMLElement | null;
+    if (cinematicImg) {
+      const imgRect = cinematicImg.getBoundingClientRect();
+      const spotX = e.clientX - imgRect.left;
+      const spotY = e.clientY - imgRect.top;
+      cinematicImg.style.setProperty("--spot-x", `${spotX}px`);
+      cinematicImg.style.setProperty("--spot-y", `${spotY}px`);
+    }
+  };
+
+  const handleCardMouseLeave = (e: React.MouseEvent<HTMLElement>) => {
+    const card = e.currentTarget;
+    card.style.setProperty("--tilt-x", "0deg");
+    card.style.setProperty("--tilt-y", "0deg");
+    
+    const cinematicImg = card.querySelector(".cinematicImage") as HTMLElement | null;
+    if (cinematicImg) {
+      cinematicImg.style.setProperty("--tilt-x", "0deg");
+      cinematicImg.style.setProperty("--tilt-y", "0deg");
+    }
+  };
+
   const modalImageRef = useRef<HTMLDivElement>(null);
   const {
     canScrollNext,
@@ -438,12 +470,17 @@ export const Gallery = memo(function Gallery({
                       setSessionDirection(1);
                       setActiveSessionId(session.id);
                     }}
+                    onMouseMove={handleCardMouseMove}
+                    onMouseLeave={handleCardMouseLeave}
                     aria-label={`Otwórz sesję ${session.title}`}
                     initial={{ opacity: 0, y: 12 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true, amount: 0.05 }}
-                    transition={{ delay: index * 0.08, duration: 0.58, ease: [0.22, 1, 0.36, 1] }}
-                    whileHover={editMode || isMobile ? {} : { y: -8 }}
+                    layoutId={`session-card-${session.id}`}
+                    transition={{
+                      default: { delay: index * 0.08, duration: 0.58, ease: [0.22, 1, 0.36, 1] },
+                      layout: { type: "spring", stiffness: 350, damping: 32, mass: 0.8 }
+                    }}
                   >
                     <div className="relative shrink-0">
                       <CinematicImage
@@ -839,12 +876,11 @@ export const Gallery = memo(function Gallery({
                 onClick={() => setActiveSessionId(null)}
               />
               <motion.div
-                className="fixed inset-0 z-[90] h-screen overflow-y-auto overscroll-contain bg-porcelain text-ink will-change-transform [-webkit-overflow-scrolling:touch]"
+                className="fixed inset-0 z-[90] h-screen overflow-y-auto overscroll-contain text-ink will-change-transform [-webkit-overflow-scrolling:touch]"
                 data-lenis-prevent
-                initial={{ opacity: 0, y: "100%" }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: "100%" }}
-                transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.35, ease: "easeOut" }}
                 role="dialog"
                 aria-modal="true"
                 onClick={(e) => {
@@ -856,10 +892,10 @@ export const Gallery = memo(function Gallery({
               >
               <motion.div
                 className="mx-auto max-w-7xl rounded-3xl bg-porcelain my-8 border border-ink/10 shadow-editorial relative overflow-hidden"
-                initial={{ opacity: 0, y: 24 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 24 }}
-                transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+                layoutId={`session-card-${activeSession.id}`}
+                transition={{
+                  layout: { type: "spring", stiffness: 350, damping: 32, mass: 0.8 }
+                }}
               >
                 <div className="pointer-events-none absolute inset-x-0 top-0 h-24 bg-[linear-gradient(180deg,rgba(255,255,255,0.66),transparent)]" aria-hidden="true" />
                 <div className="rounded-3xl overflow-hidden bg-porcelain">

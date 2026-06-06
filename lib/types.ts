@@ -114,6 +114,8 @@ export type ContactContent = {
 export type SiteContent = {
   schemaVersion: number;
   theme?: "light" | "dark";
+  accentColorsEnabled?: boolean;
+  accentColor?: string;
   sections: {
     hero: SectionSettings;
     about: SectionSettings;

@@ -171,7 +171,7 @@ export function Hero({
 
         <motion.div style={{ y: textY }} className="heroMobileStaticText pb-0 lg:pt-6">
           <motion.div
-            className="mb-9 flex items-center gap-4 text-[0.66rem] font-bold uppercase tracking-[0.24em] text-ink/45"
+            className="hero-eyebrow mb-9 flex items-center gap-4 text-[0.66rem] font-bold uppercase tracking-[0.24em] text-ink/45"
             style={{ x: metaX }}
             initial={{ opacity: 0, y: 18 }}
             animate={isLoaded ? { opacity: 1, y: 0 } : { opacity: 0, y: 18 }}

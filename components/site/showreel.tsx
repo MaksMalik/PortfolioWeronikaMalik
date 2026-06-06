@@ -116,6 +116,38 @@ export function Showreel({
   const [editingVideo, setEditingVideo] = useState<ShowreelVideo | null>(null);
   const [uploadingImageId, setUploadingImageId] = useState<string | null>(null);
 
+  const handleCardMouseMove = (e: React.MouseEvent<HTMLElement>) => {
+    if (editMode || isMobile) return;
+    const card = e.currentTarget;
+    const rect = card.getBoundingClientRect();
+    const nx = (e.clientX - rect.left) / rect.width - 0.5;
+    const ny = (e.clientY - rect.top) / rect.height - 0.5;
+    
+    card.style.setProperty("--tilt-x", `${ny * -8}deg`);
+    card.style.setProperty("--tilt-y", `${nx * 8}deg`);
+
+    const cinematicImg = card.querySelector(".cinematicImage") as HTMLElement | null;
+    if (cinematicImg) {
+      const imgRect = cinematicImg.getBoundingClientRect();
+      const spotX = e.clientX - imgRect.left;
+      const spotY = e.clientY - imgRect.top;
+      cinematicImg.style.setProperty("--spot-x", `${spotX}px`);
+      cinematicImg.style.setProperty("--spot-y", `${spotY}px`);
+    }
+  };
+
+  const handleCardMouseLeave = (e: React.MouseEvent<HTMLElement>) => {
+    const card = e.currentTarget;
+    card.style.setProperty("--tilt-x", "0deg");
+    card.style.setProperty("--tilt-y", "0deg");
+    
+    const cinematicImg = card.querySelector(".cinematicImage") as HTMLElement | null;
+    if (cinematicImg) {
+      cinematicImg.style.setProperty("--tilt-x", "0deg");
+      cinematicImg.style.setProperty("--tilt-y", "0deg");
+    }
+  };
+
   const {
     canScrollNext,
     canScrollPrev,
@@ -410,12 +442,13 @@ export function Showreel({
                           setActiveVideoTitle(video.title);
                           setActiveVideoPoster(thumbSrc);
                         }}
+                        onMouseMove={handleCardMouseMove}
+                        onMouseLeave={handleCardMouseLeave}
                         aria-label={`Odtwórz wideo ${video.title}`}
                         initial={{ opacity: 0, y: 12 }}
                         whileInView={{ opacity: 1, y: 0 }}
                         viewport={{ once: true, amount: 0.05 }}
                         transition={{ delay: idx * 0.08, duration: 0.58, ease: [0.22, 1, 0.36, 1] }}
-                        whileHover={editMode || isMobile ? {} : { y: -8 }}
                       >
                         <div className="relative aspect-video w-full overflow-hidden">
                           <CinematicImage
@@ -423,9 +456,9 @@ export function Showreel({
                             alt={video.thumbnail.alt || video.title}
                             className="absolute inset-0 h-full w-full"
                           />
-                          <span className="absolute inset-0 z-10 bg-ink/0 transition-colors duration-700 group-hover:bg-ink/8" />
+                          <span className="absolute inset-0 z-10 bg-ink/0 transition-colors duration-700 group-hover:bg-ink/8 pointer-events-none" />
                           {!editMode && (
-                            <span className="absolute left-1/2 top-1/2 z-10 flex h-14 w-14 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-white/60 bg-white/20 text-white backdrop-blur-sm transition-transform duration-500 group-hover:scale-110">
+                            <span className="absolute left-1/2 top-1/2 z-10 flex h-14 w-14 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-white/60 bg-white/20 text-white backdrop-blur-sm transition-transform duration-500 group-hover:scale-110 pointer-events-none">
                               <Play className="ml-0.5 h-6 w-6 fill-current" />
                             </span>
                           )}
@@ -457,11 +490,11 @@ export function Showreel({
         ) : (
           // Single video layout: Default fallback
           <div className="grid items-center gap-10 border-y border-ink/10 py-10 lg:grid-cols-[1.1fr_0.9fr]">
-            <RevealBlock className="relative group aspect-video w-full rounded-3xl overflow-hidden shadow-editorial" x={-28} y={12}>
+            <RevealBlock className="relative aspect-video w-full" x={-28} y={12}>
               <button
                 type="button"
                 data-cursor="play"
-                className="absolute inset-0 h-full w-full text-left cursor-pointer"
+                className="cinematic-card absolute inset-0 h-full w-full text-left cursor-pointer rounded-3xl overflow-hidden shadow-editorial border border-ink/10"
                 onClick={() => {
                   if (!editMode) {
                     setIsVideoLoading(true);
@@ -470,6 +503,8 @@ export function Showreel({
                     setActiveVideoPoster(mainThumbnailSrc);
                   }
                 }}
+                onMouseMove={handleCardMouseMove}
+                onMouseLeave={handleCardMouseLeave}
                 aria-label="Odtwórz showreel"
                 disabled={editMode}
               >
@@ -479,9 +514,9 @@ export function Showreel({
                   className="absolute inset-0 h-full w-full"
                   imageClassName="rounded-3xl"
                 />
-                <span className="absolute inset-0 z-10 bg-ink/0 transition-colors duration-700 group-hover:bg-ink/8" />
+                <span className="absolute inset-0 z-10 bg-ink/0 transition-colors duration-700 group-hover:bg-ink/8 pointer-events-none" />
                 {!editMode && (
-                  <span className="absolute left-1/2 top-1/2 z-10 flex h-20 w-20 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-white/70 bg-white/18 text-white backdrop-blur-sm transition-transform duration-500 group-hover:scale-110">
+                  <span className="absolute left-1/2 top-1/2 z-10 flex h-20 w-20 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-white/70 bg-white/18 text-white backdrop-blur-sm transition-transform duration-500 group-hover:scale-110 pointer-events-none">
                     <Play className="ml-1 h-8 w-8 fill-current" />
                   </span>
                 )}

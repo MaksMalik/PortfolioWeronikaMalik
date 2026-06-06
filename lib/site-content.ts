@@ -5,6 +5,8 @@ export const SITE_CONTENT_SCHEMA_VERSION = 5;
 export const siteContent: SiteContent = {
   schemaVersion: SITE_CONTENT_SCHEMA_VERSION,
   theme: "light",
+  accentColorsEnabled: false,
+  accentColor: "#c5a880",
   sections: {
     hero: { enabled: true, label: "Start" },
     about: { enabled: true, label: "O mnie" },

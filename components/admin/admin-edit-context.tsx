@@ -277,6 +277,21 @@ export function AdminEditProvider({ children }: { children: React.ReactNode }) {
     }
   }, [content.theme]);
 
+  // Synchronize Premium Accent Colors class and custom properties on document and body
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const hasAccents = !!content.accentColorsEnabled;
+    const body = document.body;
+    if (hasAccents) {
+      body.classList.add("has-accents");
+      const color = content.accentColor || "#c5a880";
+      body.style.setProperty("--accent", color);
+    } else {
+      body.classList.remove("has-accents");
+      body.style.removeProperty("--accent");
+    }
+  }, [content.accentColorsEnabled, content.accentColor]);
+
   // Debounced Autosave to Firestore preview target
   useEffect(() => {
     if (!hasUnsavedEdits || !editMode || !isAdmin) return;

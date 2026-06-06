@@ -13,7 +13,8 @@ const config: Config = {
         graphite: "#2d2d2d",
         silver: "#b8b8b8",
         porcelain: "#f8f7f4",
-        mist: "#ecebe7"
+        mist: "#ecebe7",
+        accent: "#c5a880"
       },
       fontFamily: {
         serif: ["var(--font-display)", "Georgia", "serif"],

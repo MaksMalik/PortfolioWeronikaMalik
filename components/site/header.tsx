@@ -129,17 +129,29 @@ export function Header({
               key={item.href}
               href={item.href}
               className={cn(
-                "group relative text-[0.68rem] font-bold uppercase tracking-[0.22em] transition-colors hover:text-ink",
-                activeHref === item.href ? "text-ink" : "text-ink/62"
+                "group relative text-[0.68rem] font-bold uppercase tracking-[0.22em] transition-colors",
+                content.accentColorsEnabled
+                  ? activeHref === item.href
+                    ? ""
+                    : "text-ink/62 hover:text-[var(--accent)]"
+                  : activeHref === item.href
+                    ? "text-ink"
+                    : "text-ink/62 hover:text-ink"
               )}
+              style={
+                content.accentColorsEnabled && activeHref === item.href
+                  ? { color: "var(--accent)" }
+                  : undefined
+              }
               aria-current={activeHref === item.href ? "page" : undefined}
               onClick={(event) => handleNavClick(event, item.href)}
             >
               {item.label}
               <span
                 className={cn(
-                  "absolute -bottom-2 left-0 h-px bg-ink transition-all duration-500 group-hover:w-full",
-                  activeHref === item.href ? "w-full" : "w-0"
+                  "absolute -bottom-2 left-0 h-px transition-all duration-500 group-hover:w-full",
+                  activeHref === item.href ? "w-full" : "w-0",
+                  content.accentColorsEnabled ? "bg-[var(--accent)]" : "bg-ink"
                 )}
               />
             </a>
@@ -207,8 +219,19 @@ export function Header({
                   }}
                   className={cn(
                     "font-serif text-4xl font-medium tracking-wide transition-colors",
-                    activeHref === item.href ? "text-ink" : "text-ink/45"
+                    content.accentColorsEnabled
+                      ? activeHref === item.href
+                        ? ""
+                        : "text-ink/45 hover:text-[var(--accent)]"
+                      : activeHref === item.href
+                        ? "text-ink"
+                        : "text-ink/45 hover:text-ink"
                   )}
+                  style={
+                    content.accentColorsEnabled && activeHref === item.href
+                      ? { color: "var(--accent)" }
+                      : undefined
+                  }
                   aria-current={activeHref === item.href ? "page" : undefined}
                   onClick={(event) => handleNavClick(event, item.href)}
                 >

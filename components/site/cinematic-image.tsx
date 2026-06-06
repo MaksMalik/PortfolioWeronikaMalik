@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useEffect, useCallback, memo } from "react";
-import { useInView } from "framer-motion";
+import { useInView, motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 
 type CinematicImageProps = {
@@ -14,6 +14,8 @@ type CinematicImageProps = {
   children?: React.ReactNode;
   onError?: () => void;
   disableScrollReveal?: boolean;
+  layoutId?: string;
+  transition?: any;
 };
 
 function StaticCinematicImage({
@@ -24,7 +26,9 @@ function StaticCinematicImage({
   loading = "lazy",
   fetchPriority,
   children,
-  onError
+  onError,
+  layoutId,
+  transition
 }: Omit<CinematicImageProps, "disableScrollReveal">) {
   const containerRef = useRef<HTMLDivElement>(null);
   const tiltFrame = useRef<number | null>(null);
@@ -72,7 +76,7 @@ function StaticCinematicImage({
   }, []);
 
   return (
-    <div
+    <motion.div
       ref={containerRef}
       className={cn(
         "cinematicImage isStatic",
@@ -80,6 +84,8 @@ function StaticCinematicImage({
       )}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
+      layoutId={layoutId}
+      transition={transition}
     >
       <img
         src={src}
@@ -93,7 +99,7 @@ function StaticCinematicImage({
       />
       <span className="cinematicImageVeil" aria-hidden="true" />
       {children}
-    </div>
+    </motion.div>
   );
 }
 
@@ -105,7 +111,9 @@ function ScrollRevealCinematicImage({
   loading = "lazy",
   fetchPriority,
   children,
-  onError
+  onError,
+  layoutId,
+  transition
 }: Omit<CinematicImageProps, "disableScrollReveal">) {
   const containerRef = useRef<HTMLDivElement>(null);
   const colorRef = useRef<HTMLImageElement>(null);
@@ -226,7 +234,7 @@ function ScrollRevealCinematicImage({
   }, []);
 
   return (
-    <div
+    <motion.div
       ref={containerRef}
       className={cn(
         "cinematicImage imageReveal",
@@ -235,6 +243,8 @@ function ScrollRevealCinematicImage({
       )}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
+      layoutId={layoutId}
+      transition={transition}
     >
       <img
         src={src}
@@ -260,7 +270,7 @@ function ScrollRevealCinematicImage({
       />
       <span className="cinematicImageVeil" aria-hidden="true" />
       {children}
-    </div>
+    </motion.div>
   );
 }
 

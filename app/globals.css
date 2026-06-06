@@ -843,3 +843,139 @@ body.is-edit-mode * {
   80% { transform: translate3d(-1%, 1%, 0); }
   90% { transform: translate3d(2%, -1%, 0); }
 }
+
+/* ── Premium Champagne Gold Accents ─────────────────────────── */
+:root {
+  --accent: #c5a880; /* Elegant satin Champagne Gold */
+}
+
+body.has-accents {
+  /* Selection styling */
+  ::selection {
+    background: var(--accent);
+    color: #ffffff;
+  }
+}
+
+/* 1. Header nav accents are controlled dynamically in header.tsx */
+
+/* 2. Custom Cursor accents */
+body.has-accents .customCursorRing {
+  border-color: var(--accent) !important;
+}
+
+body.has-accents .customCursorRing::after {
+  background-color: var(--accent) !important;
+}
+
+body.has-accents .customCursorLabel {
+  color: var(--accent) !important;
+}
+
+/* 3. Section eyebrows & underlines */
+body.has-accents .eyebrow {
+  color: var(--accent) !important;
+}
+
+body.has-accents .eyebrow::before,
+body.has-accents .eyebrow-simple::before {
+  background-color: var(--accent) !important;
+  opacity: 0.65;
+}
+
+body.has-accents .eyebrow-simple {
+  color: var(--accent) !important;
+}
+
+body.has-accents a.border-b.border-ink,
+body.has-accents span.border-b.border-ink {
+  border-color: var(--accent) !important;
+  color: var(--accent) !important;
+}
+
+/* 4. Button overrides */
+/* default button variant hover override */
+body.has-accents button.border-ink.bg-ink:hover,
+body.has-accents a button.border-ink.bg-ink:hover {
+  border-color: var(--accent) !important;
+  color: var(--accent) !important;
+}
+
+/* outline button variant override */
+body.has-accents button.border-ink\/20:hover,
+body.has-accents a button.border-ink\/20:hover {
+  border-color: var(--accent) !important;
+  background-color: var(--accent) !important;
+  color: #ffffff !important;
+}
+
+/* 5. Social & hover brand elements */
+body.has-accents aside a:hover {
+  border-color: var(--accent) !important;
+  color: var(--accent) !important;
+}
+
+body.has-accents #contact-social-links a:hover {
+  border-color: var(--accent) !important;
+  color: var(--accent) !important;
+}
+
+body.has-accents #contact-social-links a:hover svg {
+  stroke: var(--accent) !important;
+  fill: var(--accent) !important;
+}
+
+/* 6. Dynamic Premium Gold Accent Overrides */
+/* Header monogram logo */
+body.has-accents header a.group.rounded-full {
+  border-color: var(--accent) !important;
+  color: var(--accent) !important;
+}
+
+/* Hero image dual golden borders */
+body.has-accents #home span.-inset-3,
+body.has-accents #home .cinematicImage {
+  border-color: var(--accent) !important;
+}
+
+/* Hero monogram tagline (text and line) */
+body.has-accents #home .hero-eyebrow,
+body.has-accents #home .hero-eyebrow span {
+  color: var(--accent) !important;
+}
+body.has-accents #home .bg-silver {
+  background-color: var(--accent) !important;
+}
+
+/* About ornament line corners */
+body.has-accents .ornament-line::before,
+body.has-accents .ornament-line::after {
+  background-color: var(--accent) !important;
+  opacity: 1 !important;
+}
+
+/* About image frame vector path */
+body.has-accents .about-image-frame path {
+  stroke: var(--accent) !important;
+}
+
+/* Card image frame vector path (Portfolio, Showreel, Gallery) */
+body.has-accents .cinematic-card-frame path {
+  stroke: var(--accent) !important;
+}
+
+/* Card year tags */
+body.has-accents .cinematic-card span.tabular-nums {
+  border-color: rgba(197, 168, 128, 0.45) !important;
+  color: var(--accent) !important;
+}
+
+/* Play button hover in Showreel */
+body.has-accents button[data-cursor="play"]:hover span.rounded-full {
+  border-color: var(--accent) !important;
+  background-color: rgba(197, 168, 128, 0.15) !important;
+  color: var(--accent) !important;
+}
+body.has-accents button[data-cursor="play"]:hover span.rounded-full svg {
+  fill: var(--accent) !important;
+}
