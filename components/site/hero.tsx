@@ -169,7 +169,7 @@ export function Hero({
           </motion.div>
         )}
 
-        <motion.div style={{ y: textY }} className="pb-0 lg:pt-6">
+        <motion.div style={{ y: textY }} className="heroMobileStaticText pb-0 lg:pt-6">
           <motion.div
             className="mb-9 flex items-center gap-4 text-[0.66rem] font-bold uppercase tracking-[0.24em] text-ink/45"
             style={{ x: metaX }}
@@ -182,7 +182,7 @@ export function Hero({
           </motion.div>
 
           <motion.h1
-            className="hero-written-name max-w-[760px] font-serif text-[2.85rem] font-medium leading-[0.92] text-ink min-[380px]:text-[3.2rem] sm:text-[5.1rem] lg:text-[6.2rem] xl:text-[6.8rem]"
+            className="hero-written-name heroMobileStaticName max-w-[760px] font-serif text-[2.85rem] font-medium leading-[0.92] text-ink min-[380px]:text-[3.2rem] sm:text-[5.1rem] lg:text-[6.2rem] xl:text-[6.8rem]"
             style={{ x: nameX }}
           >
             {nameWords.map((word, wordIndex) => (

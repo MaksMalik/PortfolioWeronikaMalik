@@ -118,7 +118,7 @@ export function ActressPortfolio() {
       <ClientOnly>
         <ScrollProgress />
       </ClientOnly>
-      <Header monogram={content.hero.monogram} isLoaded />
+      <Header monogram={content.hero.monogram} />
       <ClientOnly>
         <FloatingSocials contact={content.contact} initialDelay={FLOATING_SOCIALS_INTRO_DELAY} />
       </ClientOnly>
