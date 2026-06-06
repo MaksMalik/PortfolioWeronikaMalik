@@ -427,8 +427,6 @@ export const PortfolioHighlights = memo(function PortfolioHighlights({
                         src={project.image.src}
                         alt={project.image.alt}
                         className="aspect-[3/4] rounded-t-2xl w-full"
-                        layoutId={`project-img-${project.id}`}
-                        transition={{ type: "spring", stiffness: 380, damping: 35, mass: 0.8 }}
                       />
                       <CinematicCardFrame />
                     </div>
@@ -857,10 +855,10 @@ export const PortfolioHighlights = memo(function PortfolioHighlights({
               >
               <motion.div
                 className="mx-auto max-w-6xl rounded-3xl bg-porcelain my-8 border border-ink/10 shadow-editorial relative overflow-hidden"
-                initial={{ opacity: 0, y: 30, scale: 0.98 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: 30, scale: 0.98 }}
-                transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+                initial={{ y: "100vh", opacity: 0.9 }}
+                animate={{ y: 0, opacity: 1 }}
+                exit={{ y: "100vh", opacity: 0.9 }}
+                transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
               >
                 <div className="pointer-events-none absolute inset-x-0 top-0 h-24 bg-[linear-gradient(180deg,rgba(255,255,255,0.66),transparent)]" aria-hidden="true" />
                 <div className="rounded-3xl overflow-hidden bg-porcelain">
@@ -951,8 +949,6 @@ export const PortfolioHighlights = memo(function PortfolioHighlights({
                         disableScrollReveal
                         loading="eager"
                         className="aspect-[3/4] border border-ink/10 rounded-2xl overflow-hidden"
-                        layoutId={`project-img-${activeProject.id}`}
-                        transition={{ type: "spring", stiffness: 380, damping: 35, mass: 0.8 }}
                       />
                     )}
 

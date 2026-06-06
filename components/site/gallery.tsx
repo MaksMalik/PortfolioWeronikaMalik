@@ -476,11 +476,7 @@ export const Gallery = memo(function Gallery({
                     initial={{ opacity: 0, y: 12 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true, amount: 0.05 }}
-                    layoutId={`session-card-${session.id}`}
-                    transition={{
-                      default: { delay: index * 0.08, duration: 0.58, ease: [0.22, 1, 0.36, 1] },
-                      layout: { type: "spring", stiffness: 350, damping: 32, mass: 0.8 }
-                    }}
+                    transition={{ delay: index * 0.08, duration: 0.58, ease: [0.22, 1, 0.36, 1] }}
                   >
                     <div className="relative shrink-0">
                       <CinematicImage
@@ -892,10 +888,10 @@ export const Gallery = memo(function Gallery({
               >
               <motion.div
                 className="mx-auto max-w-7xl rounded-3xl bg-porcelain my-8 border border-ink/10 shadow-editorial relative overflow-hidden"
-                layoutId={`session-card-${activeSession.id}`}
-                transition={{
-                  layout: { type: "spring", stiffness: 350, damping: 32, mass: 0.8 }
-                }}
+                initial={{ y: "100vh", opacity: 0.9 }}
+                animate={{ y: 0, opacity: 1 }}
+                exit={{ y: "100vh", opacity: 0.9 }}
+                transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
               >
                 <div className="pointer-events-none absolute inset-x-0 top-0 h-24 bg-[linear-gradient(180deg,rgba(255,255,255,0.66),transparent)]" aria-hidden="true" />
                 <div className="rounded-3xl overflow-hidden bg-porcelain">
