@@ -430,10 +430,10 @@ export function About({
 
         {/* Progress Bar (Desktop only) */}
         {visibleEvents.length > 0 && (
-          <div className="absolute bottom-8 left-16 right-16 h-[2px] bg-ink/10">
+          <div className="absolute bottom-8 left-16 right-16 h-px bg-ink/[0.055]">
             <motion.div
               style={{ scaleX: scrollYProgress, transformOrigin: "left" }}
-              className="h-full bg-ink timeline-progress-bar"
+              className="h-full bg-ink/45 timeline-progress-bar"
             />
           </div>
         )}

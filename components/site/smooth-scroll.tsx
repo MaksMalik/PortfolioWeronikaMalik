@@ -4,6 +4,22 @@ import { useEffect, useRef } from "react";
 import Lenis from "lenis";
 
 const ANCHOR_SCROLL_DURATION = 1.15;
+const ANCHOR_SKIP_FINISH_DELAY = 120;
+
+const shouldSkipHorizontalSection = (targetTop: number, href: string) => {
+  if (href === "#about") return false;
+
+  const about = document.querySelector<HTMLElement>("#about");
+  if (!about) return false;
+
+  const currentTop = window.scrollY;
+  const aboutTop = about.getBoundingClientRect().top + currentTop;
+  const aboutBottom = aboutTop + about.offsetHeight;
+  const pathStart = Math.min(currentTop, targetTop);
+  const pathEnd = Math.max(currentTop, targetTop);
+
+  return pathStart < aboutBottom && pathEnd > aboutTop;
+};
 
 export function SmoothScroll() {
   const lenisRef = useRef<Lenis | null>(null);
@@ -45,23 +61,31 @@ export function SmoothScroll() {
       const offset = -headerHeight - 14;
       const top = Math.max(0, targetElement.getBoundingClientRect().top + window.scrollY + offset);
       const activeLenis = lenisRef.current;
-      const finishDelay = ANCHOR_SCROLL_DURATION * 1000 + 260;
+      const skipHorizontalSection = shouldSkipHorizontalSection(top, href);
+      const finishDelay = skipHorizontalSection
+        ? ANCHOR_SKIP_FINISH_DELAY
+        : ANCHOR_SCROLL_DURATION * 1000 + 260;
 
-      window.dispatchEvent(new CustomEvent("portfolio:anchor-scroll-start", { detail: { href, top } }));
+      window.dispatchEvent(new CustomEvent("portfolio:anchor-scroll-start", {
+        detail: { href, skipHorizontalSection, top }
+      }));
       if (anchorScrollEndTimerRef.current !== null) {
         window.clearTimeout(anchorScrollEndTimerRef.current);
       }
       anchorScrollEndTimerRef.current = window.setTimeout(() => {
         anchorScrollEndTimerRef.current = null;
-        window.dispatchEvent(new CustomEvent("portfolio:anchor-scroll-end", { detail: { href, top } }));
+        window.dispatchEvent(new CustomEvent("portfolio:anchor-scroll-end", {
+          detail: { href, skipHorizontalSection, top }
+        }));
       }, finishDelay);
 
       if (activeLenis) {
         activeLenis.scrollTo(top, {
+          immediate: skipHorizontalSection,
           duration: ANCHOR_SCROLL_DURATION
         });
       } else {
-        window.scrollTo({ top, behavior: "smooth" });
+        window.scrollTo({ top, behavior: skipHorizontalSection ? "auto" : "smooth" });
       }
 
       if (shouldPushState && window.location.hash !== href) {
