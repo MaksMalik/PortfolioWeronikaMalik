@@ -65,7 +65,7 @@ function StaticCinematicImage({
     <div
       ref={containerRef}
       className={cn(
-        "cinematicImage",
+        "cinematicImage isStatic",
         className
       )}
       onMouseMove={handleMouseMove}
@@ -74,22 +74,11 @@ function StaticCinematicImage({
       <img
         src={src}
         alt={alt}
-        className={cn("cinematicImageBase", imageClassName)}
-        loading={loading}
-        decoding="async"
-        draggable={false}
-        onError={onError}
-      />
-      <img
-        src={src}
-        alt=""
-        aria-hidden="true"
         className={cn("cinematicImageColor", imageClassName)}
         loading={loading}
         decoding="async"
         draggable={false}
         onError={onError}
-        style={{ opacity: 1, clipPath: "none" }}
       />
       <span className="cinematicImageVeil" aria-hidden="true" />
       {children}

@@ -843,6 +843,8 @@ export function PortfolioHighlights({
                       <CinematicImage
                         src={activeProject.image.src}
                         alt={activeProject.image.alt}
+                        disableScrollReveal
+                        loading="eager"
                         className="aspect-[4/5] border border-ink/10 rounded-2xl overflow-hidden"
                       />
                     )}
@@ -887,6 +889,7 @@ export function PortfolioHighlights({
                               src={image.src}
                               alt={image.alt}
                               disableScrollReveal
+                              loading="eager"
                               className={cn(
                                 "w-full",
                                 image.aspect === "wide"

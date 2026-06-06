@@ -908,6 +908,7 @@ export function Gallery({
                             src={image.src}
                             alt={image.alt}
                             disableScrollReveal
+                            loading="eager"
                             className={cn("w-full", aspectClass(image))}
                             imageClassName={cn(
                               "rounded-2xl",

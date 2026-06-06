@@ -257,7 +257,7 @@ export function Contact({
 
           <div className="flex flex-col justify-center lg:border-l lg:border-ink/10 lg:pl-16">
             <motion.div
-              className="divide-y divide-ink/10 border-y border-ink/10"
+              className="lg:divide-y lg:divide-ink/10 lg:border-y lg:border-ink/10"
               initial="hidden"
               whileInView="visible"
               viewport={{ once: true, amount: 0.25, margin: "0px 0px -12% 0px" }}

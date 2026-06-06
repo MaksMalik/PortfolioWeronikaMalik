@@ -438,6 +438,11 @@ a {
   /* Reveal animation driven by JS Web Animations API (clip-path: circle) */
 }
 
+.cinematicImage.isStatic .cinematicImageColor {
+  clip-path: none !important;
+  opacity: 1 !important;
+}
+
 .cinematicImage:hover .cinematicImageColor,
 .group:hover .cinematicImage .cinematicImageColor {
   transform: scale(1.05);
