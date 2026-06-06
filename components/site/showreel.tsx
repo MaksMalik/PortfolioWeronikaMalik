@@ -101,6 +101,18 @@ export function Showreel({
   const [isUploading, setIsUploading] = useState(false);
   
   const [isSectionDrawerOpen, setIsSectionDrawerOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(
+        window.matchMedia("(pointer: coarse)").matches || window.innerWidth < 1024
+      );
+    };
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
   const [editingVideo, setEditingVideo] = useState<ShowreelVideo | null>(null);
   const [uploadingImageId, setUploadingImageId] = useState<string | null>(null);
 
@@ -403,7 +415,7 @@ export function Showreel({
                         whileInView={{ opacity: 1, y: 0 }}
                         viewport={{ once: true, amount: 0.05 }}
                         transition={{ delay: idx * 0.08, duration: 0.58, ease: [0.22, 1, 0.36, 1] }}
-                        whileHover={editMode ? {} : { y: -8 }}
+                        whileHover={editMode || isMobile ? {} : { y: -8 }}
                       >
                         <div className="relative aspect-video w-full overflow-hidden">
                           <CinematicImage
