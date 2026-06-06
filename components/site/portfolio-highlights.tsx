@@ -915,11 +915,10 @@ export const PortfolioHighlights = memo(function PortfolioHighlights({
                     </div>
                   </div>
 
-                  <div className="grid gap-8 px-6 pb-10 sm:px-8 lg:grid-cols-[0.92fr_1.08fr]">
                   <AnimatePresence mode="wait" initial={false}>
                     <motion.div
                       key={activeProject.id}
-                      className="contents"
+                      className="grid gap-8 px-6 pb-10 sm:px-8 lg:grid-cols-[0.92fr_1.08fr]"
                       initial={{ opacity: 0, x: 20 }}
                       animate={{ opacity: 1, x: 0 }}
                       exit={{ opacity: 0, x: -20 }}
@@ -965,7 +964,6 @@ export const PortfolioHighlights = memo(function PortfolioHighlights({
                     </div>
                     </motion.div>
                   </AnimatePresence>
-                  </div>
 
                   <AnimatePresence mode="wait" initial={false}>
                     {(activeProject.images ?? []).filter((image) => image.enabled).length > 0 && (
