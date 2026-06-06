@@ -111,7 +111,7 @@ export function Header({ monogram }: { monogram: string }) {
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
     >
-      <div className="section-shell flex h-20 items-center justify-between">
+      <div className="section-shell relative z-50 flex h-20 items-center justify-between">
         <a
           href="#home"
           className="group flex h-11 w-11 items-center justify-center rounded-full border border-ink/15 font-serif text-xl font-semibold text-ink transition-colors hover:border-ink"
