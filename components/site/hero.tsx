@@ -15,7 +15,13 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 
-export function Hero({ content: initialContent }: { content: HeroContent }) {
+export function Hero({
+  content: initialContent,
+  isLoaded
+}: {
+  content: HeroContent;
+  isLoaded?: boolean;
+}) {
   const { editMode, updateContent, content: globalContent } = useAdminEdit();
   const content = editMode ? globalContent.hero : initialContent;
 
@@ -133,6 +139,10 @@ export function Hero({ content: initialContent }: { content: HeroContent }) {
                 alt={content.image.alt}
                 loading="eager"
                 className="h-full rounded-t-full border border-ink/10 shadow-editorial"
+                imageClassName={cn(
+                  "transition-transform duration-[2800ms] ease-[cubic-bezier(0.16,1,0.3,1)]",
+                  isLoaded ? "scale-100" : "scale-115"
+                )}
               />
             </div>
           </motion.div>

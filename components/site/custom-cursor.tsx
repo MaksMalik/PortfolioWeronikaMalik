@@ -59,8 +59,22 @@ export function CustomCursor() {
       }
 
       const size = cursorSize(nextMode);
-      x.set(event.clientX - size / 2);
-      y.set(event.clientY - size / 2);
+      
+      const magneticTarget = target?.closest("a, button, [role='button']");
+      let targetX = event.clientX - size / 2;
+      let targetY = event.clientY - size / 2;
+
+      if (magneticTarget) {
+        const rect = magneticTarget.getBoundingClientRect();
+        const centerX = rect.left + rect.width / 2;
+        const centerY = rect.top + rect.height / 2;
+        // Blend mouse position and target center (35% pull strength)
+        targetX = event.clientX + (centerX - event.clientX) * 0.35 - size / 2;
+        targetY = event.clientY + (centerY - event.clientY) * 0.35 - size / 2;
+      }
+
+      x.set(targetX);
+      y.set(targetY);
       if (modeRef.current !== nextMode) {
         modeRef.current = nextMode;
         setMode(nextMode);

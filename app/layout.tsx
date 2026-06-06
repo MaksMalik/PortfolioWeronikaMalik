@@ -29,6 +29,7 @@ export default function RootLayout({
     <html lang="pl" className={`${display.variable} ${sans.variable}`}>
       <body suppressHydrationWarning>
         <AdminEditProvider>
+          <div className="film-grain" aria-hidden="true" />
           {children}
         </AdminEditProvider>
       </body>

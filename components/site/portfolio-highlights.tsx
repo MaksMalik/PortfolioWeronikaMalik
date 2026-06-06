@@ -65,6 +65,23 @@ export function PortfolioHighlights({
   const projects = editMode ? globalContent.portfolio : initialProjects;
   const visibleProjects = projects.filter((project) => editMode || project.enabled);
 
+  const handleCardMouseMove = (e: React.MouseEvent<HTMLButtonElement>) => {
+    if (editMode) return;
+    if (window.matchMedia("(pointer: coarse)").matches) return; // skip mobile
+    const card = e.currentTarget;
+    const rect = card.getBoundingClientRect();
+    const nx = (e.clientX - rect.left) / rect.width - 0.5;
+    const ny = (e.clientY - rect.top) / rect.height - 0.5;
+    card.style.setProperty("--tilt-x", `${ny * -8}deg`);
+    card.style.setProperty("--tilt-y", `${nx * 8}deg`);
+  };
+
+  const handleCardMouseLeave = (e: React.MouseEvent<HTMLButtonElement>) => {
+    const card = e.currentTarget;
+    card.style.setProperty("--tilt-x", "0deg");
+    card.style.setProperty("--tilt-y", "0deg");
+  };
+
   const [activeProject, setActiveProject] = useState<PortfolioProject | null>(null);
   const [editingProject, setEditingProject] = useState<PortfolioProject | null>(null);
   const [isSectionDrawerOpen, setIsSectionDrawerOpen] = useState(false);
@@ -368,12 +385,13 @@ export function PortfolioHighlights({
 
                     setActiveProject(project);
                   }}
+                  onMouseMove={handleCardMouseMove}
+                  onMouseLeave={handleCardMouseLeave}
                   aria-label={`Czytaj więcej o roli ${project.title}`}
                   initial={{ opacity: 0, y: 12 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true, amount: 0.05 }}
                   transition={{ delay: index * 0.08, duration: 0.58, ease: [0.22, 1, 0.36, 1] }}
-                  whileHover={editMode ? {} : { y: -10 }}
                 >
                   {(project.image.src && project.image.enabled !== false) && (
                     <div className="relative">

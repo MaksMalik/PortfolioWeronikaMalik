@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect } from "react";
-import { motion } from "framer-motion";
+import { useEffect, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { useAdminEdit } from "@/components/admin/admin-edit-context";
 import { startFirebaseAnalytics } from "@/lib/firebase/client";
 import { About } from "@/components/site/about";
@@ -15,19 +15,37 @@ import { PressMentions } from "@/components/site/press-mentions";
 import { ScrollProgress } from "@/components/site/scroll-progress";
 import { Showreel } from "@/components/site/showreel";
 import { AdminBar } from "@/components/admin/admin-bar";
+import { IntroLoader } from "@/components/site/intro-loader";
 
 export function ActressPortfolio() {
   const { content, isAdmin, editMode } = useAdminEdit();
+  const [isLoaderComplete, setIsLoaderComplete] = useState(false);
+  const [showLoader, setShowLoader] = useState(true);
 
   useEffect(() => {
     void startFirebaseAnalytics();
   }, []);
 
+  useEffect(() => {
+    const hasSeenIntro = sessionStorage.getItem("has-seen-intro");
+    if (hasSeenIntro === "true") {
+      setShowLoader(false);
+      setIsLoaderComplete(true);
+    }
+  }, []);
+
+  const handleLoaderComplete = () => {
+    sessionStorage.setItem("has-seen-intro", "true");
+    setIsLoaderComplete(true);
+  };
+
+  const shouldShowLoader = showLoader && !isLoaderComplete && !editMode;
+
   const sectionsConfig = [
     {
       id: "hero",
       enabled: content.sections.hero.enabled,
-      render: () => <Hero key="hero" content={content.hero} />
+      render: () => <Hero key="hero" content={content.hero} isLoaded={isLoaderComplete} />
     },
     {
       id: "about",
@@ -127,6 +145,12 @@ export function ActressPortfolio() {
         
         return sec.render(bgClass, reverseParallax);
       })}
+
+      <AnimatePresence>
+        {shouldShowLoader && (
+          <IntroLoader monogram={content.hero.monogram} onComplete={handleLoaderComplete} />
+        )}
+      </AnimatePresence>
     </motion.main>
   );
 }
