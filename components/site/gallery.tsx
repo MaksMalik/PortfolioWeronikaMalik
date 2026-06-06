@@ -832,7 +832,7 @@ export const Gallery = memo(function Gallery({
           {activeSession && (
             <motion.div
               className="fixed inset-0 z-[90] overflow-y-auto overscroll-contain bg-porcelain text-ink"
-              style={{ willChange: "transform", WebkitOverflowScrolling: "touch" } as any}
+              style={{ willChange: "transform", WebkitOverflowScrolling: "touch", height: '100vh' } as any}
               initial={{ opacity: 0, y: "100%" }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: "100%" }}
@@ -840,69 +840,76 @@ export const Gallery = memo(function Gallery({
               role="dialog"
               aria-modal="true"
             >
-              <div className="pointer-events-none fixed inset-0 bg-[linear-gradient(90deg,rgba(16,16,16,0.08),transparent_14%,transparent_86%,rgba(16,16,16,0.08))]" aria-hidden="true" />
-              <div className="mx-auto max-w-7xl">
-                <div className="sticky top-0 z-20 mb-6 border-b border-ink/10 bg-porcelain px-4 py-4 shadow-[0_16px_50px_rgba(16,16,16,0.04)] sm:px-6">
-                  <div className="mx-auto flex max-w-7xl flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                    <div>
-                      <p className="text-xs font-bold uppercase tracking-[0.22em] text-ink/45">
-                        {activeSession.subtitle}
-                      </p>
-                      <h2 className="font-serif text-4xl leading-none sm:text-6xl text-ink">
-                        {activeSession.title}
-                      </h2>
-                    </div>
+              <motion.div
+                className="mx-auto max-w-7xl rounded-3xl bg-porcelain my-8 border border-ink/10 shadow-editorial relative overflow-hidden"
+                initial={{ opacity: 0, y: 24 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 24 }}
+                transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+              >
+                <div className="pointer-events-none absolute inset-x-0 top-0 h-24 bg-[linear-gradient(180deg,rgba(255,255,255,0.66),transparent)]" aria-hidden="true" />
+                <div className="rounded-3xl overflow-hidden bg-porcelain">
+                  <div className="sticky top-0 z-20 mb-6 border-b border-ink/10 bg-porcelain px-4 py-4 shadow-[0_16px_50px_rgba(16,16,16,0.04)] sm:px-6">
+                    <div className="mx-auto flex max-w-7xl flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                      <div>
+                        <p className="text-xs font-bold uppercase tracking-[0.22em] text-ink/45">
+                          {activeSession.subtitle}
+                        </p>
+                        <h2 className="font-serif text-4xl leading-none sm:text-6xl text-ink">
+                          {activeSession.title}
+                        </h2>
+                      </div>
 
-                    <div className="flex items-center gap-2">
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        className="rounded-full"
-                        onClick={() => goTo("prev")}
-                        aria-label="Poprzednia sesja"
-                      >
-                        <ChevronLeft className="h-5 w-5" />
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        className="rounded-full"
-                        onClick={() => goTo("next")}
-                        aria-label="Następna sesja"
-                      >
-                        <ChevronRight className="h-5 w-5" />
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        className="rounded-full"
-                        onClick={() => {
-                          setActiveImage(null);
-                          setActiveSessionId(null);
-                        }}
-                        aria-label="Zamknij galerię"
-                      >
-                        <X className="h-5 w-5" />
-                      </Button>
+                      <div className="flex items-center gap-2">
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          className="rounded-full"
+                          onClick={() => goTo("prev")}
+                          aria-label="Poprzednia sesja"
+                        >
+                          <ChevronLeft className="h-5 w-5" />
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          className="rounded-full"
+                          onClick={() => goTo("next")}
+                          aria-label="Następna sesja"
+                        >
+                          <ChevronRight className="h-5 w-5" />
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          className="rounded-full"
+                          onClick={() => {
+                            setActiveImage(null);
+                            setActiveSessionId(null);
+                          }}
+                          aria-label="Zamknij galerię"
+                        >
+                          <X className="h-5 w-5" />
+                        </Button>
+                      </div>
                     </div>
                   </div>
-                </div>
 
-                {activeSession.description && (
-                  <p className="mb-8 max-w-3xl px-4 text-lg leading-8 text-graphite/70 sm:px-6 whitespace-pre-wrap">
-                    {activeSession.description}
-                  </p>
-                )}
+                  {activeSession.description && (
+                    <p className="mb-8 max-w-3xl px-4 text-lg leading-8 text-graphite/70 sm:px-6 whitespace-pre-wrap">
+                      {activeSession.description}
+                    </p>
+                  )}
 
-                <AnimatePresence mode="wait" initial={false}>
-                  <motion.div
-                    key={activeSession.id}
-                    className="columns-1 gap-5 px-4 pb-10 sm:columns-2 sm:px-6 lg:columns-3"
-                    initial={{ opacity: 0, x: sessionDirection * 56 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: sessionDirection * -56 }}
-                    transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
-                  >
+                  <AnimatePresence mode="wait" initial={false}>
+                    <motion.div
+                      key={activeSession.id}
+                      className="columns-1 gap-5 px-4 pb-10 sm:columns-2 sm:px-6 lg:columns-3"
+                      initial={{ opacity: 0, x: sessionDirection * 56 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: sessionDirection * -56 }}
+                      transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
+                    >
                     {visibleImages.map((image) => (
                       <figure
                         key={image.id}
@@ -942,7 +949,8 @@ export const Gallery = memo(function Gallery({
                     ))}
                   </motion.div>
                 </AnimatePresence>
-              </div>
+                </div>
+              </motion.div>
             </motion.div>
           )}
         </AnimatePresence>
