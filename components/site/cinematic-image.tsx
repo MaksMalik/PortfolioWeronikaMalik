@@ -12,9 +12,10 @@ type CinematicImageProps = {
   loading?: "eager" | "lazy";
   children?: React.ReactNode;
   onError?: () => void;
+  disableScrollReveal?: boolean;
 };
 
-export function CinematicImage({
+function StaticCinematicImage({
   src,
   alt,
   className,
@@ -22,7 +23,89 @@ export function CinematicImage({
   loading = "lazy",
   children,
   onError
-}: CinematicImageProps) {
+}: Omit<CinematicImageProps, "disableScrollReveal">) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const tiltFrame = useRef<number | null>(null);
+
+  const handleMouseMove = useCallback(
+    (e: React.MouseEvent<HTMLDivElement>) => {
+      const el = containerRef.current;
+      if (!el) return;
+      const clientX = e.clientX;
+      const clientY = e.clientY;
+
+      if (tiltFrame.current !== null) return;
+
+      tiltFrame.current = window.requestAnimationFrame(() => {
+        tiltFrame.current = null;
+        const rect = el.getBoundingClientRect();
+        const nx = (clientX - rect.left) / rect.width - 0.5;
+        const ny = (clientY - rect.top) / rect.height - 0.5;
+        el.style.setProperty("--tilt-x", `${ny * -5}deg`);
+        el.style.setProperty("--tilt-y", `${nx * 5}deg`);
+        el.style.setProperty("--spot-x", `${clientX - rect.left}px`);
+        el.style.setProperty("--spot-y", `${clientY - rect.top}px`);
+      });
+    },
+    []
+  );
+
+  const handleMouseLeave = useCallback(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    if (tiltFrame.current !== null) {
+      window.cancelAnimationFrame(tiltFrame.current);
+      tiltFrame.current = null;
+    }
+    el.style.setProperty("--tilt-x", "0deg");
+    el.style.setProperty("--tilt-y", "0deg");
+  }, []);
+
+  return (
+    <div
+      ref={containerRef}
+      className={cn(
+        "cinematicImage",
+        className
+      )}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+    >
+      <img
+        src={src}
+        alt={alt}
+        className={cn("cinematicImageBase", imageClassName)}
+        loading={loading}
+        decoding="async"
+        draggable={false}
+        onError={onError}
+      />
+      <img
+        src={src}
+        alt=""
+        aria-hidden="true"
+        className={cn("cinematicImageColor", imageClassName)}
+        loading={loading}
+        decoding="async"
+        draggable={false}
+        onError={onError}
+        style={{ opacity: 1, clipPath: "none" }}
+      />
+      <span className="cinematicImageVeil" aria-hidden="true" />
+      {children}
+    </div>
+  );
+}
+
+function ScrollRevealCinematicImage({
+  src,
+  alt,
+  className,
+  imageClassName,
+  loading = "lazy",
+  children,
+  onError
+}: Omit<CinematicImageProps, "disableScrollReveal">) {
   const containerRef = useRef<HTMLDivElement>(null);
   const colorRef = useRef<HTMLImageElement>(null);
   const revealAnim = useRef<Animation | null>(null);
@@ -203,4 +286,11 @@ export function CinematicImage({
       {children}
     </div>
   );
+}
+
+export function CinematicImage(props: CinematicImageProps) {
+  if (props.disableScrollReveal) {
+    return <StaticCinematicImage {...props} />;
+  }
+  return <ScrollRevealCinematicImage {...props} />;
 }

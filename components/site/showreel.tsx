@@ -371,7 +371,7 @@ export function Showreel({
                 ref={railRef}
                 {...railDragHandlers}
                 className={cn(
-                  "no-scrollbar grid auto-cols-[88%] grid-flow-col gap-6 overflow-x-auto pt-8 pb-16 -mt-8 select-none [scroll-snap-type:x_proximity] [touch-action:pan-y] sm:auto-cols-[56%] lg:auto-cols-[40%]",
+                  "no-scrollbar grid auto-cols-[88%] grid-flow-col gap-6 overflow-x-auto pt-8 pb-16 -mt-8 select-none [scroll-snap-type:x_proximity] sm:auto-cols-[56%] lg:auto-cols-[40%]",
                   isDragging ? "cursor-grabbing" : "cursor-grab"
                 )}
               >

@@ -62,7 +62,63 @@ export function RevealBlock({
   );
 }
 
-export function SectionHeading({
+function MobileSectionHeading({
+  eyebrow,
+  title,
+  align = "left",
+  className
+}: {
+  eyebrow: string;
+  title: string;
+  align?: "left" | "center" | "right";
+  className?: string;
+}) {
+  return (
+    <div className={cn("overflow-visible w-full", className)}>
+      <motion.div
+        className={cn(
+          "space-y-4 w-full",
+          align === "center" && "mx-auto max-w-3xl text-center",
+          align === "right" && "ml-auto max-w-3xl text-right flex flex-col items-end"
+        )}
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, amount: 0.45, margin: "0px 0px -10% 0px" }}
+        variants={{
+          hidden: {},
+          visible: {
+            transition: {
+              staggerChildren: 0.12
+            }
+          }
+        }}
+      >
+        <motion.span
+          className={cn("eyebrow", align === "center" && "justify-center", align === "right" && "justify-end")}
+          variants={{
+            hidden: { opacity: 0, x: align === "center" ? 0 : align === "right" ? 22 : -22, y: 10 },
+            visible: { opacity: 1, x: 0, y: 0 }
+          }}
+          transition={{ duration: 0.72, ease: revealEase }}
+        >
+          {eyebrow}
+        </motion.span>
+        <motion.h2
+          className="font-serif text-4xl font-medium leading-none text-ink sm:text-6xl lg:text-7xl"
+          variants={{
+            hidden: { opacity: 0, y: 24 },
+            visible: { opacity: 1, y: 0 }
+          }}
+          transition={{ duration: 0.92, ease: revealEase }}
+        >
+          {title}
+        </motion.h2>
+      </motion.div>
+    </div>
+  );
+}
+
+function DesktopSectionHeading({
   eyebrow,
   title,
   align = "left",
@@ -76,38 +132,25 @@ export function SectionHeading({
   reverseDirection?: boolean;
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const [isDesktop, setIsDesktop] = useState(false);
-
-  useEffect(() => {
-    const media = window.matchMedia("(min-width: 1024px)");
-    setIsDesktop(media.matches);
-    const listener = (e: MediaQueryListEvent) => setIsDesktop(e.matches);
-    media.addEventListener("change", listener);
-    return () => media.removeEventListener("change", listener);
-  }, []);
 
   const { scrollYProgress } = useScroll({
     target: containerRef,
     offset: ["start end", "end start"]
   });
 
-  // Title moves one direction
   const rawXTitle = useTransform(
     scrollYProgress,
     [0, 1],
     reverseDirection ? [24, -24] : [-24, 24]
   );
-  const springXTitle = useSpring(rawXTitle, { stiffness: 80, damping: 25, restDelta: 0.001 });
-  const xTitle = isDesktop ? springXTitle : 0;
+  const xTitle = useSpring(rawXTitle, { stiffness: 80, damping: 25, restDelta: 0.001 });
 
-  // Eyebrow moves in the opposite direction
   const rawXEyebrow = useTransform(
     scrollYProgress,
     [0, 1],
     reverseDirection ? [-24, 24] : [24, -24]
   );
-  const springXEyebrow = useSpring(rawXEyebrow, { stiffness: 80, damping: 25, restDelta: 0.001 });
-  const xEyebrow = isDesktop ? springXEyebrow : 0;
+  const xEyebrow = useSpring(rawXEyebrow, { stiffness: 80, damping: 25, restDelta: 0.001 });
 
   return (
     <div ref={containerRef} className={cn("overflow-visible w-full", className)}>
@@ -154,4 +197,27 @@ export function SectionHeading({
       </motion.div>
     </div>
   );
+}
+
+export function SectionHeading(props: {
+  eyebrow: string;
+  title: string;
+  align?: "left" | "center" | "right";
+  className?: string;
+  reverseDirection?: boolean;
+}) {
+  const [isDesktop, setIsDesktop] = useState(false);
+
+  useEffect(() => {
+    const media = window.matchMedia("(min-width: 1024px)");
+    setIsDesktop(media.matches);
+    const listener = (e: MediaQueryListEvent) => setIsDesktop(e.matches);
+    media.addEventListener("change", listener);
+    return () => media.removeEventListener("change", listener);
+  }, []);
+
+  if (isDesktop) {
+    return <DesktopSectionHeading {...props} />;
+  }
+  return <MobileSectionHeading {...props} />;
 }

@@ -87,6 +87,7 @@ export function useHorizontalRail() {
   // Use window-level pointermove/pointerup instead of pointer capture
   // so click events on children always fire normally.
   const handlePointerDown = useCallback((event: ReactPointerEvent<HTMLDivElement>) => {
+    if (event.pointerType === "touch") return; // Allow native mobile touch scrolling
     const rail = railRef.current;
     if (!rail || event.button !== 0) return;
 

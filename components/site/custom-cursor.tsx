@@ -8,6 +8,19 @@ import { useAdminEdit } from "@/components/admin/admin-edit-context";
 
 export function CustomCursor() {
   const { editMode } = useAdminEdit();
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(
+        window.matchMedia("(pointer: coarse)").matches || window.innerWidth < 1024
+      );
+    };
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
+
   const x = useMotionValue(-80);
   const y = useMotionValue(-80);
   const springX = useSpring(x, { stiffness: 980, damping: 42, mass: 0.18 });
@@ -26,7 +39,7 @@ export function CustomCursor() {
   }, [visible]);
 
   useEffect(() => {
-    if (editMode) {
+    if (editMode || isMobile) {
       document.body.classList.remove("has-custom-cursor");
       document.body.classList.add("is-edit-mode");
       return;
@@ -100,9 +113,9 @@ export function CustomCursor() {
       window.removeEventListener("mousemove", handleMove);
       window.removeEventListener("mouseleave", handleLeave);
     };
-  }, [editMode, x, y]);
+  }, [editMode, isMobile, x, y]);
 
-  if (editMode) {
+  if (editMode || isMobile) {
     return null;
   }
 
