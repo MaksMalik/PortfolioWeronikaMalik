@@ -26,9 +26,16 @@ function StaticCinematicImage({
 }: Omit<CinematicImageProps, "disableScrollReveal">) {
   const containerRef = useRef<HTMLDivElement>(null);
   const tiltFrame = useRef<number | null>(null);
+  const isTouchRef = useRef(false);
+
+  useEffect(() => {
+    isTouchRef.current =
+      window.matchMedia("(pointer: coarse)").matches || window.innerWidth < 1024;
+  }, []);
 
   const handleMouseMove = useCallback(
     (e: React.MouseEvent<HTMLDivElement>) => {
+      if (isTouchRef.current) return;
       const el = containerRef.current;
       if (!el) return;
       const clientX = e.clientX;
@@ -51,6 +58,7 @@ function StaticCinematicImage({
   );
 
   const handleMouseLeave = useCallback(() => {
+    if (isTouchRef.current) return;
     const el = containerRef.current;
     if (!el) return;
     if (tiltFrame.current !== null) {

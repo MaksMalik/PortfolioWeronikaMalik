@@ -801,6 +801,7 @@ export function PortfolioHighlights({
           {activeProject && (
             <motion.div
               className="fixed inset-0 z-[90] overflow-y-auto overscroll-contain bg-porcelain text-ink"
+              style={{ willChange: "transform", WebkitOverflowScrolling: "touch" } as any}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}

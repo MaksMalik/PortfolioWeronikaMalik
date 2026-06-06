@@ -173,24 +173,37 @@ export function Header({ monogram, isLoaded = true }: { monogram: string; isLoad
         </Button>
       </div>
 
-      <AnimatePresence>
+      <AnimatePresence mode="wait">
         {isOpen && (
           <motion.div
             className="fixed inset-0 z-40 flex flex-col justify-between bg-porcelain/95 px-8 pt-28 pb-10 backdrop-blur-2xl lg:hidden h-svh w-screen"
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
           >
-            <div className="flex flex-col gap-6 pt-8 overflow-y-auto no-scrollbar">
-              {activeNavItems.map((item, index) => (
+            <motion.div
+              className="flex flex-col gap-6 pt-8 overflow-y-auto no-scrollbar"
+              initial="closed"
+              animate="open"
+              exit="closed"
+              variants={{
+                open: {
+                  transition: { staggerChildren: 0.05, delayChildren: 0.06 }
+                },
+                closed: {
+                  transition: { staggerChildren: 0.04, staggerDirection: -1 }
+                }
+              }}
+            >
+              {activeNavItems.map((item) => (
                 <motion.a
                   key={item.href}
                   href={item.href}
-                  initial={{ opacity: 0, y: 15 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: 15 }}
-                  transition={{ delay: index * 0.05, duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
+                  variants={{
+                    open: { opacity: 1, y: 0, transition: { duration: 0.45, ease: [0.16, 1, 0.3, 1] } },
+                    closed: { opacity: 0, y: 18, transition: { duration: 0.28, ease: [0.4, 0, 1, 1] } }
+                  }}
                   className={cn(
                     "font-serif text-4xl font-medium tracking-wide transition-colors",
                     activeHref === item.href ? "text-ink" : "text-ink/45"
@@ -201,13 +214,13 @@ export function Header({ monogram, isLoaded = true }: { monogram: string; isLoad
                   {item.label}
                 </motion.a>
               ))}
-            </div>
+            </motion.div>
 
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              transition={{ delay: 0.3, duration: 0.5 }}
+              transition={{ duration: 0.3 }}
               className="border-t border-ink/10 pt-6 flex flex-col gap-2 text-[0.62rem] font-bold uppercase tracking-[0.2em] text-ink/40"
             >
               <span>{monogram} — Weronika Malik</span>

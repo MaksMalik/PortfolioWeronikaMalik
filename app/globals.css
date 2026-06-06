@@ -506,6 +506,11 @@ a {
   .cinematicImage.in-view-mobile .cinematicImageVeil {
     opacity: 0.8;
   }
+  /* Isolate repaints inside modals for smoother scroll */
+  .cinematicImage.isStatic {
+    contain: layout style paint;
+    transform: none;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
