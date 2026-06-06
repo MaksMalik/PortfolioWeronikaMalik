@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion, type Variants } from "framer-motion";
 import { ExternalLink, Mail, MapPin, MessageCircle, Phone, Trash2, ArrowUp, ArrowDown, Eye, EyeOff, Plus, Edit } from "lucide-react";
 import type { ContactContent, SocialLink } from "@/lib/types";
 import { Button } from "@/components/ui/button";
@@ -63,6 +63,42 @@ function socialIcon(label: string) {
 
   return <MessageCircle className="h-4.5 w-4.5 stroke-ink/65 group-hover:stroke-ink transition-colors duration-300 shrink-0" />;
 }
+
+const contactEase = [0.22, 1, 0.36, 1] as const;
+
+const contactDetailsContainer: Variants = {
+  hidden: {},
+  visible: {
+    transition: {
+      staggerChildren: 0.1
+    }
+  }
+};
+
+const contactDetailsItem: Variants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.66, ease: contactEase }
+  }
+};
+
+const phoneSwap: Variants = {
+  hidden: { opacity: 0, y: 8, clipPath: "inset(0 100% 0 0)" },
+  visible: {
+    opacity: 1,
+    y: 0,
+    clipPath: "inset(0 0% 0 0)",
+    transition: { duration: 0.48, ease: contactEase }
+  },
+  exit: {
+    opacity: 0,
+    y: -6,
+    clipPath: "inset(0 0 0 100%)",
+    transition: { duration: 0.22, ease: "easeOut" }
+  }
+};
 
 export function Contact({ content: initialContent, bgClass }: { content: ContactContent; bgClass?: string }) {
   const { editMode, updateContent, content: globalContent } = useAdminEdit();
@@ -208,9 +244,15 @@ export function Contact({ content: initialContent, bgClass }: { content: Contact
           </div>
 
           <div className="flex flex-col justify-center lg:border-l lg:border-ink/10 lg:pl-16">
-            <div className="divide-y divide-ink/10 border-y border-ink/10">
+            <motion.div
+              className="divide-y divide-ink/10 border-y border-ink/10"
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, amount: 0.25, margin: "0px 0px -12% 0px" }}
+              variants={contactDetailsContainer}
+            >
               {content.email && (
-                <div className="py-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 group/item">
+                <motion.div variants={contactDetailsItem} className="py-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 group/item">
                   <span className="text-[0.62rem] font-bold uppercase tracking-[0.22em] text-ink/45">
                     Napisz bezpośrednio
                   </span>
@@ -221,41 +263,58 @@ export function Contact({ content: initialContent, bgClass }: { content: Contact
                     {content.email}
                     <Mail className="h-4 w-4 text-ink/45 group-hover/item:translate-x-1 transition-transform duration-300" />
                   </a>
-                </div>
+                </motion.div>
               )}
 
               {content.phone && (
-                <div className="py-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 group/item">
+                <motion.div variants={contactDetailsItem} className="py-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 group/item">
                   <span className="text-[0.62rem] font-bold uppercase tracking-[0.22em] text-ink/45">
                     Zadzwoń
                   </span>
-                  {showPhone || editMode ? (
-                    <a
-                      href={`tel:${content.phone.replace(/\s+/g, "")}`}
-                      className="inline-flex items-center gap-2.5 font-serif text-lg text-ink transition-colors hover:text-ink/60 sm:text-xl"
-                    >
-                      {content.phone}
-                      <Phone className="h-4 w-4 text-ink/45 group-hover/item:translate-x-1 transition-transform duration-300" />
-                    </a>
-                  ) : (
-                    <button
-                      type="button"
-                      onClick={() => setShowPhone(true)}
-                      className="inline-flex items-center gap-2.5 font-serif text-lg text-ink transition-colors hover:text-ink/60 sm:text-xl cursor-pointer text-left focus:outline-none"
-                    >
-                      <span className="blur-[4px] select-none tracking-wider opacity-60">
-                        {content.phone.substring(0, 4)} ••• ••• •••
-                      </span>
-                      <span className="text-[0.6rem] font-sans font-bold uppercase tracking-[0.1em] text-ink/50 bg-ink/5 px-2.5 py-1 rounded-full group-hover/item:bg-ink/10 transition-colors ml-1.5 shrink-0">
-                        Pokaż numer
-                      </span>
-                    </button>
-                  )}
-                </div>
+                  <AnimatePresence mode="wait" initial={false}>
+                    {showPhone || editMode ? (
+                      <motion.a
+                        key="phone-visible"
+                        href={`tel:${content.phone.replace(/\s+/g, "")}`}
+                        className="inline-flex items-center gap-2.5 font-serif text-lg text-ink transition-colors hover:text-ink/60 sm:text-xl"
+                        variants={phoneSwap}
+                        initial="hidden"
+                        animate="visible"
+                        exit="exit"
+                      >
+                        {content.phone}
+                        <Phone className="h-4 w-4 text-ink/45 group-hover/item:translate-x-1 transition-transform duration-300" />
+                      </motion.a>
+                    ) : (
+                      <motion.button
+                        key="phone-hidden"
+                        type="button"
+                        onClick={() => setShowPhone(true)}
+                        className="inline-flex items-center gap-3 font-serif text-lg text-ink transition-colors hover:text-ink/60 sm:text-xl cursor-pointer text-left focus:outline-none"
+                        aria-label="Pokaż numer telefonu"
+                        aria-expanded={showPhone}
+                        variants={phoneSwap}
+                        initial="hidden"
+                        animate="visible"
+                        exit="exit"
+                      >
+                        <span className="select-none tracking-wide text-ink/65">
+                          {content.phone.substring(0, 4)}
+                          <span className="ml-2 font-sans text-sm tracking-[0.24em] text-ink/28">
+                            ••• ••• •••
+                          </span>
+                        </span>
+                        <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-ink/10 bg-white text-ink/55 shadow-[0_10px_26px_rgba(16,16,16,0.04)] transition-all duration-300 group-hover/item:border-ink/18 group-hover/item:text-ink group-hover/item:shadow-[0_14px_34px_rgba(16,16,16,0.07)]">
+                          <Eye className="h-4 w-4" />
+                        </span>
+                      </motion.button>
+                    )}
+                  </AnimatePresence>
+                </motion.div>
               )}
 
               {content.location && (
-                <div className="py-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                <motion.div variants={contactDetailsItem} className="py-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                   <span className="text-[0.62rem] font-bold uppercase tracking-[0.22em] text-ink/45">
                     Baza / Lokalizacja
                   </span>
@@ -263,20 +322,20 @@ export function Contact({ content: initialContent, bgClass }: { content: Contact
                     {content.location}
                     <MapPin className="h-4 w-4 text-ink/45" />
                   </p>
-                </div>
+                </motion.div>
               )}
 
               {content.representation && (
-                <div className="py-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                <motion.div variants={contactDetailsItem} className="py-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                   <span className="text-[0.62rem] font-bold uppercase tracking-[0.22em] text-ink/45">
                     Reprezentacja / Agent
                   </span>
                   <h4 className="font-serif text-lg font-medium text-ink sm:text-xl">
                     {content.representation}
                   </h4>
-                </div>
+                </motion.div>
               )}
-            </div>
+            </motion.div>
           </div>
         </div>
 

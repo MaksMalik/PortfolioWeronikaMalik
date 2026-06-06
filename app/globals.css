@@ -219,57 +219,6 @@ body::before {
   opacity: 0.7;
 }
 
-.cinematicFrame {
-  position: absolute;
-  inset: 1.25rem;
-  z-index: 0;
-  pointer-events: none;
-  border: 1px solid rgba(16, 16, 16, 0.06);
-  opacity: 0.85;
-}
-
-.cinematicFrame::before,
-.cinematicFrame::after {
-  content: "";
-  position: absolute;
-  left: 1rem;
-  right: 1rem;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(16, 16, 16, 0.18), transparent);
-}
-
-.cinematicFrame::before {
-  top: 0.85rem;
-}
-
-.cinematicFrame::after {
-  bottom: 0.85rem;
-}
-
-.filmEdge {
-  position: absolute;
-  inset-inline: 0;
-  height: 1.25rem;
-  z-index: 0;
-  pointer-events: none;
-  background:
-    repeating-linear-gradient(
-      90deg,
-      rgba(16, 16, 16, 0.11) 0 1.15rem,
-      transparent 1.15rem 2.3rem
-    );
-  mask-image: linear-gradient(90deg, transparent, #000 16%, #000 84%, transparent);
-  opacity: 0.16;
-}
-
-.filmEdge-top {
-  top: 0;
-}
-
-.filmEdge-bottom {
-  bottom: 0;
-}
-
 .cinematic-card {
   position: relative;
   overflow: hidden;
@@ -287,8 +236,8 @@ body::before {
   z-index: 4;
   pointer-events: none;
   background:
-    linear-gradient(110deg, transparent 8%, rgba(255, 255, 255, 0.24) 26%, transparent 46%),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.16), transparent 36%, rgba(16, 16, 16, 0.045));
+    linear-gradient(110deg, transparent 12%, rgba(255, 255, 255, 0.12) 30%, transparent 50%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.08), transparent 40%, rgba(16, 16, 16, 0.018));
   opacity: 0;
   transform: translateX(-18%);
   transition:
@@ -296,32 +245,49 @@ body::before {
     transform 900ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-.cinematic-card::after {
-  content: "";
-  position: absolute;
-  inset: 0.75rem;
-  z-index: 4;
-  pointer-events: none;
-  border: 1px solid rgba(255, 255, 255, 0.32);
-  opacity: 0;
-  transition: opacity 700ms cubic-bezier(0.22, 1, 0.36, 1);
-}
-
 .cinematic-card:hover,
 .group:hover .cinematic-card {
-  border-color: rgba(16, 16, 16, 0.22);
-  box-shadow: 0 34px 90px rgba(16, 16, 16, 0.16);
+  border-color: rgba(16, 16, 16, 0.16);
+  box-shadow: 0 22px 58px rgba(16, 16, 16, 0.075);
 }
 
 .cinematic-card:hover::before,
 .group:hover .cinematic-card::before {
-  opacity: 1;
+  opacity: 0.58;
   transform: translateX(0);
 }
 
-.cinematic-card:hover::after,
-.group:hover .cinematic-card::after {
+.cinematic-card-frame {
+  position: absolute;
+  inset: 0.85rem;
+  z-index: 5;
+  pointer-events: none;
+  opacity: 0;
+  overflow: visible;
+  transition: opacity 260ms ease;
+}
+
+.cinematic-card-frame path {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.74);
+  stroke-width: 1;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+  filter: drop-shadow(0 1px 5px rgba(16, 16, 16, 0.22));
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  transition: stroke-dashoffset 920ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.cinematic-card:hover .cinematic-card-frame,
+.group:hover .cinematic-card-frame {
   opacity: 1;
+}
+
+.cinematic-card:hover .cinematic-card-frame path,
+.group:hover .cinematic-card-frame path {
+  stroke-dashoffset: 0;
 }
 
 .cinematic-heading-line {
@@ -529,7 +495,8 @@ a {
 @media (prefers-reduced-motion: reduce) {
   .cinematic-card,
   .cinematic-card::before,
-  .cinematic-card::after,
+  .cinematic-card-frame,
+  .cinematic-card-frame path,
   .cinematic-heading-line::after,
   .cinematicImage,
   .cinematicImageBase,
@@ -547,8 +514,8 @@ body.is-edit-mode * {
 
 .customCursor {
   position: fixed;
-  left: -19px;
-  top: -19px;
+  left: 0;
+  top: 0;
   z-index: 100;
   display: none;
   height: 38px;
@@ -562,14 +529,17 @@ body.is-edit-mode * {
     width 240ms ease;
 }
 
-.customCursor span {
+.customCursorRing {
   position: absolute;
   inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   border: 1px solid rgba(255, 255, 255, 0.92);
   border-radius: 999px;
 }
 
-.customCursor span::after {
+.customCursorRing::after {
   content: "";
   position: absolute;
   left: 50%;
@@ -581,6 +551,23 @@ body.is-edit-mode * {
   transform: translate(-50%, -50%);
 }
 
+.customCursorLabel {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding-left: 0.18em;
+  color: #ffffff;
+  font-size: 0.42rem;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  line-height: 1;
+  text-align: center;
+  text-transform: uppercase;
+}
+
 .customCursor.isVisible {
   opacity: 1;
 }
@@ -590,7 +577,7 @@ body.is-edit-mode * {
   width: 54px;
 }
 
-.customCursor.is-image,
+.customCursor.is-view,
 .customCursor.is-play {
   height: 72px;
   width: 72px;

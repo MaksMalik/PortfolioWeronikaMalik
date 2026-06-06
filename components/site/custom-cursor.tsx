@@ -12,7 +12,7 @@ export function CustomCursor() {
   const y = useMotionValue(-80);
   const springX = useSpring(x, { stiffness: 980, damping: 42, mass: 0.18 });
   const springY = useSpring(y, { stiffness: 980, damping: 42, mass: 0.18 });
-  const [mode, setMode] = useState<"default" | "action" | "image" | "play">("default");
+  const [mode, setMode] = useState<"default" | "action" | "view" | "play">("default");
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
@@ -25,27 +25,34 @@ export function CustomCursor() {
     document.body.classList.add("has-custom-cursor");
     document.body.classList.remove("is-edit-mode");
 
-    const handleMove = (event: MouseEvent) => {
-      x.set(event.clientX);
-      y.set(event.clientY);
-      setVisible(true);
+    const cursorSize = (nextMode: typeof mode) => {
+      if (nextMode === "view" || nextMode === "play") return 72;
+      if (nextMode === "action") return 54;
+      return 38;
+    };
 
+    const handleMove = (event: MouseEvent) => {
       const target = event.target as HTMLElement | null;
-      const isShowreel = Boolean(target?.closest("#showreel .cinematicImage, #showreel button"));
+      const isShowreel = Boolean(target?.closest("[data-cursor='play']"));
+      const isViewable = Boolean(target?.closest("[data-cursor='view']"));
       const isAction = Boolean(
         target?.closest("a, button, input, textarea, label, [role='button']")
       );
-      const isImage = Boolean(target?.closest(".cinematicImage, .imageReveal"));
 
+      let nextMode: typeof mode = "default";
       if (isShowreel) {
-        setMode("play");
+        nextMode = "play";
+      } else if (isViewable) {
+        nextMode = "view";
       } else if (isAction) {
-        setMode("action");
-      } else if (isImage) {
-        setMode("image");
-      } else {
-        setMode("default");
+        nextMode = "action";
       }
+
+      const size = cursorSize(nextMode);
+      x.set(event.clientX - size / 2);
+      y.set(event.clientY - size / 2);
+      setMode(nextMode);
+      setVisible(true);
     };
 
     const handleLeave = () => setVisible(false);
@@ -71,14 +78,14 @@ export function CustomCursor() {
       style={{ x: springX, y: springY }}
       aria-hidden="true"
     >
-      <span className="relative flex h-full w-full items-center justify-center">
-        {mode === "image" && (
-          <span className="text-[0.44rem] font-bold uppercase tracking-[0.2em] text-white">
+      <span className="customCursorRing">
+        {mode === "view" && (
+          <span className="customCursorLabel">
             Zobacz
           </span>
         )}
         {mode === "play" && (
-          <span className="text-[0.44rem] font-bold uppercase tracking-[0.22em] text-white pl-[2px]">
+          <span className="customCursorLabel">
             Play
           </span>
         )}

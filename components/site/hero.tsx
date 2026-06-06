@@ -27,7 +27,6 @@ export function Hero({ content: initialContent }: { content: HeroContent }) {
   });
   const imageY = useTransform(scrollYProgress, [0, 1], ["0%", "11%"]);
   const textY = useTransform(scrollYProgress, [0, 1], ["0%", "-6%"]);
-  const frameOpacity = useTransform(scrollYProgress, [0, 0.8], [1, 0.28]);
   const lightOpacity = useTransform(scrollYProgress, [0, 0.55, 1], [0.62, 0.28, 0]);
   const nameWords = content.name.split(" ");
 
@@ -63,16 +62,12 @@ export function Hero({ content: initialContent }: { content: HeroContent }) {
         editMode && !isSectionEnabled && "opacity-60 border-2 border-dashed border-ink/15 bg-ink/[0.01]"
       )}
     >
-      <div className="absolute inset-x-0 top-20 h-px bg-ink/10" />
       <div className="absolute inset-x-0 bottom-0 h-px bg-ink/10" />
       <motion.div
         className="pointer-events-none absolute inset-0 z-0 bg-[linear-gradient(115deg,rgba(255,255,255,0.46),transparent_32%,rgba(16,16,16,0.045)_78%,transparent)]"
         style={{ opacity: lightOpacity }}
         aria-hidden="true"
       />
-      <motion.div className="cinematicFrame" style={{ opacity: frameOpacity }} aria-hidden="true" />
-      <div className="filmEdge filmEdge-top" aria-hidden="true" />
-      <div className="filmEdge filmEdge-bottom" aria-hidden="true" />
 
       {/* Control overlay for Admin */}
       {editMode && (

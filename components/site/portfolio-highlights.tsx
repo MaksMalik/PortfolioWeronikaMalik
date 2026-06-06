@@ -6,6 +6,7 @@ import { ExternalLink, X, Plus, Trash2, ArrowUp, ArrowDown, Eye, EyeOff, Edit, U
 import type { PortfolioProject, SiteImage } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { FilmwebMark } from "@/components/site/brand-icons";
+import { CinematicCardFrame } from "@/components/site/cinematic-card-frame";
 import { CinematicImage } from "@/components/site/cinematic-image";
 import { ModalPortal } from "@/components/site/modal-portal";
 import { SectionHeading, SectionReveal } from "@/components/site/section-reveal";
@@ -328,6 +329,7 @@ export function PortfolioHighlights({ projects: initialProjects, bgClass }: { pr
               <div key={project.id} className="relative group scroll-ml-4 [scroll-snap-align:start]">
                 <motion.button
                   type="button"
+                  data-cursor="view"
                   className={cn(
                     "cinematic-card w-full group border border-ink/10 bg-white text-left rounded-2xl flex flex-col h-full",
                     !project.enabled && "opacity-50 border-dashed"
@@ -348,11 +350,14 @@ export function PortfolioHighlights({ projects: initialProjects, bgClass }: { pr
                   whileHover={editMode ? {} : { y: -10 }}
                 >
                   {(project.image.src && project.image.enabled !== false) && (
-                    <CinematicImage
-                      src={project.image.src}
-                      alt={project.image.alt}
-                      className="aspect-[3/4] rounded-t-2xl w-full"
-                    />
+                    <div className="relative">
+                      <CinematicImage
+                        src={project.image.src}
+                        alt={project.image.alt}
+                        className="aspect-[3/4] rounded-t-2xl w-full"
+                      />
+                      <CinematicCardFrame />
+                    </div>
                   )}
                   <div className="relative overflow-hidden p-6 flex-1 flex flex-col justify-between w-full">
                     <div className="absolute inset-x-6 top-0 h-px bg-ink/10" />

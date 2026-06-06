@@ -5,6 +5,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { ChevronLeft, ChevronRight, X, Plus, Trash2, ArrowUp, ArrowDown, Eye, EyeOff, Edit, Upload, Loader2 } from "lucide-react";
 import type { GallerySession, SiteImage } from "@/lib/types";
 import { Button } from "@/components/ui/button";
+import { CinematicCardFrame } from "@/components/site/cinematic-card-frame";
 import { CinematicImage } from "@/components/site/cinematic-image";
 import { ModalPortal } from "@/components/site/modal-portal";
 import { RevealBlock, SectionHeading, SectionReveal } from "@/components/site/section-reveal";
@@ -402,6 +403,7 @@ export function Gallery({ sessions: initialSessions, bgClass }: { sessions: Gall
                 <div key={session.id} className="relative group scroll-ml-4 [scroll-snap-align:start]">
                   <motion.button
                     type="button"
+                    data-cursor="view"
                     className={cn(
                       "cinematic-card w-full group grid min-h-[520px] border border-ink/10 bg-white text-left shadow-[0_18px_60px_rgba(16,16,16,0.04)] rounded-2xl",
                       !session.enabled && "opacity-50 border-dashed"
@@ -421,14 +423,17 @@ export function Gallery({ sessions: initialSessions, bgClass }: { sessions: Gall
                     transition={{ delay: index * 0.08, duration: 0.58, ease: [0.22, 1, 0.36, 1] }}
                     whileHover={editMode ? {} : { y: -8 }}
                   >
-                    <CinematicImage
-                      src={cover.src}
-                      alt={cover.alt}
-                      className={cn(
-                        "min-h-[390px] w-full rounded-t-2xl",
-                        index % 2 === 0 ? "aspect-[4/5]" : "aspect-[5/4]"
-                      )}
-                    />
+                    <div className="relative">
+                      <CinematicImage
+                        src={cover.src}
+                        alt={cover.alt}
+                        className={cn(
+                          "min-h-[390px] w-full rounded-t-2xl",
+                          index % 2 === 0 ? "aspect-[4/5]" : "aspect-[5/4]"
+                        )}
+                      />
+                      <CinematicCardFrame />
+                    </div>
                     <div className="p-6 w-full flex flex-col justify-between">
                       <div>
                         <p className="text-[0.66rem] font-bold uppercase tracking-[0.2em] text-ink/45">

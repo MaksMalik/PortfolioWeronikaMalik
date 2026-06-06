@@ -374,6 +374,7 @@ export function Showreel({ content: initialContent, bgClass }: { content: Showre
                     <div key={video.id} className="relative group scroll-ml-4 [scroll-snap-align:start]">
                       <motion.button
                         type="button"
+                        data-cursor="play"
                         className={cn(
                           "cinematic-card w-full group text-left border border-ink/10 bg-white shadow-[0_18px_60px_rgba(16,16,16,0.04)] rounded-2xl flex flex-col h-full overflow-hidden",
                           !video.enabled && "opacity-50 border-dashed"
@@ -398,7 +399,7 @@ export function Showreel({ content: initialContent, bgClass }: { content: Showre
                             alt={video.thumbnail.alt || video.title}
                             className="absolute inset-0 h-full w-full"
                           />
-                          <span className="absolute inset-0 z-10 bg-ink/0 transition-colors duration-700 group-hover:bg-ink/18" />
+                          <span className="absolute inset-0 z-10 bg-ink/0 transition-colors duration-700 group-hover:bg-ink/8" />
                           {!editMode && (
                             <span className="absolute left-1/2 top-1/2 z-10 flex h-14 w-14 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-white/60 bg-white/20 text-white backdrop-blur-sm transition-transform duration-500 group-hover:scale-110">
                               <Play className="ml-0.5 h-6 w-6 fill-current" />
@@ -435,6 +436,7 @@ export function Showreel({ content: initialContent, bgClass }: { content: Showre
             <RevealBlock className="relative group aspect-video w-full rounded-3xl overflow-hidden shadow-editorial" x={-28} y={12}>
               <button
                 type="button"
+                data-cursor="play"
                 className="absolute inset-0 h-full w-full text-left cursor-pointer"
                 onClick={() => {
                   if (!editMode) {
@@ -453,7 +455,7 @@ export function Showreel({ content: initialContent, bgClass }: { content: Showre
                   className="absolute inset-0 h-full w-full"
                   imageClassName="rounded-3xl"
                 />
-                <span className="absolute inset-0 z-10 bg-ink/0 transition-colors duration-700 group-hover:bg-ink/18" />
+                <span className="absolute inset-0 z-10 bg-ink/0 transition-colors duration-700 group-hover:bg-ink/8" />
                 {!editMode && (
                   <span className="absolute left-1/2 top-1/2 z-10 flex h-20 w-20 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-white/70 bg-white/18 text-white backdrop-blur-sm transition-transform duration-500 group-hover:scale-110">
                     <Play className="ml-1 h-8 w-8 fill-current" />
