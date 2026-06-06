@@ -478,8 +478,6 @@ export const Gallery = memo(function Gallery({
                       setSessionDirection(1);
                       setActiveSessionId(session.id);
                     }}
-                    onMouseMove={handleCardMouseMove}
-                    onMouseLeave={handleCardMouseLeave}
                     aria-label={`Otwórz sesję ${session.title}`}
                     initial={{ opacity: 0, y: 12 }}
                     whileInView={{ opacity: 1, y: 0 }}
@@ -1151,3 +1149,5 @@ export const Gallery = memo(function Gallery({
     </SectionReveal>
   );
 });
+
+

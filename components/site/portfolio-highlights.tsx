@@ -416,8 +416,6 @@ export const PortfolioHighlights = memo(function PortfolioHighlights({
 
                     setActiveProject(project);
                   }}
-                  onMouseMove={handleCardMouseMove}
-                  onMouseLeave={handleCardMouseLeave}
                   aria-label={`Czytaj więcej o roli ${project.title}`}
                   initial={{ opacity: 0, y: 12 }}
                   whileInView={{ opacity: 1, y: 0 }}
@@ -1041,3 +1039,5 @@ export const PortfolioHighlights = memo(function PortfolioHighlights({
     </SectionReveal>
   );
 });
+
+
