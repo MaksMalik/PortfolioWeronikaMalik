@@ -477,10 +477,6 @@ a {
   opacity: 1;
 }
 
-/* Zero-flash start screen skip */
-html.skip-intro .intro-loader-container {
-  display: none !important;
-}
 
 /* Touch / mobile: simple opacity fade when image scrolls into view */
 @media (pointer: coarse), (max-width: 1024px) {

@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useEffect } from "react";
+import { motion } from "framer-motion";
 import { useAdminEdit } from "@/components/admin/admin-edit-context";
 import { startFirebaseAnalytics } from "@/lib/firebase/client";
 import { About } from "@/components/site/about";
@@ -15,77 +15,19 @@ import { PressMentions } from "@/components/site/press-mentions";
 import { ScrollProgress } from "@/components/site/scroll-progress";
 import { Showreel } from "@/components/site/showreel";
 import { AdminBar } from "@/components/admin/admin-bar";
-import { IntroLoader } from "@/components/site/intro-loader";
 
 export function ActressPortfolio() {
   const { content, isAdmin, editMode } = useAdminEdit();
-  
-  // Mounted flag to ensure safe hydration matching the server structure
-  const [mounted, setMounted] = useState(false);
-  const [isLoaderComplete, setIsLoaderComplete] = useState(() => {
-    if (typeof window === "undefined") return false;
-    return document.documentElement.classList.contains("skip-intro");
-  });
-  const [showLoader, setShowLoader] = useState(() => {
-    if (typeof window === "undefined") return true;
-    return !document.documentElement.classList.contains("skip-intro");
-  });
-  const [shouldAnimateExit, setShouldAnimateExit] = useState(true);
-
-  const introConfig = content.introLoader ?? {
-    enabled: true,
-    title: "Weronika Malik",
-    subtitle: "Portfolio Aktorskie"
-  };
-
-  const isLoaded = isLoaderComplete || editMode || !introConfig.enabled;
 
   useEffect(() => {
-    setMounted(true);
     void startFirebaseAnalytics();
   }, []);
-
-  useEffect(() => {
-    if (!introConfig.enabled) {
-      setShouldAnimateExit(false);
-      setShowLoader(false);
-      setIsLoaderComplete(true);
-      return;
-    }
-
-    const lastSeenStr = localStorage.getItem("intro-last-seen");
-    if (lastSeenStr) {
-      const lastSeen = parseInt(lastSeenStr, 10);
-      const now = Date.now();
-      const fiveMinutes = 5 * 60 * 1000;
-      if (now - lastSeen < fiveMinutes) {
-        setShouldAnimateExit(false);
-        setShowLoader(false);
-        setIsLoaderComplete(true);
-        return;
-      }
-    }
-  }, [introConfig.enabled]);
-
-  const handleStartExit = () => {
-    setIsLoaderComplete(true);
-  };
-
-  const handleLoaderComplete = () => {
-    localStorage.setItem("intro-last-seen", Date.now().toString());
-    setShowLoader(false);
-  };
-
-  const showMainContent = mounted && (isLoaderComplete || editMode);
-  const shouldShowLoader = !mounted
-    ? (introConfig.enabled && !editMode)
-    : (showLoader && !isLoaderComplete && !editMode && introConfig.enabled);
 
   const sectionsConfig = [
     {
       id: "hero",
       enabled: content.sections.hero.enabled,
-      render: () => <Hero key="hero" content={content.hero} isLoaded={isLoaded} />
+      render: () => <Hero key="hero" content={content.hero} isLoaded={true} />
     },
     {
       id: "about",
@@ -169,39 +111,24 @@ export function ActressPortfolio() {
       transition={{ duration: 0.65, ease: "easeOut" }}
       suppressHydrationWarning
     >
-      {showMainContent && (
-        <>
-          <ScrollProgress />
-          <Header monogram={content.hero.monogram} isLoaded={isLoaded} />
+      <ScrollProgress />
+      <Header monogram={content.hero.monogram} isLoaded={true} />
 
-          {renderedSections.map((sec) => {
-            let bgClass = "bg-white";
-            let reverseParallax = false;
-            
-            if (sec.id !== "hero") {
-              bgClass = nonHeroIndex % 2 === 0 ? "bg-porcelain" : "bg-white";
-              reverseParallax = nonHeroIndex % 2 !== 0;
-              nonHeroIndex++;
-            }
-            
-            return sec.render(bgClass, reverseParallax);
-          })}
-        </>
-      )}
+      {renderedSections.map((sec) => {
+        let bgClass = "bg-white";
+        let reverseParallax = false;
+        
+        if (sec.id !== "hero") {
+          bgClass = nonHeroIndex % 2 === 0 ? "bg-porcelain" : "bg-white";
+          reverseParallax = nonHeroIndex % 2 !== 0;
+          nonHeroIndex++;
+        }
+        
+        return sec.render(bgClass, reverseParallax);
+      })}
 
       <CustomCursor />
       <AdminBar />
-
-      {shouldShowLoader && (
-        <IntroLoader
-          monogram={content.hero.monogram}
-          title={introConfig.title}
-          subtitle={introConfig.subtitle}
-          onStartExit={handleStartExit}
-          onComplete={handleLoaderComplete}
-          animateExit={shouldAnimateExit}
-        />
-      )}
     </motion.main>
   );
 }

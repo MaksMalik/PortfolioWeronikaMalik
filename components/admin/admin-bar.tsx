@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useAdminEdit } from "./admin-edit-context";
-import { Eye, EyeOff, Save, Rocket, LogOut, Loader2, History, Trash2, Clock, Undo, Redo, Moon, Sun, ArrowUp, ArrowDown, ArrowUpDown, Sliders } from "lucide-react";
+import { Eye, EyeOff, Save, Rocket, LogOut, Loader2, History, Trash2, Clock, Undo, Redo, Moon, Sun, ArrowUp, ArrowDown, ArrowUpDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { AdminDrawer } from "./admin-drawer";
 import { Label } from "@/components/ui/label";
@@ -40,7 +40,6 @@ export function AdminBar() {
   } = useAdminEdit();
 
   const [showHistory, setShowHistory] = useState(false);
-  const [isIntroDrawerOpen, setIsIntroDrawerOpen] = useState(false);
 
   if (!isAdmin) {
     return null;
@@ -262,17 +261,7 @@ export function AdminBar() {
           <span className="hidden lg:inline">{content.theme === "dark" ? "Ciemny" : "Jasny"}</span>
         </button>
         
-        {editMode && (
-          <button
-            type="button"
-            onClick={() => setIsIntroDrawerOpen(true)}
-            className="inline-flex h-9 items-center justify-center gap-1.5 rounded-full border border-white/15 bg-white/5 px-2.5 sm:px-4 text-xs font-bold uppercase tracking-[0.12em] text-white/80 transition-all hover:bg-white/10 hover:text-white shrink-0"
-            title="Ustawienia czarnego ekranu startowego"
-          >
-            <Sliders className="h-3.5 w-3.5" />
-            <span className="hidden lg:inline">Ekran startowy</span>
-          </button>
-        )}
+        
 
         <button
           type="button"
@@ -340,78 +329,7 @@ export function AdminBar() {
         )}
       </div>
       
-      <AdminDrawer
-        isOpen={isIntroDrawerOpen}
-        onClose={() => setIsIntroDrawerOpen(false)}
-        title="Ekran Startowy (Intro)"
-      >
-        <div className="grid gap-5">
-          <div className="flex items-center justify-between border-b border-ink/10 pb-4">
-            <div className="space-y-0.5">
-              <Label htmlFor="intro-enabled" className="text-xs font-bold uppercase tracking-[0.1em] text-ink/70">Włącz ekran startowy</Label>
-              <p className="text-[0.62rem] text-ink/40 uppercase tracking-wide">
-                Włącz lub wyłącz czarny ekran powitalny
-              </p>
-            </div>
-            <button
-              type="button"
-              id="intro-enabled"
-              onClick={() =>
-                updateContent((draft) => {
-                  if (!draft.introLoader) {
-                    draft.introLoader = { enabled: true, title: "Weronika Malik", subtitle: "Portfolio Aktorskie" };
-                  }
-                  draft.introLoader.enabled = !draft.introLoader.enabled;
-                })
-              }
-              className={cn(
-                "rounded-full px-2.5 py-0.5 text-[0.62rem] font-bold uppercase tracking-[0.1em] border transition-colors",
-                (content.introLoader?.enabled ?? true)
-                  ? "border-emerald-500 bg-emerald-500 text-white"
-                  : "border-ink/15 bg-white text-ink/45 hover:border-ink hover:text-ink"
-              )}
-            >
-              {(content.introLoader?.enabled ?? true) ? "Aktywny" : "Wyłączony"}
-            </button>
-          </div>
-
-          <div className="grid gap-1">
-            <Label htmlFor="intro-title" className="text-[0.62rem] font-bold uppercase tracking-[0.1em] text-ink/40">Tytuł (Główny tekst)</Label>
-            <Input
-              id="intro-title"
-              value={content.introLoader?.title ?? "Weronika Malik"}
-              onChange={(e) =>
-                updateContent((draft) => {
-                  if (!draft.introLoader) {
-                    draft.introLoader = { enabled: true, title: "Weronika Malik", subtitle: "Portfolio Aktorskie" };
-                  }
-                  draft.introLoader.title = e.target.value;
-                })
-              }
-              className="rounded-full"
-              disabled={!(content.introLoader?.enabled ?? true)}
-            />
-          </div>
-
-          <div className="grid gap-1">
-            <Label htmlFor="intro-subtitle" className="text-[0.62rem] font-bold uppercase tracking-[0.1em] text-ink/40">Podtytuł</Label>
-            <Input
-              id="intro-subtitle"
-              value={content.introLoader?.subtitle ?? "Portfolio Aktorskie"}
-              onChange={(e) =>
-                updateContent((draft) => {
-                  if (!draft.introLoader) {
-                    draft.introLoader = { enabled: true, title: "Weronika Malik", subtitle: "Portfolio Aktorskie" };
-                  }
-                  draft.introLoader.subtitle = e.target.value;
-                })
-              }
-              className="rounded-full"
-              disabled={!(content.introLoader?.enabled ?? true)}
-            />
-          </div>
-        </div>
-      </AdminDrawer>
+      
     </div>
   );
 }

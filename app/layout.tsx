@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { Bodoni_Moda, Manrope } from "next/font/google";
 import { AdminEditProvider } from "@/components/admin/admin-edit-context";
-import Script from "next/script";
 import "./globals.css";
 
 const display = Bodoni_Moda({
@@ -28,38 +27,6 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="pl" className={`${display.variable} ${sans.variable}`} suppressHydrationWarning>
-      <head>
-        <Script
-          id="skip-intro-check"
-          strategy="beforeInteractive"
-          dangerouslySetInnerHTML={{
-            __html: `
-              (function() {
-                try {
-                  var cached = localStorage.getItem("strona_aktorska_live_cache");
-                  if (cached) {
-                    var content = JSON.parse(cached);
-                    if (content && content.introLoader && content.introLoader.enabled === false) {
-                      document.documentElement.classList.add("skip-intro");
-                      return;
-                    }
-                  }
-                  var lastSeen = localStorage.getItem("intro-last-seen");
-                  if (lastSeen) {
-                    var now = Date.now();
-                    var fiveMinutes = 5 * 60 * 1000;
-                    if (now - parseInt(lastSeen, 10) < fiveMinutes) {
-                      document.documentElement.classList.add("skip-intro");
-                    }
-                  }
-                } catch (e) {
-                  console.error(e);
-                }
-              })();
-            `
-          }}
-        />
-      </head>
       <body suppressHydrationWarning>
         <AdminEditProvider>
           <div className="film-grain" aria-hidden="true" />

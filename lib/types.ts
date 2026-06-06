@@ -109,11 +109,6 @@ export type ContactContent = {
   footerDesignerTag?: string;
 };
 
-export type IntroLoaderContent = {
-  enabled: boolean;
-  title: string;
-  subtitle: string;
-};
 
 export type SiteContent = {
   schemaVersion: number;
@@ -134,7 +129,6 @@ export type SiteContent = {
   gallery: GallerySession[];
   press: PressMention[];
   contact: ContactContent;
-  introLoader?: IntroLoaderContent;
   sectionsOrder?: string[];
 };
 
