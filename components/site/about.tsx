@@ -208,7 +208,7 @@ export function About({
       ref={containerRef}
       id="about"
       className={cn(
-        "relative border-y border-ink/10 py-20 transition-all duration-300 lg:border-none lg:py-0 lg:h-[300vh]",
+        "relative border-y border-ink/10 py-20 transition-all duration-300 lg:border-none lg:py-0 lg:h-[480vh]",
         bgClass || "bg-white",
         editMode && "hover:ring-1 hover:ring-ink/20",
         editMode && !isSectionEnabled && "opacity-60 border-2 border-dashed border-ink/15 bg-ink/[0.01]"
