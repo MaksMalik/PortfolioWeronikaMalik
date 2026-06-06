@@ -27,7 +27,7 @@ export function ActressPortfolio() {
     {
       id: "hero",
       enabled: content.sections.hero.enabled,
-      render: (bgClass: string) => <Hero key="hero" content={content.hero} />
+      render: () => <Hero key="hero" content={content.hero} />
     },
     {
       id: "about",
@@ -92,6 +92,7 @@ export function ActressPortfolio() {
       transition={{ duration: 0.65, ease: "easeOut" }}
     >
       <ScrollProgress />
+      <div className="cinematicAtmosphere" aria-hidden="true" />
       <CustomCursor />
       <AdminBar />
       <Header monogram={content.hero.monogram} />

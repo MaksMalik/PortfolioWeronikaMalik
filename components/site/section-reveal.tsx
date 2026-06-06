@@ -95,8 +95,8 @@ export function SectionHeading({
       <motion.span
         className={cn("eyebrow", align === "center" && "justify-center")}
         variants={{
-          hidden: { opacity: 0, x: align === "center" ? 0 : -22, y: 10, filter: "blur(2px)" },
-          visible: { opacity: 1, x: 0, y: 0, filter: "blur(0px)" }
+          hidden: { opacity: 0, x: align === "center" ? 0 : -22, y: 10 },
+          visible: { opacity: 1, x: 0, y: 0 }
         }}
         transition={{ duration: 0.72, ease: revealEase }}
       >
@@ -105,8 +105,8 @@ export function SectionHeading({
       <motion.h2
         className="font-serif text-4xl font-medium leading-none text-ink sm:text-6xl lg:text-7xl"
         variants={{
-          hidden: { opacity: 0, y: 24, filter: "blur(6px)" },
-          visible: { opacity: 1, y: 0, filter: "blur(0px)" }
+          hidden: { opacity: 0, y: 24 },
+          visible: { opacity: 1, y: 0 }
         }}
         transition={{ duration: 0.92, ease: revealEase }}
       >

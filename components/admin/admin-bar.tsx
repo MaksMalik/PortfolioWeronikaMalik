@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useAdminEdit } from "./admin-edit-context";
-import { Eye, EyeOff, Save, Rocket, LogOut, Loader2, History, Trash2, Clock, Undo, Redo, RotateCcw, X, Moon, Sun } from "lucide-react";
+import { Eye, EyeOff, Save, Rocket, LogOut, Loader2, History, Trash2, Clock, Undo, Redo, Moon, Sun } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export function AdminBar() {
@@ -27,7 +27,6 @@ export function AdminBar() {
     createVersionCheckpoint,
     autosaveStatus,
     hasUnsavedEdits,
-    remoteSaveBlocked,
     undo,
     redo,
     canUndo,

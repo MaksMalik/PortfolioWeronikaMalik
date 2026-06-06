@@ -403,7 +403,7 @@ export function Gallery({ sessions: initialSessions, bgClass }: { sessions: Gall
                   <motion.button
                     type="button"
                     className={cn(
-                      "w-full group grid min-h-[520px] border border-ink/10 bg-white text-left shadow-[0_18px_60px_rgba(16,16,16,0.04)] rounded-2xl",
+                      "cinematic-card w-full group grid min-h-[520px] border border-ink/10 bg-white text-left shadow-[0_18px_60px_rgba(16,16,16,0.04)] rounded-2xl",
                       !session.enabled && "opacity-50 border-dashed"
                     )}
                     onClick={() => {
@@ -434,7 +434,7 @@ export function Gallery({ sessions: initialSessions, bgClass }: { sessions: Gall
                         <p className="text-[0.66rem] font-bold uppercase tracking-[0.2em] text-ink/45">
                           {session.subtitle}
                         </p>
-                        <h3 className="mt-3 font-serif text-4xl leading-none text-ink">
+                        <h3 className="cinematic-heading-line mt-3 font-serif text-4xl leading-none text-ink">
                           {session.title}
                         </h3>
                         {session.description && (
@@ -815,6 +815,7 @@ export function Gallery({ sessions: initialSessions, bgClass }: { sessions: Gall
               role="dialog"
               aria-modal="true"
             >
+              <div className="pointer-events-none fixed inset-0 bg-[linear-gradient(90deg,rgba(16,16,16,0.08),transparent_14%,transparent_86%,rgba(16,16,16,0.08))]" aria-hidden="true" />
               <div className="mx-auto max-w-7xl">
                 <div className="sticky top-0 z-20 mb-6 border-b border-ink/10 bg-porcelain px-4 py-4 shadow-[0_16px_50px_rgba(16,16,16,0.04)] sm:px-6">
                   <div className="mx-auto flex max-w-7xl flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">

@@ -329,7 +329,7 @@ export function PortfolioHighlights({ projects: initialProjects, bgClass }: { pr
                 <motion.button
                   type="button"
                   className={cn(
-                    "w-full group border border-ink/10 bg-white text-left transition-shadow duration-500 hover:shadow-editorial rounded-2xl flex flex-col h-full",
+                    "cinematic-card w-full group border border-ink/10 bg-white text-left rounded-2xl flex flex-col h-full",
                     !project.enabled && "opacity-50 border-dashed"
                   )}
                   onClick={(event) => {
@@ -360,7 +360,7 @@ export function PortfolioHighlights({ projects: initialProjects, bgClass }: { pr
                       <p className="text-[0.66rem] font-bold uppercase tracking-[0.2em] text-ink/45">
                         {project.type} / {project.role}
                       </p>
-                      <h3 className="mt-4 font-serif text-3xl leading-none text-ink">
+                      <h3 className="cinematic-heading-line mt-4 font-serif text-3xl leading-none text-ink">
                         {project.title}
                       </h3>
                       <div className="mt-5 flex items-center justify-between text-sm text-ink/55">
@@ -750,12 +750,13 @@ export function PortfolioHighlights({ projects: initialProjects, bgClass }: { pr
               aria-modal="true"
             >
               <motion.div
-                className="mx-auto max-w-6xl rounded-3xl bg-porcelain my-8 border border-ink/10 shadow-editorial relative"
+                className="mx-auto max-w-6xl rounded-3xl bg-porcelain my-8 border border-ink/10 shadow-editorial relative overflow-hidden"
                 initial={{ opacity: 0, y: 24 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: 24 }}
                 transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
               >
+                <div className="pointer-events-none absolute inset-x-0 top-0 h-24 bg-[linear-gradient(180deg,rgba(255,255,255,0.66),transparent)]" aria-hidden="true" />
                 <div className="rounded-3xl overflow-hidden bg-porcelain">
                   <div className="sticky top-0 z-20 mb-8 border-b border-ink/10 bg-porcelain px-4 py-4 shadow-[0_16px_50px_rgba(16,16,16,0.04)] sm:px-6">
                     <div className="mx-auto flex max-w-6xl items-center justify-between gap-4">

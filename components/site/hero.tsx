@@ -27,6 +27,8 @@ export function Hero({ content: initialContent }: { content: HeroContent }) {
   });
   const imageY = useTransform(scrollYProgress, [0, 1], ["0%", "11%"]);
   const textY = useTransform(scrollYProgress, [0, 1], ["0%", "-6%"]);
+  const frameOpacity = useTransform(scrollYProgress, [0, 0.8], [1, 0.28]);
+  const lightOpacity = useTransform(scrollYProgress, [0, 0.55, 1], [0.62, 0.28, 0]);
   const nameWords = content.name.split(" ");
 
   const handleImageUpload = async (event: ChangeEvent<HTMLInputElement>) => {
@@ -63,6 +65,14 @@ export function Hero({ content: initialContent }: { content: HeroContent }) {
     >
       <div className="absolute inset-x-0 top-20 h-px bg-ink/10" />
       <div className="absolute inset-x-0 bottom-0 h-px bg-ink/10" />
+      <motion.div
+        className="pointer-events-none absolute inset-0 z-0 bg-[linear-gradient(115deg,rgba(255,255,255,0.46),transparent_32%,rgba(16,16,16,0.045)_78%,transparent)]"
+        style={{ opacity: lightOpacity }}
+        aria-hidden="true"
+      />
+      <motion.div className="cinematicFrame" style={{ opacity: frameOpacity }} aria-hidden="true" />
+      <div className="filmEdge filmEdge-top" aria-hidden="true" />
+      <div className="filmEdge filmEdge-bottom" aria-hidden="true" />
 
       {/* Control overlay for Admin */}
       {editMode && (
@@ -102,7 +112,7 @@ export function Hero({ content: initialContent }: { content: HeroContent }) {
         </div>
       )}
 
-      <div className="section-shell grid min-h-[calc(92svh-8.5rem)] items-center gap-10 py-6 lg:grid-cols-[0.86fr_1.14fr] lg:gap-16">
+      <div className="section-shell relative z-10 grid min-h-[calc(92svh-8.5rem)] items-center gap-10 py-6 lg:grid-cols-[0.86fr_1.14fr] lg:gap-16">
         {(content.image.src && content.image.enabled !== false) && (
           <motion.div
             style={{ y: imageY }}
@@ -112,6 +122,13 @@ export function Hero({ content: initialContent }: { content: HeroContent }) {
             transition={{ duration: 1.25, ease: [0.22, 1, 0.36, 1] }}
           >
             <div className="relative h-full group">
+              <motion.span
+                className="pointer-events-none absolute -inset-3 rounded-t-full border border-ink/10"
+                initial={{ opacity: 0, scale: 0.985 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.22, duration: 1.1, ease: [0.22, 1, 0.36, 1] }}
+                aria-hidden="true"
+              />
               <CinematicImage
                 src={content.image.src}
                 alt={content.image.alt}
@@ -174,8 +191,8 @@ export function Hero({ content: initialContent }: { content: HeroContent }) {
             <motion.p
               className="text-xs font-bold uppercase tracking-[0.26em] text-ink/55"
               variants={{
-                hidden: { opacity: 0, y: 14, filter: "blur(4px)" },
-                visible: { opacity: 1, y: 0, filter: "blur(0px)" }
+                hidden: { opacity: 0, y: 14 },
+                visible: { opacity: 1, y: 0 }
               }}
               transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
             >
@@ -184,8 +201,8 @@ export function Hero({ content: initialContent }: { content: HeroContent }) {
             <motion.p
               className="font-serif text-2xl leading-tight text-graphite sm:text-4xl"
               variants={{
-                hidden: { opacity: 0, y: 20, filter: "blur(6px)" },
-                visible: { opacity: 1, y: 0, filter: "blur(0px)" }
+                hidden: { opacity: 0, y: 20 },
+                visible: { opacity: 1, y: 0 }
               }}
               transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
             >

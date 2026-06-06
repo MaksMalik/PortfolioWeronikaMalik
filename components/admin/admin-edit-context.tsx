@@ -118,14 +118,17 @@ export function AdminEditProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (typeof window !== "undefined") {
       const cached = getCachedContent();
-      if (cached) {
-        setContent(cached);
-      }
-      
       const backupExists = Boolean(localStorage.getItem("strona_aktorska_draft_backup"));
-      if (backupExists) {
-        setHasBackup(true);
-      }
+      
+      queueMicrotask(() => {
+        if (cached) {
+          setContent(cached);
+        }
+
+        if (backupExists) {
+          setHasBackup(true);
+        }
+      });
     }
   }, []);
   const [historyVersions, setHistoryVersions] = useState<ContentVersion[]>([]);

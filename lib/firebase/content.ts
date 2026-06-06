@@ -252,6 +252,7 @@ async function compressImageFile(file: File) {
 }
 
 export async function uploadImageFile(file: File, folder: string): Promise<string> {
+  void folder;
   const currentUser = firebaseAuth.currentUser;
   if (!currentUser) {
     throw new Error(

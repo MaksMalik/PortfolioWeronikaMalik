@@ -128,7 +128,7 @@ export function PressMentions({ mentions: initialMentions, bgClass }: { mentions
             <RevealBlock key={mention.id} delay={index * 0.08} y={34} className="h-full">
               <figure
                 className={cn(
-                  "relative flex h-full flex-col justify-between border-y border-ink/10 px-4 py-10 text-center group/figure",
+                  "cinematic-card relative flex h-full flex-col justify-between border-y border-ink/10 px-4 py-10 text-center group/figure",
                   !mention.enabled && "opacity-45 border-dashed"
                 )}
               >

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState, ChangeEvent, useRef } from "react";
+import { useEffect, useMemo, useState, ChangeEvent } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Play, X, Upload, Loader2, Edit, ChevronLeft, ChevronRight, Plus, Trash2, ArrowUp, ArrowDown, Eye, EyeOff } from "lucide-react";
 import type { ShowreelContent, ShowreelVideo, SiteImage } from "@/lib/types";
@@ -116,8 +116,6 @@ export function Showreel({ content: initialContent, bgClass }: { content: Showre
   useBodyScrollLock(activeVideoUrl !== null);
 
   const mainVideoUrl = useMemo(() => getEmbeddableUrl(content.videoUrl, true), [content.videoUrl]);
-  const mainIsMp4 = mainVideoUrl.toLowerCase().endsWith(".mp4");
-
   const mainYtId = getYoutubeVideoId(content.videoUrl);
   const mainYtThumbUrl =
     content.youtubeThumbnailEnabled && mainYtId
@@ -377,7 +375,7 @@ export function Showreel({ content: initialContent, bgClass }: { content: Showre
                       <motion.button
                         type="button"
                         className={cn(
-                          "w-full group text-left border border-ink/10 bg-white shadow-[0_18px_60px_rgba(16,16,16,0.04)] rounded-2xl flex flex-col h-full overflow-hidden transition-shadow duration-500 hover:shadow-editorial",
+                          "cinematic-card w-full group text-left border border-ink/10 bg-white shadow-[0_18px_60px_rgba(16,16,16,0.04)] rounded-2xl flex flex-col h-full overflow-hidden",
                           !video.enabled && "opacity-50 border-dashed"
                         )}
                         onClick={() => {
@@ -409,7 +407,7 @@ export function Showreel({ content: initialContent, bgClass }: { content: Showre
                         </div>
                         <div className="p-6 flex-1 flex flex-col justify-between w-full">
                           <div>
-                            <h3 className="font-serif text-2xl leading-tight text-ink">
+                            <h3 className="cinematic-heading-line font-serif text-2xl leading-tight text-ink">
                               {video.title}
                             </h3>
                             {video.description && (
@@ -570,7 +568,7 @@ export function Showreel({ content: initialContent, bgClass }: { content: Showre
 
             {videosList.length === 0 && (
               <div className="bg-porcelain p-4 rounded-2xl text-center text-xs text-ink/40 mb-3 border border-ink/5">
-                Pusta lista. Używasz układu z jednym głównym filmem (wsteczna kompatybilność). Kliknij "Dodaj wideo", by włączyć tryb listy.
+                Pusta lista. Używasz układu z jednym głównym filmem (wsteczna kompatybilność). Kliknij &quot;Dodaj wideo&quot;, by włączyć tryb listy.
               </div>
             )}
 
@@ -859,7 +857,7 @@ export function Showreel({ content: initialContent, bgClass }: { content: Showre
               aria-modal="true"
             >
               <motion.div
-                className="relative w-full max-w-5xl bg-black rounded-3xl border border-white/10 shadow-editorial"
+                className="relative w-full max-w-5xl overflow-hidden bg-black rounded-3xl border border-white/10 shadow-editorial"
                 initial={{ opacity: 0, scale: 0.96, y: 12 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.96, y: 12 }}
