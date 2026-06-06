@@ -87,20 +87,11 @@ export function Header({
     setActiveHref(href);
     window.history.pushState(null, "", href);
 
-    const scrollToSection = () => {
-      const target = document.querySelector<HTMLElement>(href);
-      if (!target) return;
-
-      const headerHeight = document.querySelector("header")?.getBoundingClientRect().height ?? 80;
-      const top = Math.max(0, target.getBoundingClientRect().top + window.scrollY - headerHeight - 14);
-      window.scrollTo({ top, behavior: "smooth" });
+    const dispatchNavigation = () => {
+      window.dispatchEvent(new CustomEvent("portfolio:navigate", { detail: { href } }));
     };
 
-    window.dispatchEvent(new CustomEvent("portfolio:navigate", { detail: { href } }));
-
-    if (wasMobileMenuOpen) {
-      window.setTimeout(scrollToSection, 480);
-    }
+    window.setTimeout(dispatchNavigation, wasMobileMenuOpen ? 380 : 0);
   };
 
   return (

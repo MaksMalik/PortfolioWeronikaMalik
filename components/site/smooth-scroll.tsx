@@ -3,9 +3,12 @@
 import { useEffect, useRef } from "react";
 import Lenis from "lenis";
 
+const ANCHOR_SCROLL_DURATION = 1.15;
+
 export function SmoothScroll() {
   const lenisRef = useRef<Lenis | null>(null);
   const rafRef = useRef<number | null>(null);
+  const anchorScrollEndTimerRef = useRef<number | null>(null);
 
   useEffect(() => {
     const createLenis = () => {
@@ -42,10 +45,20 @@ export function SmoothScroll() {
       const offset = -headerHeight - 14;
       const top = Math.max(0, targetElement.getBoundingClientRect().top + window.scrollY + offset);
       const activeLenis = lenisRef.current;
+      const finishDelay = ANCHOR_SCROLL_DURATION * 1000 + 260;
+
+      window.dispatchEvent(new CustomEvent("portfolio:anchor-scroll-start", { detail: { href, top } }));
+      if (anchorScrollEndTimerRef.current !== null) {
+        window.clearTimeout(anchorScrollEndTimerRef.current);
+      }
+      anchorScrollEndTimerRef.current = window.setTimeout(() => {
+        anchorScrollEndTimerRef.current = null;
+        window.dispatchEvent(new CustomEvent("portfolio:anchor-scroll-end", { detail: { href, top } }));
+      }, finishDelay);
 
       if (activeLenis) {
         activeLenis.scrollTo(top, {
-          duration: 1.15
+          duration: ANCHOR_SCROLL_DURATION
         });
       } else {
         window.scrollTo({ top, behavior: "smooth" });
@@ -109,6 +122,9 @@ export function SmoothScroll() {
     checkScrollLock();
 
     return () => {
+      if (anchorScrollEndTimerRef.current !== null) {
+        window.clearTimeout(anchorScrollEndTimerRef.current);
+      }
       if (rafRef.current) {
         cancelAnimationFrame(rafRef.current);
       }

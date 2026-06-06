@@ -125,6 +125,60 @@ function ScrollRevealCinematicImage({
     once: true
   });
 
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    const mobileQuery = window.matchMedia("(pointer: coarse), (max-width: 1024px)");
+    const reducedMotionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+    let frame = 0;
+
+    const updateMobileColorProgress = () => {
+      frame = 0;
+
+      if (!mobileQuery.matches) {
+        container.style.removeProperty("--mobile-color-progress");
+        return;
+      }
+
+      if (reducedMotionQuery.matches) {
+        container.style.setProperty("--mobile-color-progress", "1");
+        return;
+      }
+
+      const rect = container.getBoundingClientRect();
+      const viewportCenter = window.innerHeight / 2;
+      const elementCenter = rect.top + rect.height / 2;
+      const distance = Math.abs(elementCenter - viewportCenter);
+      const activeDistance = Math.max(window.innerHeight * 0.56, rect.height * 1.15);
+      const rawProgress = Math.max(0, Math.min(1, 1 - distance / activeDistance));
+      const easedProgress = Math.pow(rawProgress, 0.72);
+
+      container.style.setProperty("--mobile-color-progress", easedProgress.toFixed(3));
+    };
+
+    const scheduleUpdate = () => {
+      if (frame) return;
+      frame = window.requestAnimationFrame(updateMobileColorProgress);
+    };
+
+    updateMobileColorProgress();
+    window.addEventListener("scroll", scheduleUpdate, { passive: true });
+    window.addEventListener("resize", scheduleUpdate);
+    mobileQuery.addEventListener("change", scheduleUpdate);
+    reducedMotionQuery.addEventListener("change", scheduleUpdate);
+
+    return () => {
+      if (frame) {
+        window.cancelAnimationFrame(frame);
+      }
+      window.removeEventListener("scroll", scheduleUpdate);
+      window.removeEventListener("resize", scheduleUpdate);
+      mobileQuery.removeEventListener("change", scheduleUpdate);
+      reducedMotionQuery.removeEventListener("change", scheduleUpdate);
+    };
+  }, []);
+
   /* ── Circle-reveal animation (desktop / fine-pointer only) ──── */
   useEffect(() => {
     const container = containerRef.current;
