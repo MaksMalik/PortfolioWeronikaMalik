@@ -95,7 +95,7 @@ export function SectionHeading({
   const rawXTitle = useTransform(
     scrollYProgress,
     [0, 1],
-    reverseDirection ? [45, -45] : [-45, 45]
+    reverseDirection ? [24, -24] : [-24, 24]
   );
   const springXTitle = useSpring(rawXTitle, { stiffness: 80, damping: 25, restDelta: 0.001 });
   const xTitle = isDesktop ? springXTitle : 0;
@@ -104,7 +104,7 @@ export function SectionHeading({
   const rawXEyebrow = useTransform(
     scrollYProgress,
     [0, 1],
-    reverseDirection ? [-45, 45] : [45, -45]
+    reverseDirection ? [-24, 24] : [24, -24]
   );
   const springXEyebrow = useSpring(rawXEyebrow, { stiffness: 80, damping: 25, restDelta: 0.001 });
   const xEyebrow = isDesktop ? springXEyebrow : 0;
