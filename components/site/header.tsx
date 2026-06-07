@@ -178,7 +178,7 @@ export function Header({
           </span>
         </a>
 
-        <nav className="hidden items-center gap-2 lg:flex" aria-label="Główna nawigacja">
+        <nav className="hidden items-center gap-6 lg:flex" aria-label="Główna nawigacja">
           {activeNavItems.map((item) => (
             <MagneticNavLink
               key={item.href}

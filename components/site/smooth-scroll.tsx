@@ -9,6 +9,7 @@ const ANCHOR_SKIP_FINISH_DELAY = 120;
 const SECTION_TRANSITION_ENTER_MS = 280;
 const SECTION_TRANSITION_HOLD_MS = 130;
 const SECTION_TRANSITION_END_MS = 620;
+const CURTAIN_EASE = [0.22, 1, 0.36, 1] as const;
 
 type AnchorNavigationSource = "anchor" | "header";
 
@@ -50,6 +51,48 @@ export function SmoothScroll() {
   const sectionTransitionTimersRef = useRef<number[]>([]);
   const [sectionTransition, setSectionTransition] = useState<SectionTransitionState | null>(null);
   const prefersReducedMotion = useReducedMotion();
+
+  const backdropVariants = {
+    initial: (direction: "down" | "up") => ({
+      clipPath: direction === "down" ? "inset(100% 0 0 0)" : "inset(0 0 100% 0)"
+    }),
+    animate: {
+      clipPath: "inset(0 0 0 0)",
+      transition: { duration: prefersReducedMotion ? 0.01 : 0.44, ease: CURTAIN_EASE }
+    },
+    exit: (direction: "down" | "up") => ({
+      clipPath: direction === "down" ? "inset(0 0 100% 0)" : "inset(100% 0 0 0)",
+      transition: { delay: prefersReducedMotion ? 0 : 0.14, duration: prefersReducedMotion ? 0.01 : 0.4, ease: CURTAIN_EASE }
+    })
+  };
+
+  const intermediateVariants = {
+    initial: (direction: "down" | "up") => ({
+      clipPath: direction === "down" ? "inset(100% 0 0 0)" : "inset(0 0 100% 0)"
+    }),
+    animate: {
+      clipPath: "inset(0 0 0 0)",
+      transition: { delay: prefersReducedMotion ? 0 : 0.08, duration: prefersReducedMotion ? 0.01 : 0.42, ease: CURTAIN_EASE }
+    },
+    exit: (direction: "down" | "up") => ({
+      clipPath: direction === "down" ? "inset(0 0 100% 0)" : "inset(100% 0 0 0)",
+      transition: { delay: prefersReducedMotion ? 0 : 0.08, duration: prefersReducedMotion ? 0.01 : 0.42, ease: CURTAIN_EASE }
+    })
+  };
+
+  const solidVariants = {
+    initial: (direction: "down" | "up") => ({
+      clipPath: direction === "down" ? "inset(100% 0 0 0)" : "inset(0 0 100% 0)"
+    }),
+    animate: {
+      clipPath: "inset(0 0 0 0)",
+      transition: { delay: prefersReducedMotion ? 0 : 0.14, duration: prefersReducedMotion ? 0.01 : 0.4, ease: CURTAIN_EASE }
+    },
+    exit: (direction: "down" | "up") => ({
+      clipPath: direction === "down" ? "inset(0 0 100% 0)" : "inset(100% 0 0 0)",
+      transition: { delay: prefersReducedMotion ? 0 : 0, duration: prefersReducedMotion ? 0.01 : 0.44, ease: CURTAIN_EASE }
+    })
+  };
 
   useEffect(() => {
     const stopRaf = () => {
@@ -275,10 +318,11 @@ export function SmoothScroll() {
           <motion.div
             key={`${sectionTransition.href}-layer1`}
             className="pointer-events-none fixed inset-0 z-[999997] bg-ink/15 backdrop-blur-md"
-            initial={{ clipPath: sectionTransition.direction === "down" ? "inset(100% 0 0 0)" : "inset(0 0 100% 0)" }}
-            animate={{ clipPath: "inset(0 0 0 0)" }}
-            exit={{ clipPath: sectionTransition.direction === "down" ? "inset(0 0 100% 0)" : "inset(100% 0 0 0)" }}
-            transition={{ duration: prefersReducedMotion ? 0.01 : 0.44, ease: [0.22, 1, 0.36, 1] }}
+            custom={sectionTransition.direction}
+            variants={backdropVariants}
+            initial="initial"
+            animate="animate"
+            exit="exit"
             aria-hidden="true"
           />
 
@@ -286,10 +330,11 @@ export function SmoothScroll() {
           <motion.div
             key={`${sectionTransition.href}-layer2`}
             className="pointer-events-none fixed inset-0 z-[999998] bg-muted/95 dark:bg-muted/80"
-            initial={{ clipPath: sectionTransition.direction === "down" ? "inset(100% 0 0 0)" : "inset(0 0 100% 0)" }}
-            animate={{ clipPath: "inset(0 0 0 0)" }}
-            exit={{ clipPath: sectionTransition.direction === "down" ? "inset(0 0 100% 0)" : "inset(100% 0 0 0)" }}
-            transition={{ delay: 0.08, duration: prefersReducedMotion ? 0.01 : 0.42, ease: [0.22, 1, 0.36, 1] }}
+            custom={sectionTransition.direction}
+            variants={intermediateVariants}
+            initial="initial"
+            animate="animate"
+            exit="exit"
             aria-hidden="true"
           />
 
@@ -297,10 +342,11 @@ export function SmoothScroll() {
           <motion.div
             key={sectionTransition.href}
             className="pointer-events-none fixed inset-0 z-[999999] flex items-center justify-center overflow-hidden bg-ink text-porcelain"
-            initial={{ clipPath: sectionTransition.direction === "down" ? "inset(100% 0 0 0)" : "inset(0 0 100% 0)" }}
-            animate={{ clipPath: "inset(0 0 0 0)" }}
-            exit={{ clipPath: sectionTransition.direction === "down" ? "inset(0 0 100% 0)" : "inset(100% 0 0 0)" }}
-            transition={{ delay: 0.14, duration: prefersReducedMotion ? 0.01 : 0.4, ease: [0.22, 1, 0.36, 1] }}
+            custom={sectionTransition.direction}
+            variants={solidVariants}
+            initial="initial"
+            animate="animate"
+            exit="exit"
             aria-hidden="true"
           >
             <motion.div

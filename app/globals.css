@@ -815,15 +815,13 @@ body.is-edit-mode * {
 }
 
 
-@media (pointer: fine) {
-  .customCursor {
-    display: block;
-  }
+.customCursor {
+  display: block;
+}
 
-  body.has-custom-cursor,
-  body.has-custom-cursor * {
-    cursor: none !important;
-  }
+body.has-custom-cursor,
+body.has-custom-cursor * {
+  cursor: none !important;
 }
 
 .section-shell {
