@@ -490,7 +490,7 @@ export function About({
             </div>
 
             {/* Horizontal Swipeable Snap container */}
-            <div className="flex gap-5 overflow-x-auto touch-pan-x overscroll-x-contain snap-x snap-mandatory pb-6 px-6 sm:px-10 scroll-pl-6 sm:scroll-pl-10 scrollbar-hide">
+            <div className="flex gap-5 overflow-x-auto overscroll-x-contain snap-x snap-mandatory pb-6 px-6 sm:px-10 scroll-pl-6 sm:scroll-pl-10 scrollbar-hide">
               {visibleEvents.map((event, idx) => (
                 <motion.div
                   key={event.id}
