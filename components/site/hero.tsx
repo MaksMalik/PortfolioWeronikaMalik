@@ -139,7 +139,7 @@ export function Hero({
             animate={isLoaded ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.96 }}
             transition={{ duration: 1.25, ease: [0.22, 1, 0.36, 1] }}
           >
-            <div className="relative h-full group">
+            <div className="relative h-full group hero-image-breathing">
               <motion.span
                 className="pointer-events-none absolute -inset-3 rounded-t-full border border-ink/10"
                 initial={{ opacity: 0, scale: 0.985 }}
@@ -168,7 +168,7 @@ export function Hero({
             <div className="relative h-full rounded-t-full bg-porcelain" />
           </motion.div>
         )}
-
+ 
         <motion.div style={{ y: textY }} className="heroMobileStaticText pb-0 lg:pt-6">
           <motion.div
             className="hero-eyebrow mb-9 flex items-center gap-4 text-[0.66rem] font-bold uppercase tracking-[0.24em] text-ink/45"
@@ -180,45 +180,46 @@ export function Hero({
             <span className="h-px w-16 bg-silver" />
             <span>{content.monogramTagline ?? "film / teatr / głos"}</span>
           </motion.div>
-
+ 
           <motion.h1
-            className="hero-written-name heroMobileStaticName max-w-[760px] font-serif text-[2.85rem] font-normal leading-[0.92] text-ink min-[380px]:text-[3.2rem] sm:text-[5.1rem] lg:text-[6.2rem] xl:text-[6.8rem]"
+            className="hero-written-name heroMobileStaticName max-w-[760px] font-serif text-[2.85rem] font-normal leading-[0.92] text-ink min-[380px]:text-[3.2rem] sm:text-[5.1rem] lg:text-[6.2rem] xl:text-[6.8rem] flex flex-wrap"
             style={{ x: nameX }}
           >
-            {nameWords.map((word, wordIndex) => (
-              <motion.span
-                key={`${word}-${wordIndex}`}
-                className="hero-written-word relative block w-fit whitespace-nowrap"
-                initial={{ opacity: 0, clipPath: "inset(0 100% 0 0)" }}
-                animate={
-                  isLoaded
-                    ? { opacity: 1, clipPath: "inset(0 0% 0 0)" }
-                    : { opacity: 0, clipPath: "inset(0 100% 0 0)" }
-                }
-                transition={{
-                  delay: HERO_NAME_DELAY + wordIndex * HERO_WORD_DELAY,
-                  duration: 0.74,
-                  ease: [0.22, 1, 0.36, 1]
-                }}
-              >
-                {word}
-                <motion.span
-                  className="hero-write-edge"
-                  initial={{ left: "0%", opacity: 0 }}
-                  animate={
-                    isLoaded
-                      ? { left: ["0%", "100%"], opacity: [0, 0.65, 0] }
-                      : { left: "0%", opacity: 0 }
-                  }
-                  transition={{
-                    delay: HERO_NAME_DELAY + wordIndex * HERO_WORD_DELAY,
-                    duration: 0.74,
-                    ease: [0.22, 1, 0.36, 1]
-                  }}
-                  aria-hidden="true"
-                />
-              </motion.span>
-            ))}
+            {nameWords.map((word, wordIndex) => {
+              const prevLettersCount = nameWords
+                .slice(0, wordIndex)
+                .reduce((acc, w) => acc + w.length, 0);
+ 
+              return (
+                <span
+                  key={`${word}-${wordIndex}`}
+                  className="relative inline-block whitespace-nowrap mr-[0.24em] last:mr-0"
+                >
+                  {word.split("").map((letter, letterIndex) => {
+                    const globalLetterIndex = prevLettersCount + letterIndex;
+                    return (
+                      <motion.span
+                        key={`${letter}-${letterIndex}`}
+                        className="inline-block"
+                        initial={{ opacity: 0, filter: "blur(9px)", y: 12 }}
+                        animate={
+                          isLoaded
+                            ? { opacity: 1, filter: "blur(0px)", y: 0 }
+                            : { opacity: 0, filter: "blur(9px)", y: 12 }
+                        }
+                        transition={{
+                          delay: HERO_NAME_DELAY + globalLetterIndex * 0.045,
+                          duration: 0.72,
+                          ease: [0.22, 1, 0.36, 1]
+                        }}
+                      >
+                        {letter}
+                      </motion.span>
+                    );
+                  })}
+                </span>
+              );
+            })}
           </motion.h1>
 
           <div className="mt-8 max-w-xl space-y-7">

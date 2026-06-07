@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState, ChangeEvent, useRef, memo } from "react";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion, useScroll, useTransform, useSpring } from "framer-motion";
 import { ChevronLeft, ChevronRight, X, Plus, Trash2, ArrowUp, ArrowDown, Eye, EyeOff, Edit, Upload, Loader2 } from "lucide-react";
 import type { GallerySession, SiteImage } from "@/lib/types";
 import { Button } from "@/components/ui/button";
@@ -56,7 +56,28 @@ export const Gallery = memo(function Gallery({
   const [editingSession, setEditingSession] = useState<GallerySession | null>(null);
   const [isSectionDrawerOpen, setIsSectionDrawerOpen] = useState(false);
   const [uploadingImageId, setUploadingImageId] = useState<string | null>(null);
-  const [sessionDirection, setSessionDirection] = useState<-1 | 1>(1);const modalImageRef = useRef<HTMLDivElement>(null);
+  const [sessionDirection, setSessionDirection] = useState<-1 | 1>(1);
+  const modalImageRef = useRef<HTMLDivElement>(null);
+
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(
+        window.matchMedia("(pointer: coarse)").matches || window.innerWidth < 1024
+      );
+    };
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
+
+  const modalScrollRef = useRef<HTMLDivElement>(null);
+  const { scrollY } = useScroll({ container: modalScrollRef });
+  const col2Y = useTransform(scrollY, [0, 1000], [0, -32]);
+  const col3Y = useTransform(scrollY, [0, 1000], [0, 24]);
+  const col2Spring = useSpring(col2Y, { stiffness: 90, damping: 24, mass: 0.5 });
+  const col3Spring = useSpring(col3Y, { stiffness: 90, damping: 24, mass: 0.5 });
+
   const {
     canScrollNext,
     canScrollPrev,
@@ -77,6 +98,9 @@ export const Gallery = memo(function Gallery({
     () => activeSession?.images.filter((img) => editMode || img.enabled) ?? [],
     [activeSession?.images, editMode]
   );
+  const col1 = useMemo(() => visibleImages.filter((_, idx) => idx % 3 === 0), [visibleImages]);
+  const col2 = useMemo(() => visibleImages.filter((_, idx) => idx % 3 === 1), [visibleImages]);
+  const col3 = useMemo(() => visibleImages.filter((_, idx) => idx % 3 === 2), [visibleImages]);
   const currentImageIndex = activeImage
     ? visibleImages.findIndex((img) => img.id === activeImage.id)
     : -1;
@@ -855,6 +879,7 @@ export const Gallery = memo(function Gallery({
                 onClick={() => setActiveSessionId(null)}
               />
               <motion.div
+                ref={modalScrollRef}
                 className="editorialModalScroll fixed inset-0 z-[90] h-screen overflow-y-auto overscroll-contain text-ink [-webkit-overflow-scrolling:touch]"
                 data-lenis-prevent
                 initial={{ opacity: 0 }}
@@ -968,43 +993,163 @@ export const Gallery = memo(function Gallery({
                     )}
                   </AnimatePresence>
 
-                  <AnimatePresence mode="wait" initial={false}>
+                                   <AnimatePresence mode="wait" initial={false}>
                     <motion.div
                       key={activeSession.id}
-                      className="grid grid-cols-1 items-start gap-5 px-4 pb-10 sm:grid-cols-2 sm:px-6 lg:grid-cols-3"
                       initial={{ opacity: 0, x: sessionDirection * 56 }}
                       animate={{ opacity: 1, x: 0 }}
                       exit={{ opacity: 0, x: sessionDirection * -56 }}
                       transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
+                      className="px-4 pb-10 sm:px-6"
                     >
-                    {visibleImages.map((image) => (
-                      <figure
-                        key={image.id}
-                        className="editorialModalLazyItem overflow-hidden border border-ink/10 bg-white rounded-2xl shadow-sm"
-                      >
-                        <button
-                          type="button"
-                          className="block w-full text-left cursor-zoom-in"
-                          onClick={() => setActiveImage(image)}
-                          aria-label={`Powiększ zdjęcie ${image.title ?? image.alt}`}
-                        ><img src={image.src} alt={image.alt} loading="lazy" decoding="async" sizes="(min-width: 1024px) 30vw, (min-width: 640px) 46vw, 92vw" className={cn("editorialModalImage w-full object-cover", aspectClass(image))} />
-                        </button>
-                        {(image.title || image.description) && (
-                          <figcaption className="px-4 py-4 border-t border-ink/5">
-                            {image.title && (
-                              <p className="font-serif text-2xl leading-none text-ink">{image.title}</p>
+                      {/* Mobile & Tablet grid (flat columns) */}
+                      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:hidden">
+                        {visibleImages.map((image) => (
+                          <figure
+                            key={image.id}
+                            className="editorialModalLazyItem overflow-hidden border border-ink/10 bg-white rounded-2xl shadow-sm"
+                          >
+                            <button
+                              type="button"
+                              className="block w-full text-left cursor-zoom-in"
+                              onClick={() => setActiveImage(image)}
+                              aria-label={`Powiększ zdjęcie ${image.title ?? image.alt}`}
+                            >
+                              <img
+                                src={image.src}
+                                alt={image.alt}
+                                loading="lazy"
+                                decoding="async"
+                                sizes="(min-width: 640px) 46vw, 92vw"
+                                className={cn("editorialModalImage w-full object-cover", aspectClass(image))}
+                              />
+                            </button>
+                            {(image.title || image.description) && (
+                              <figcaption className="px-4 py-4 border-t border-ink/5">
+                                {image.title && (
+                                  <p className="font-serif text-2xl leading-none text-ink">{image.title}</p>
+                                )}
+                                {image.description && (
+                                  <p className="mt-2 text-sm leading-6 text-ink/55">{image.description}</p>
+                                )}
+                              </figcaption>
                             )}
-                            {image.description && (
-                              <p className="mt-2 text-sm leading-6 text-ink/55">
-                                {image.description}
-                              </p>
-                            )}
-                          </figcaption>
-                        )}
-                      </figure>
-                    ))}
-                  </motion.div>
-                </AnimatePresence>
+                          </figure>
+                        ))}
+                      </div>
+
+                      {/* Desktop Parallax Asymmetric grid (3 split columns) */}
+                      <div className="hidden lg:grid lg:grid-cols-3 lg:gap-5 lg:items-start">
+                        {/* Column 1: Static Scroll */}
+                        <div className="flex flex-col gap-5">
+                          {col1.map((image) => (
+                            <figure
+                              key={image.id}
+                              className="editorialModalLazyItem overflow-hidden border border-ink/10 bg-white rounded-2xl shadow-sm"
+                            >
+                              <button
+                                type="button"
+                                className="block w-full text-left cursor-zoom-in"
+                                onClick={() => setActiveImage(image)}
+                                aria-label={`Powiększ zdjęcie ${image.title ?? image.alt}`}
+                              >
+                                <img
+                                  src={image.src}
+                                  alt={image.alt}
+                                  loading="lazy"
+                                  decoding="async"
+                                  sizes="30vw"
+                                  className={cn("editorialModalImage w-full object-cover", aspectClass(image))}
+                                />
+                              </button>
+                              {(image.title || image.description) && (
+                                <figcaption className="px-4 py-4 border-t border-ink/5">
+                                  {image.title && (
+                                    <p className="font-serif text-2xl leading-none text-ink">{image.title}</p>
+                                  )}
+                                  {image.description && (
+                                    <p className="mt-2 text-sm leading-6 text-ink/55">{image.description}</p>
+                                  )}
+                                </figcaption>
+                              )}
+                            </figure>
+                          ))}
+                        </div>
+
+                        {/* Column 2: Parallax Scroll Up (Faster) */}
+                        <motion.div className="flex flex-col gap-5" style={{ y: col2Spring }}>
+                          {col2.map((image) => (
+                            <figure
+                              key={image.id}
+                              className="editorialModalLazyItem overflow-hidden border border-ink/10 bg-white rounded-2xl shadow-sm"
+                            >
+                              <button
+                                type="button"
+                                className="block w-full text-left cursor-zoom-in"
+                                onClick={() => setActiveImage(image)}
+                                aria-label={`Powiększ zdjęcie ${image.title ?? image.alt}`}
+                              >
+                                <img
+                                  src={image.src}
+                                  alt={image.alt}
+                                  loading="lazy"
+                                  decoding="async"
+                                  sizes="30vw"
+                                  className={cn("editorialModalImage w-full object-cover", aspectClass(image))}
+                                />
+                              </button>
+                              {(image.title || image.description) && (
+                                <figcaption className="px-4 py-4 border-t border-ink/5">
+                                  {image.title && (
+                                    <p className="font-serif text-2xl leading-none text-ink">{image.title}</p>
+                                  )}
+                                  {image.description && (
+                                    <p className="mt-2 text-sm leading-6 text-ink/55">{image.description}</p>
+                                  )}
+                                </figcaption>
+                              )}
+                            </figure>
+                          ))}
+                        </motion.div>
+
+                        {/* Column 3: Parallax Scroll Down (Slower) */}
+                        <motion.div className="flex flex-col gap-5" style={{ y: col3Spring }}>
+                          {col3.map((image) => (
+                            <figure
+                              key={image.id}
+                              className="editorialModalLazyItem overflow-hidden border border-ink/10 bg-white rounded-2xl shadow-sm"
+                            >
+                              <button
+                                type="button"
+                                className="block w-full text-left cursor-zoom-in"
+                                onClick={() => setActiveImage(image)}
+                                aria-label={`Powiększ zdjęcie ${image.title ?? image.alt}`}
+                              >
+                                <img
+                                  src={image.src}
+                                  alt={image.alt}
+                                  loading="lazy"
+                                  decoding="async"
+                                  sizes="30vw"
+                                  className={cn("editorialModalImage w-full object-cover", aspectClass(image))}
+                                />
+                              </button>
+                              {(image.title || image.description) && (
+                                <figcaption className="px-4 py-4 border-t border-ink/5">
+                                  {image.title && (
+                                    <p className="font-serif text-2xl leading-none text-ink">{image.title}</p>
+                                  )}
+                                  {image.description && (
+                                    <p className="mt-2 text-sm leading-6 text-ink/55">{image.description}</p>
+                                  )}
+                                </figcaption>
+                              )}
+                            </figure>
+                          ))}
+                        </motion.div>
+                      </div>
+                    </motion.div>
+                  </AnimatePresence>
                 </div>
               </motion.div>
             </motion.div>

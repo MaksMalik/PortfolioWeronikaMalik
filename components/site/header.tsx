@@ -79,12 +79,26 @@ export function Header({
   const [isScrolled, setIsScrolled] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [activeHref, setActiveHref] = useState("#home");
+  const [showHeader, setShowHeader] = useState(true);
+  const [lastScrollY, setLastScrollY] = useState(0);
   const { scrollY } = useScroll();
   const { content } = useAdminEdit();
   useBodyScrollLock(isOpen);
 
   useMotionValueEvent(scrollY, "change", (latest) => {
     setIsScrolled(latest > 18);
+
+    if (latest < 120) {
+      setShowHeader(true);
+    } else {
+      const diff = latest - lastScrollY;
+      if (diff > 12) {
+        setShowHeader(false);
+      } else if (diff < -12) {
+        setShowHeader(true);
+      }
+    }
+    setLastScrollY(latest);
   });
 
   const activeNavItems = useMemo(
@@ -158,20 +172,32 @@ export function Header({
     window.setTimeout(dispatchNavigation, wasMobileMenuOpen ? 380 : 0);
   };
 
+  const isHeaderVisible = showHeader || isOpen;
+
   return (
     <header
       className={cn(
-        "siteHeaderIntro fixed left-0 right-0 top-0 z-50 border-b transition-[background-color,border-color,box-shadow,backdrop-filter] duration-500",
+        "siteHeaderIntro fixed left-0 right-0 top-0 z-50 border-b transition-[transform,background-color,border-color,box-shadow,backdrop-filter] duration-500",
         isScrolled
           ? "border-ink/10 bg-porcelain/88 shadow-[0_12px_40px_rgba(16,16,16,0.05)] backdrop-blur-xl"
           : "border-transparent bg-transparent"
       )}
+      style={{
+        transform: isHeaderVisible ? "translate3d(0, 0, 0)" : "translate3d(0, -100%, 0)",
+        willChange: "transform"
+      }}
     >
       <div className="section-shell relative z-50 flex h-20 items-center justify-between">
         <a
           href="#home"
-          className="group flex h-11 w-11 items-center justify-center rounded-full border border-ink/15 font-serif text-xl font-semibold text-ink transition-colors hover:border-ink"
+          className={cn(
+            "group flex h-11 w-11 items-center justify-center rounded-full border font-serif text-xl font-semibold transition-colors",
+            isScrolled
+              ? "border-ink/15 text-ink hover:border-ink"
+              : "border-white/40 text-white mix-blend-difference hover:border-white"
+          )}
           aria-label="Strona główna Weroniki Malik"
+          onClick={(e) => handleNavClick(e, "#home")}
         >
           <span className="transition-transform duration-500 group-hover:scale-90">
             {monogram}
@@ -188,16 +214,18 @@ export function Header({
               handleNavClick={handleNavClick}
               className={cn(
                 "group relative text-[0.68rem] font-bold uppercase tracking-[0.22em] transition-colors",
-                content.accentColorsEnabled
-                  ? activeHref === item.href
-                    ? ""
-                    : "text-ink/62 hover:text-[var(--accent)]"
-                  : activeHref === item.href
-                    ? "text-ink"
-                    : "text-ink/62 hover:text-ink"
+                isScrolled
+                  ? content.accentColorsEnabled
+                    ? activeHref === item.href
+                      ? ""
+                      : "text-ink/62 hover:text-[var(--accent)]"
+                    : activeHref === item.href
+                      ? "text-ink"
+                      : "text-ink/62 hover:text-ink"
+                  : "text-white mix-blend-difference hover:text-white/80"
               )}
               style={
-                content.accentColorsEnabled && activeHref === item.href
+                isScrolled && content.accentColorsEnabled && activeHref === item.href
                   ? { color: "var(--accent)" }
                   : undefined
               }
@@ -208,7 +236,11 @@ export function Header({
                 className={cn(
                   "absolute -bottom-2 left-0 h-px transition-all duration-500 group-hover:w-full",
                   activeHref === item.href ? "w-full" : "w-0",
-                  content.accentColorsEnabled ? "bg-[var(--accent)]" : "bg-ink"
+                  isScrolled
+                    ? content.accentColorsEnabled
+                      ? "bg-[var(--accent)]"
+                      : "bg-ink"
+                    : "bg-white"
                 )}
               />
             </MagneticNavLink>

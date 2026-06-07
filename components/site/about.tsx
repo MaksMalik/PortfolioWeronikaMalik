@@ -81,6 +81,7 @@ export function About({
   // Framer Motion scroll logic for horizontal parallax on desktop
   const containerRef = useRef<HTMLDivElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const mobileTimelineScrollRef = useRef<HTMLDivElement>(null);
 
   const { scrollYProgress } = useScroll({
     target: containerRef,
@@ -402,6 +403,7 @@ export function About({
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, amount: 0.4, margin: "0px -180px 0px 0px" }}
               transition={{ duration: 0.85, ease: [0.22, 1, 0.36, 1], delay: idx * 0.05 }}
+              style={{ willChange: "transform" }}
             >
               {/* Year Indicator with staggered/faster parallax translation */}
               <motion.div
@@ -483,14 +485,30 @@ export function About({
 
         {/* Timeline Events Carousel */}
         {visibleEvents.length > 0 && (
-          <div className="space-y-6 -mx-6 sm:-mx-10">
+          <motion.div
+            className="space-y-6 -mx-6 sm:-mx-10"
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, amount: 0.15 }}
+            variants={{
+              hidden: {},
+              visible: {
+                transition: {
+                  staggerChildren: 0.08
+                }
+              }
+            }}
+          >
             <div className="space-y-1 px-6 sm:px-10">
               <span className="text-[0.66rem] font-bold uppercase tracking-[0.2em] text-ink/40">{timelineEyebrow}</span>
               <h3 className="font-serif text-2xl text-ink">{timelineTitle}</h3>
             </div>
-
+ 
             {/* Horizontal Swipeable Snap container */}
-            <div className="flex gap-5 overflow-x-auto overscroll-x-contain snap-x snap-mandatory pb-6 px-6 sm:px-10 scroll-pl-6 sm:scroll-pl-10 scrollbar-hide">
+            <div
+              ref={mobileTimelineScrollRef}
+              className="flex gap-5 overflow-x-auto overscroll-x-contain snap-x snap-mandatory pb-6 px-6 sm:px-10 scroll-pl-6 sm:scroll-pl-10 scrollbar-hide"
+            >
               {visibleEvents.map((event, idx) => (
                 <motion.div
                   key={event.id}
@@ -498,10 +516,11 @@ export function About({
                     "snap-start shrink-0 w-[78vw] max-w-[290px] border border-ink/10 bg-porcelain/30 rounded-2xl p-5 flex flex-col justify-between min-h-[360px] relative",
                     !event.enabled && "opacity-50 border-dashed"
                   )}
-                  initial={{ opacity: 0, y: 20 }}
+                  initial={{ opacity: 0, y: 28 }}
                   whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true, amount: 0.15 }}
-                  transition={{ duration: 0.64, ease: [0.22, 1, 0.36, 1] }}
+                  viewport={{ once: true, root: mobileTimelineScrollRef, amount: 0.05 }}
+                  transition={{ duration: 0.65, ease: [0.22, 1, 0.36, 1] }}
+                  style={{ willChange: "transform" }}
                 >
                   <div className="absolute top-4 right-4 text-4xl font-bold font-serif text-ink/10 select-none pointer-events-none">
                     {event.year}
@@ -531,7 +550,7 @@ export function About({
                 </motion.div>
               ))}
             </div>
-          </div>
+          </motion.div>
         )}
       </div>
 

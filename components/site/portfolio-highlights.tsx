@@ -399,6 +399,7 @@ export const PortfolioHighlights = memo(function PortfolioHighlights({
                         src={project.image.src}
                         alt={project.image.alt}
                         className="aspect-[3/4] rounded-t-2xl w-full"
+                        layoutId={`portfolio-image-${project.id}`}
                       />
                       <CinematicCardFrame />
                     </div>
@@ -831,6 +832,7 @@ export const PortfolioHighlights = memo(function PortfolioHighlights({
                 animate={{ y: 0, opacity: 1 }}
                 exit={{ y: "100vh", opacity: 0.9 }}
                 transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+                style={{ backfaceVisibility: "hidden", WebkitBackfaceVisibility: "hidden", willChange: "transform" }}
               >
                 <div className="pointer-events-none absolute inset-x-0 top-0 h-24 bg-[linear-gradient(180deg,rgba(255,255,255,0.66),transparent)]" aria-hidden="true" />
                 <div className="rounded-3xl overflow-hidden bg-porcelain">
@@ -915,8 +917,17 @@ export const PortfolioHighlights = memo(function PortfolioHighlights({
                       transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
                     >
                   {(activeProject.image.src && activeProject.image.enabled !== false) && (
-                      <img src={activeProject.image.src} alt={activeProject.image.alt} loading="eager" decoding="sync" fetchPriority="high" sizes="(min-width: 1024px) 40vw, 92vw" className="editorialModalImage aspect-[3/4] object-cover border border-ink/10 rounded-2xl overflow-hidden" />
-                    )}
+                    <CinematicImage
+                      src={activeProject.image.src}
+                      alt={activeProject.image.alt}
+                      loading="eager"
+                      fetchPriority="high"
+                      disableScrollReveal
+                      layoutId={`portfolio-image-${activeProject.id}`}
+                      className="editorialModalImage aspect-[3/4] object-cover border border-ink/10 rounded-2xl overflow-hidden"
+                      imageClassName="w-full h-full object-cover"
+                    />
+                  )}
 
                     <div className="flex flex-col justify-center">
                       <p className="font-serif text-3xl leading-tight text-graphite sm:text-4xl">

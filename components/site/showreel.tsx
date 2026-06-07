@@ -99,6 +99,8 @@ export function Showreel({
   const [activeVideoUrl, setActiveVideoUrl] = useState<string | null>(null);
   const [activeVideoTitle, setActiveVideoTitle] = useState<string>("");
   const [activeVideoPoster, setActiveVideoPoster] = useState<string>("");
+  const [activeVideoId, setActiveVideoId] = useState<string | null>(null);
+  const [activeCenterIdx, setActiveCenterIdx] = useState<number>(0);
   
   const [isVideoLoading, setIsVideoLoading] = useState(true);
   const [isUploading, setIsUploading] = useState(false);
@@ -116,6 +118,7 @@ export function Showreel({
     window.addEventListener("resize", checkMobile);
     return () => window.removeEventListener("resize", checkMobile);
   }, []);
+
   const [editingVideo, setEditingVideo] = useState<ShowreelVideo | null>(null);
   const [uploadingImageId, setUploadingImageId] = useState<string | null>(null);
 
@@ -164,6 +167,39 @@ export function Showreel({
 
   const videosList = useMemo(() => content.videos ?? [], [content.videos]);
   const visibleVideos = useMemo(() => videosList.filter(v => editMode || v.enabled), [videosList, editMode]);
+
+  useEffect(() => {
+    const rail = railRef.current;
+    if (!rail || !isMobile) return;
+
+    const checkCenter = () => {
+      const containerWidth = rail.offsetWidth;
+      const scrollLeft = rail.scrollLeft;
+      const centerX = scrollLeft + containerWidth / 2;
+
+      const children = rail.children;
+      let closestIdx = 0;
+      let minDistance = Infinity;
+
+      for (let i = 0; i < children.length; i++) {
+        const child = children[i] as HTMLElement;
+        const childCenterX = child.offsetLeft + child.offsetWidth / 2;
+        const distance = Math.abs(centerX - childCenterX);
+        if (distance < minDistance) {
+          minDistance = distance;
+          closestIdx = i;
+        }
+      }
+      setActiveCenterIdx(closestIdx);
+    };
+
+    checkCenter();
+
+    rail.addEventListener("scroll", checkCenter, { passive: true });
+    return () => {
+      rail.removeEventListener("scroll", checkCenter);
+    };
+  }, [isMobile, visibleVideos.length]);
 
   useEffect(() => {
     updateScrollState();
@@ -431,17 +467,20 @@ export function Showreel({
                     ? `https://img.youtube.com/vi/${ytId}/hqdefault.jpg`
                     : null;
                   const thumbSrc = ytThumb || video.thumbnail?.src || PLACEHOLDER_IMAGE;
+                  const isCentered = isMobile && idx === activeCenterIdx;
 
                   return (
                     <div key={video.id} className="relative group scroll-ml-4 [scroll-snap-align:start]">
                       <motion.button
+                        layoutId={`showreel-card-${video.id}`}
                         type="button"
                         data-cursor="play"
                         data-cursor-img={thumbSrc}
                         data-cursor-label={showreelPlayCursorLabel}
                         className={cn(
-                          "cinematic-card w-full group text-left border border-ink/10 bg-white shadow-[0_18px_60px_rgba(16,16,16,0.04)] rounded-2xl flex flex-col h-full overflow-hidden",
-                          !video.enabled && "opacity-50 border-dashed"
+                          "cinematic-card w-full group text-left border border-ink/10 bg-white shadow-[0_18px_60px_rgba(16,16,16,0.04)] rounded-2xl flex flex-col h-full overflow-hidden transition-all duration-500",
+                          !video.enabled && "opacity-50 border-dashed",
+                          isMobile && (isCentered ? "scale-[1.03] opacity-100" : "scale-[0.97] opacity-60")
                         )}
                         onClick={() => {
                           if (shouldIgnoreRailClick()) return;
@@ -449,6 +488,7 @@ export function Showreel({
                           setActiveVideoUrl(getEmbeddableUrl(video.videoUrl, true));
                           setActiveVideoTitle(video.title);
                           setActiveVideoPoster(thumbSrc);
+                          setActiveVideoId(video.id);
                         }}
                         onMouseMove={handleCardMouseMove}
                         onMouseLeave={handleCardMouseLeave}
@@ -971,12 +1011,11 @@ export function Showreel({
               onClick={() => setActiveVideoUrl(null)}
             >
               <motion.div
+                layoutId={`showreel-card-${activeVideoId}`}
                 className="relative w-full max-w-5xl overflow-hidden bg-black rounded-3xl border border-white/10 shadow-editorial cursor-default"
-                initial={{ opacity: 0, scale: 0.96, y: 12 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.96, y: 12 }}
-                transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+                transition={{ duration: 0.48, ease: [0.22, 1, 0.36, 1] }}
                 onClick={(e) => e.stopPropagation()}
+                style={{ backfaceVisibility: "hidden", WebkitBackfaceVisibility: "hidden" }}
               >
                 <div className="rounded-3xl overflow-hidden bg-black relative w-full h-full">
                   <div className="absolute left-6 top-5 z-30 max-w-[75%]">

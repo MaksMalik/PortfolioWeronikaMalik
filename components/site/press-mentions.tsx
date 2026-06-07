@@ -137,17 +137,37 @@ export function PressMentions({
         </div>
 
         <div className="mt-14 grid gap-6 md:grid-cols-3">
-          {mentions.filter(m => editMode || m.enabled).map((mention, index) => (
-            <RevealBlock key={mention.id} delay={index * 0.08} y={34} className="h-full">
-              <figure
-                className={cn(
-                  "relative flex h-full flex-col justify-between border-y border-ink/10 px-4 py-10 text-center transition-colors duration-500 hover:border-ink/20",
-                  !mention.enabled && "opacity-45 border-dashed"
-                )}
-              >
-                <blockquote className="font-serif text-2xl leading-tight text-ink sm:text-3xl">
-                  &quot;{mention.quote}&quot;
-                </blockquote>
+          {mentions.filter(m => editMode || m.enabled).map((mention, index) => {
+            const words = mention.quote.split(" ").filter(Boolean);
+
+            return (
+              <RevealBlock key={mention.id} delay={index * 0.08} y={34} className="h-full">
+                <figure
+                  className={cn(
+                    "relative flex h-full flex-col justify-between border-y border-ink/10 px-4 py-10 text-center transition-colors duration-500 hover:border-ink/20",
+                    !mention.enabled && "opacity-45 border-dashed"
+                  )}
+                >
+                  <blockquote className="font-serif text-2xl leading-tight text-ink sm:text-3xl flex flex-wrap justify-center">
+                    <span>&quot;</span>
+                    {words.map((word, wIdx) => (
+                      <motion.span
+                        key={wIdx}
+                        className="inline-block mr-[0.22em]"
+                        initial={{ opacity: 0, y: 8 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true, amount: 0.15 }}
+                        transition={{
+                          delay: wIdx * 0.024,
+                          duration: 0.45,
+                          ease: [0.22, 1, 0.36, 1]
+                        }}
+                      >
+                        {word}
+                      </motion.span>
+                    ))}
+                    <span>&quot;</span>
+                  </blockquote>
                 <figcaption className="mt-8 text-xs font-bold uppercase tracking-[0.22em] text-ink/55">
                   {mention.outlet}
                   <span className="mt-2 block font-medium tracking-[0.16em] text-ink/35">
@@ -160,8 +180,9 @@ export function PressMentions({
                   )}
                 </figcaption>
               </figure>
-            </RevealBlock>
-          ))}
+              </RevealBlock>
+            );
+          })}
         </div>
       </div>
 
