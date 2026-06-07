@@ -18,124 +18,7 @@ type CinematicImageProps = {
   transition?: Transition;
 };
 
-type MobileColorEntry = {
-  element: HTMLElement;
-  lastProgress: number;
-};
 
-const mobileColorEntries = new Set<MobileColorEntry>();
-let mobileColorFrame: number | null = null;
-let mobileColorListenersAttached = false;
-let mobileColorQuery: MediaQueryList | null = null;
-let reducedMotionQuery: MediaQueryList | null = null;
-
-function getMobileColorQuery() {
-  if (mobileColorQuery === null) {
-    mobileColorQuery = window.matchMedia("(pointer: coarse), (max-width: 1024px)");
-  }
-
-  return mobileColorQuery;
-}
-
-function getReducedMotionQuery() {
-  if (reducedMotionQuery === null) {
-    reducedMotionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
-  }
-
-  return reducedMotionQuery;
-}
-
-function detachMobileColorListeners() {
-  if (!mobileColorListenersAttached || mobileColorEntries.size > 0) return;
-
-  window.removeEventListener("scroll", scheduleMobileColorUpdate);
-  window.removeEventListener("resize", scheduleMobileColorUpdate);
-  mobileColorQuery?.removeEventListener("change", scheduleMobileColorUpdate);
-  reducedMotionQuery?.removeEventListener("change", scheduleMobileColorUpdate);
-
-  if (mobileColorFrame !== null) {
-    window.cancelAnimationFrame(mobileColorFrame);
-    mobileColorFrame = null;
-  }
-
-  mobileColorListenersAttached = false;
-}
-
-function updateMobileColorEntries() {
-  mobileColorFrame = null;
-
-  const isMobileViewport = getMobileColorQuery().matches;
-  const prefersReducedMotion = getReducedMotionQuery().matches;
-  const viewportCenter = window.innerHeight / 2;
-
-  mobileColorEntries.forEach((entry) => {
-    if (!entry.element.isConnected) {
-      mobileColorEntries.delete(entry);
-      return;
-    }
-
-    if (!isMobileViewport) {
-      if (entry.lastProgress !== -1) {
-        entry.element.style.removeProperty("--mobile-color-progress");
-        entry.lastProgress = -1;
-      }
-      return;
-    }
-
-    if (prefersReducedMotion) {
-      if (entry.lastProgress !== 1) {
-        entry.element.style.setProperty("--mobile-color-progress", "1");
-        entry.lastProgress = 1;
-      }
-      return;
-    }
-
-    const rect = entry.element.getBoundingClientRect();
-    const elementCenter = rect.top + rect.height / 2;
-    const distance = Math.abs(elementCenter - viewportCenter);
-    const activeDistance = Math.max(window.innerHeight * 0.56, rect.height * 1.15);
-    const rawProgress = Math.max(0, Math.min(1, 1 - distance / activeDistance));
-    const progress = Math.round(Math.pow(rawProgress, 0.72) * 1000) / 1000;
-
-    if (Math.abs(progress - entry.lastProgress) >= 0.01) {
-      entry.element.style.setProperty("--mobile-color-progress", progress.toFixed(3));
-      entry.lastProgress = progress;
-    }
-  });
-
-  detachMobileColorListeners();
-}
-
-function scheduleMobileColorUpdate() {
-  if (mobileColorFrame !== null) return;
-  mobileColorFrame = window.requestAnimationFrame(updateMobileColorEntries);
-}
-
-function attachMobileColorListeners() {
-  if (mobileColorListenersAttached) return;
-
-  const mobileQuery = getMobileColorQuery();
-  const motionQuery = getReducedMotionQuery();
-
-  window.addEventListener("scroll", scheduleMobileColorUpdate, { passive: true });
-  window.addEventListener("resize", scheduleMobileColorUpdate, { passive: true });
-  mobileQuery.addEventListener("change", scheduleMobileColorUpdate);
-  motionQuery.addEventListener("change", scheduleMobileColorUpdate);
-  mobileColorListenersAttached = true;
-}
-
-function registerMobileColorElement(element: HTMLElement) {
-  const entry: MobileColorEntry = { element, lastProgress: -1 };
-  mobileColorEntries.add(entry);
-  attachMobileColorListeners();
-  scheduleMobileColorUpdate();
-
-  return () => {
-    mobileColorEntries.delete(entry);
-    element.style.removeProperty("--mobile-color-progress");
-    detachMobileColorListeners();
-  };
-}
 
 function StaticCinematicImage({
   src,
@@ -195,12 +78,7 @@ function ScrollRevealCinematicImage({
     once: true
   });
 
-  useEffect(() => {
-    const container = containerRef.current;
-    if (!container) return;
 
-    return registerMobileColorElement(container);
-  }, []);
 
   /* ── Circle-reveal animation (desktop / fine-pointer only) ──── */
   useEffect(() => {

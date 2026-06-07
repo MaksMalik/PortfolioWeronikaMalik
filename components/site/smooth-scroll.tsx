@@ -8,7 +8,7 @@ import { useBodyScrollLock } from "@/components/site/use-body-scroll-lock";
 const ANCHOR_SCROLL_DURATION = 1.15;
 const ANCHOR_SKIP_FINISH_DELAY = 120;
 const SECTION_TRANSITION_ENTER_MS = 360;
-const SECTION_TRANSITION_HOLD_MS = 120;
+const SECTION_TRANSITION_HOLD_MS = 220;
 const SECTION_TRANSITION_END_MS = 900;
 const CURTAIN_EASE = [0.22, 1, 0.36, 1] as const;
 

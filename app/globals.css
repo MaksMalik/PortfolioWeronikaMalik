@@ -394,6 +394,12 @@ body[data-scroll-locked="true"] aside {
   opacity: 0.052;
 }
 
+@media (pointer: coarse) {
+  .film-grain {
+    animation: none !important;
+  }
+}
+
 @keyframes grainAnimation {
   0%, 100% { transform: translate(0, 0); }
   12.5% { transform: translate(-1rem, -1rem); }
@@ -721,17 +727,17 @@ a {
 }
 
 
-/* Touch / mobile: color strength follows distance from the viewport center */
+/* Touch / mobile: smooth color fade triggered by Intersection Observer (in-view-mobile) */
 @media (pointer: coarse), (max-width: 1024px) {
   .cinematicImage .cinematicImageColor {
     clip-path: none;
-    opacity: var(--mobile-color-progress, 0);
+    opacity: 0;
     transition:
-      opacity 160ms linear,
+      opacity 800ms cubic-bezier(0.25, 1, 0.5, 1),
       transform 1.2s cubic-bezier(0.16, 1, 0.3, 1);
   }
   .cinematicImage.in-view-mobile .cinematicImageColor {
-    opacity: var(--mobile-color-progress, 0);
+    opacity: 1;
     transform: scale(1.025);
   }
   .cinematicImage.in-view-mobile .cinematicImageBase {
@@ -739,7 +745,7 @@ a {
     transform: scale(1.025);
   }
   .cinematicImage.in-view-mobile .cinematicImageVeil {
-    opacity: calc(var(--mobile-color-progress, 0) * 0.8);
+    opacity: 0.8;
   }
   /* Isolate repaints inside modals for smoother scroll */
   .cinematicImage.isStatic {
