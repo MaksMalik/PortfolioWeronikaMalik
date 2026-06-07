@@ -210,6 +210,12 @@ export function CustomCursor() {
     return null;
   }
 
+  const labelText = mode === "view"
+    ? cursorLabel || "Zobacz"
+    : mode === "play"
+      ? cursorLabel || "Play"
+      : "";
+
   return (
     <motion.div
       className={cn(
@@ -230,16 +236,9 @@ export function CustomCursor() {
             className="customCursorImage"
           />
         )}
-        {mode === "view" && !previewSrc && (
-          <span className="customCursorLabel">
-            {cursorLabel || "Zobacz"}
-          </span>
-        )}
-        {mode === "play" && !previewSrc && (
-          <span className="customCursorLabel">
-            {cursorLabel || "Play"}
-          </span>
-        )}
+        <span className="customCursorLabel">
+          {labelText}
+        </span>
       </span>
     </motion.div>
   );

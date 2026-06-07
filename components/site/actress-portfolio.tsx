@@ -117,7 +117,7 @@ export function ActressPortfolio() {
 
   return (
     <motion.main
-      className="relative"
+      className="siteContentRoot relative"
       style={{ paddingBottom: isAdmin ? "5.75rem" : "0px" }}
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}

@@ -12,7 +12,7 @@ import { RevealBlock, SectionHeading, SectionReveal } from "@/components/site/se
 import { useAdminEdit } from "@/components/admin/admin-edit-context";
 import { AdminDrawer } from "@/components/admin/admin-drawer";
 import { SectionReorderControls } from "@/components/admin/section-reorder-controls";
-import { useBodyScrollLock } from "@/components/site/use-body-scroll-lock";
+import { useBodyScrollLock, useEditorialModalOptimization } from "@/components/site/use-body-scroll-lock";
 import { useHorizontalRail } from "@/components/site/use-horizontal-rail";
 import { uploadImageFile } from "@/lib/firebase/content";
 import { createId, cn } from "@/lib/utils";
@@ -98,7 +98,10 @@ export const Gallery = memo(function Gallery({
     [setActiveImage]
   );
 
-  useBodyScrollLock(activeSession !== null || activeImage !== null);
+  const hasActiveModal = activeSession !== null || activeImage !== null;
+
+  useBodyScrollLock(hasActiveModal);
+  useEditorialModalOptimization(hasActiveModal);
 
   useEffect(() => {
     if (activeSessionId === null) return;
@@ -875,7 +878,7 @@ export const Gallery = memo(function Gallery({
               >
                 <div className="pointer-events-none absolute inset-x-0 top-0 h-24 bg-[linear-gradient(180deg,rgba(255,255,255,0.66),transparent)]" aria-hidden="true" />
                 <div className="rounded-3xl overflow-hidden bg-porcelain">
-                  <div className="sticky top-0 z-20 mb-6 border-b border-ink/10 bg-porcelain px-4 py-4 shadow-[0_16px_50px_rgba(16,16,16,0.04)] sm:px-6">
+                  <div className="editorialModalHeader sticky top-0 z-20 mb-6 border-b border-ink/10 bg-porcelain px-4 py-4 sm:px-6">
                     <div className="mx-auto flex max-w-7xl flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                       <div>
                         <AnimatePresence mode="wait" initial={false}>
@@ -968,7 +971,7 @@ export const Gallery = memo(function Gallery({
                   <AnimatePresence mode="wait" initial={false}>
                     <motion.div
                       key={activeSession.id}
-                      className="columns-1 gap-5 px-4 pb-10 sm:columns-2 sm:px-6 lg:columns-3"
+                      className="grid grid-cols-1 items-start gap-5 px-4 pb-10 sm:grid-cols-2 sm:px-6 lg:grid-cols-3"
                       initial={{ opacity: 0, x: sessionDirection * 56 }}
                       animate={{ opacity: 1, x: 0 }}
                       exit={{ opacity: 0, x: sessionDirection * -56 }}
@@ -977,14 +980,14 @@ export const Gallery = memo(function Gallery({
                     {visibleImages.map((image) => (
                       <figure
                         key={image.id}
-                        className="editorialModalLazyItem mb-5 break-inside-avoid overflow-hidden border border-ink/10 bg-white rounded-2xl shadow-sm"
+                        className="editorialModalLazyItem overflow-hidden border border-ink/10 bg-white rounded-2xl shadow-sm"
                       >
                         <button
                           type="button"
                           className="block w-full text-left cursor-zoom-in"
                           onClick={() => setActiveImage(image)}
                           aria-label={`Powiększ zdjęcie ${image.title ?? image.alt}`}
-                        ><img src={image.src} alt={image.alt} loading="lazy" decoding="async" className={cn("editorialModalImage w-full object-cover", aspectClass(image))} />
+                        ><img src={image.src} alt={image.alt} loading="lazy" decoding="async" sizes="(min-width: 1024px) 30vw, (min-width: 640px) 46vw, 92vw" className={cn("editorialModalImage w-full object-cover", aspectClass(image))} />
                         </button>
                         {(image.title || image.description) && (
                           <figcaption className="px-4 py-4 border-t border-ink/5">
@@ -1083,6 +1086,7 @@ export const Gallery = memo(function Gallery({
                       loading="eager"
                       decoding="async"
                       fetchPriority="high"
+                      sizes="100vw"
                       className="fullscreenModalImage max-h-[75vh] max-w-full rounded-lg object-contain shadow-2xl border border-white/5"
                     />
                     {activeImage.title && (

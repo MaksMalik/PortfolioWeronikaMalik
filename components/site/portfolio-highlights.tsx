@@ -13,7 +13,7 @@ import { SectionHeading, SectionReveal } from "@/components/site/section-reveal"
 import { useAdminEdit } from "@/components/admin/admin-edit-context";
 import { AdminDrawer } from "@/components/admin/admin-drawer";
 import { SectionReorderControls } from "@/components/admin/section-reorder-controls";
-import { useBodyScrollLock } from "@/components/site/use-body-scroll-lock";
+import { useBodyScrollLock, useEditorialModalOptimization } from "@/components/site/use-body-scroll-lock";
 import { useHorizontalRail } from "@/components/site/use-horizontal-rail";
 import { uploadImageFile } from "@/lib/firebase/content";
 import { createId, cn } from "@/lib/utils";
@@ -84,6 +84,7 @@ export const PortfolioHighlights = memo(function PortfolioHighlights({
   } = useHorizontalRail();
 
   useBodyScrollLock(activeProject !== null);
+  useEditorialModalOptimization(activeProject !== null);
 
   const goTo = useCallback((direction: "next" | "prev") => {
     if (visibleProjects.length <= 1) return;
@@ -833,7 +834,7 @@ export const PortfolioHighlights = memo(function PortfolioHighlights({
               >
                 <div className="pointer-events-none absolute inset-x-0 top-0 h-24 bg-[linear-gradient(180deg,rgba(255,255,255,0.66),transparent)]" aria-hidden="true" />
                 <div className="rounded-3xl overflow-hidden bg-porcelain">
-                  <div className="sticky top-0 z-20 mb-8 border-b border-ink/10 bg-porcelain px-4 py-4 shadow-[0_16px_50px_rgba(16,16,16,0.04)] sm:px-6">
+                  <div className="editorialModalHeader sticky top-0 z-20 mb-8 border-b border-ink/10 bg-porcelain px-4 py-4 sm:px-6">
                     <div className="mx-auto flex max-w-6xl items-center justify-between gap-4">
                       <div>
                         <AnimatePresence mode="wait" initial={false}>
@@ -914,7 +915,7 @@ export const PortfolioHighlights = memo(function PortfolioHighlights({
                       transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
                     >
                   {(activeProject.image.src && activeProject.image.enabled !== false) && (
-                      <img src={activeProject.image.src} alt={activeProject.image.alt} loading="eager" decoding="async" fetchPriority="high" className="editorialModalImage aspect-[3/4] object-cover border border-ink/10 rounded-2xl overflow-hidden" />
+                      <img src={activeProject.image.src} alt={activeProject.image.alt} loading="eager" decoding="async" fetchPriority="high" sizes="(min-width: 1024px) 40vw, 92vw" className="editorialModalImage aspect-[3/4] object-cover border border-ink/10 rounded-2xl overflow-hidden" />
                     )}
 
                     <div className="flex flex-col justify-center">
@@ -960,7 +961,7 @@ export const PortfolioHighlights = memo(function PortfolioHighlights({
                       >
                         {activeProjectImages.map((image) => (
                             <figure key={image.id} className="editorialModalLazyItem border border-ink/10 bg-white rounded-2xl overflow-hidden shadow-sm">
-                            <img src={image.src} alt={image.alt} loading="lazy" decoding="async" className={cn("editorialModalImage w-full object-cover", image.aspect === "wide" ? "aspect-video" : image.aspect === "square" ? "aspect-square" : "aspect-[4/5]")} />
+                            <img src={image.src} alt={image.alt} loading="lazy" decoding="async" sizes="(min-width: 1024px) 28vw, (min-width: 640px) 44vw, 92vw" className={cn("editorialModalImage w-full object-cover", image.aspect === "wide" ? "aspect-video" : image.aspect === "square" ? "aspect-square" : "aspect-[4/5]")} />
                             {(image.title || image.description) && (
                               <figcaption className="p-4 border-t border-ink/5">
                                 {image.title && (

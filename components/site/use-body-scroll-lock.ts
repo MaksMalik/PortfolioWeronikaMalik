@@ -5,6 +5,7 @@ import { useEffect } from "react";
 let lockCount = 0;
 let originalBodyOverflow = "";
 let originalBodyPaddingRight = "";
+let editorialModalCount = 0;
 
 export function useBodyScrollLock(locked: boolean) {
   useEffect(() => {
@@ -39,4 +40,28 @@ export function useBodyScrollLock(locked: boolean) {
       }
     };
   }, [locked]);
+}
+
+export function useEditorialModalOptimization(active: boolean) {
+  useEffect(() => {
+    if (!active || typeof window === "undefined") {
+      return;
+    }
+
+    const body = document.body;
+
+    if (editorialModalCount === 0) {
+      body.dataset.editorialModalOpen = "true";
+    }
+
+    editorialModalCount += 1;
+
+    return () => {
+      editorialModalCount = Math.max(0, editorialModalCount - 1);
+
+      if (editorialModalCount === 0) {
+        delete body.dataset.editorialModalOpen;
+      }
+    };
+  }, [active]);
 }
