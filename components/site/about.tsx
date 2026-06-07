@@ -51,6 +51,7 @@ export function About({
   const [editingEvent, setEditingEvent] = useState<TimelineEvent | null>(null);
   const [uploadingImageId, setUploadingImageId] = useState<string | null>(null);
 
+  const [isMounted, setIsMounted] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [desktopScrollHeight, setDesktopScrollHeight] = useState<number | null>(null);
   const [anchorNavigationOffsets, setAnchorNavigationOffsets] = useState<{
@@ -60,6 +61,7 @@ export function About({
   } | null>(null);
 
   useEffect(() => {
+    setIsMounted(true);
     const checkMobile = () => {
       setIsMobile(
         window.matchMedia("(pointer: coarse)").matches || window.innerWidth < 1024
@@ -355,204 +357,208 @@ export function About({
       )}
 
       {/* Desktop view (sticky horizontal scroll with parallax) - hidden on mobile */}
-      <div className="hidden lg:block relative lg:sticky lg:top-0 lg:h-screen lg:w-full lg:overflow-hidden lg:flex-row lg:items-center lg:py-0 lg:px-0 lg:border-y lg:border-ink/10">
-        <motion.div
-          ref={scrollRef}
-          style={{ x: currentX, willChange: "transform" }}
-          className="flex lg:flex-row lg:h-full lg:items-center lg:pl-16 lg:pr-32 lg:gap-0 lg:w-max lg:shrink-0"
-        >
-          {/* Slide 0: Biography Intro */}
-          <div className="flex lg:w-auto lg:shrink-0 lg:flex-row lg:gap-16 lg:pr-24 lg:h-[80vh] lg:items-center lg:justify-start lg:pl-16 xl:pl-[calc((100vw-1240px)/2+4rem)]">
-            <div className="max-w-2xl space-y-6">
-              <SectionHeading eyebrow={content.eyebrow} title={content.title} reverseDirection={reverseParallax} />
-              <RevealBlock delay={0.12}>
-                <p className="mt-6 text-lg leading-8 text-graphite/80 sm:text-xl sm:leading-9 whitespace-pre-wrap">
-                  {content.body}
-                </p>
-              </RevealBlock>
-              <RevealBlock delay={0.22} className="mt-8">
-                <MagneticButton href="#contact" variant="outline">
-                  {content.buttonText}
-                </MagneticButton>
-              </RevealBlock>
-            </div>
-
-            {content.image.src && content.image.enabled !== false ? (
-              <RevealBlock className="ornament-line lg:shrink-0 lg:w-[420px] lg:pl-5 lg:pt-5" delay={0.14} x={34} y={18}>
-                <div className="relative group overflow-hidden rounded-[1.5rem] rounded-tl-none border border-ink/10 shadow-editorial">
-                  <AboutImageFrame className="hidden lg:block" />
-                  <CinematicImage
-                    src={content.image.src}
-                    alt={content.image.alt}
-                    className="aspect-[4/5] lg:max-h-[520px] rounded-[1.5rem] rounded-tl-none"
-                  />
-                </div>
-              </RevealBlock>
-            ) : null}
-          </div>
-
-          {/* Slides 1-N: Timeline Milestones */}
-          {visibleEvents.map((event, idx) => (
-            <motion.div
-              key={event.id}
-              className={cn(
-                "relative lg:border-none lg:bg-transparent lg:rounded-none lg:p-0 lg:w-[45vw] lg:max-w-[500px] lg:shrink-0 lg:flex-col lg:justify-center lg:px-12 lg:border-l lg:border-ink/10 lg:h-[80vh] lg:min-h-0",
-                !event.enabled && "opacity-50"
-              )}
-              initial={{ opacity: 0 }}
-              whileInView={{ opacity: 1 }}
-              viewport={{ once: true, amount: 0.4, margin: "0px -180px 0px 0px" }}
-              transition={{ duration: 0.85, ease: [0.22, 1, 0.36, 1], delay: idx * 0.05 }}
-              style={{ willChange: "transform" }}
-            >
-              {/* Year Indicator with staggered/faster parallax translation */}
-              <motion.div
-                style={{ x: currentYearX }}
-                className="absolute top-4 left-12 text-[10rem] font-bold font-serif text-ink/[0.04] leading-none select-none pointer-events-none"
-              >
-                {event.year}
-              </motion.div>
-
-              <div className="space-y-3 lg:mt-12 lg:space-y-4 lg:relative lg:z-10">
-                <span className="text-[0.66rem] font-bold uppercase tracking-[0.2em] text-ink/40">
-                  {formatTextTemplate(content.timelineStepTemplate, DEFAULT_TIMELINE_STEP_TEMPLATE, {
-                    current: idx + 1,
-                    total: visibleEvents.length
-                  })}
-                </span>
-                <h4 className="font-serif text-3xl lg:md:text-4xl text-ink leading-tight">{event.title}</h4>
-                <p className="text-sm leading-6 text-graphite/75 lg:max-w-lg">{event.description}</p>
-              </div>
-
-              {event.image?.src && event.image.enabled !== false && (
-                <div className="mt-8 aspect-[16/10] max-w-md overflow-hidden rounded-xl border border-ink/10 w-full lg:shadow-editorial relative">
-                  <motion.div
-                    style={{ x: currentImageX, scale: shouldUseDesktopTimeline ? 1.15 : 1, willChange: "transform" }}
-                    className="w-full h-full"
-                  >
-                    <CinematicImage
-                      src={event.image.src}
-                      alt={event.image.alt || event.title}
-                      className="w-full h-full object-cover"
-                      imageClassName="rounded-xl lg:rounded-2xl"
-                    />
-                  </motion.div>
-                </div>
-              )}
-            </motion.div>
-          ))}
-        </motion.div>
-
-        {/* Progress Bar (Desktop only) */}
-        {visibleEvents.length > 0 && (
-          <div className="absolute bottom-8 left-16 right-16 h-px bg-ink/[0.055]">
-            <motion.div
-              style={{ scaleX: scrollYProgress, transformOrigin: "left" }}
-              className="h-full bg-ink/45 timeline-progress-bar"
-            />
-          </div>
-        )}
-      </div>
-
-      {/* Mobile view (vertical intro, swipeable timeline carousel) - hidden on desktop */}
-      <div className="block lg:hidden w-full py-16 px-6 sm:px-10 space-y-16">
-        {/* Intro Slide */}
-        <div className="flex flex-col gap-8 w-full">
-          <div className="space-y-6">
-            <SectionHeading eyebrow={content.eyebrow} title={content.title} reverseDirection={reverseParallax} />
-            <p className="text-lg leading-8 text-graphite/80 sm:text-xl sm:leading-9 whitespace-pre-wrap">
-              {content.body}
-            </p>
-            <div className="pt-4">
-              <MagneticButton href="#contact" variant="outline">
-                {content.buttonText}
-              </MagneticButton>
-            </div>
-          </div>
-
-          {content.image.src && content.image.enabled !== false ? (
-            <div className="w-full max-w-md ornament-line pl-4 pt-4">
-              <div className="relative group overflow-hidden rounded-[1.5rem] rounded-tl-none border border-ink/10 shadow-editorial">
-                <CinematicImage
-                  src={content.image.src}
-                  alt={content.image.alt}
-                  className="aspect-[4/5] rounded-[1.5rem] rounded-tl-none w-full"
-                />
-              </div>
-            </div>
-          ) : null}
-        </div>
-
-        {/* Timeline Events Carousel */}
-        {visibleEvents.length > 0 && (
+      {(!isMounted || !isMobile) && (
+        <div className="hidden lg:block relative lg:sticky lg:top-0 lg:h-screen lg:w-full lg:overflow-hidden lg:flex-row lg:items-center lg:py-0 lg:px-0 lg:border-y lg:border-ink/10">
           <motion.div
-            className="space-y-6 -mx-6 sm:-mx-10"
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, amount: 0.15 }}
-            variants={{
-              hidden: {},
-              visible: {
-                transition: {
-                  staggerChildren: 0.08
-                }
-              }
-            }}
+            ref={scrollRef}
+            style={{ x: currentX, willChange: "transform" }}
+            className="flex lg:flex-row lg:h-full lg:items-center lg:pl-16 lg:pr-32 lg:gap-0 lg:w-max lg:shrink-0"
           >
-            <div className="space-y-1 px-6 sm:px-10">
-              <span className="text-[0.66rem] font-bold uppercase tracking-[0.2em] text-ink/40">{timelineEyebrow}</span>
-              <h3 className="font-serif text-2xl text-ink">{timelineTitle}</h3>
+            {/* Slide 0: Biography Intro */}
+            <div className="flex lg:w-auto lg:shrink-0 lg:flex-row lg:gap-16 lg:pr-24 lg:h-[80vh] lg:items-center lg:justify-start lg:pl-16 xl:pl-[calc((100vw-1240px)/2+4rem)]">
+              <div className="max-w-2xl space-y-6">
+                <SectionHeading eyebrow={content.eyebrow} title={content.title} reverseDirection={reverseParallax} />
+                <RevealBlock delay={0.12}>
+                  <p className="mt-6 text-lg leading-8 text-graphite/80 sm:text-xl sm:leading-9 whitespace-pre-wrap">
+                    {content.body}
+                  </p>
+                </RevealBlock>
+                <RevealBlock delay={0.22} className="mt-8">
+                  <MagneticButton href="#contact" variant="outline">
+                    {content.buttonText}
+                  </MagneticButton>
+                </RevealBlock>
+              </div>
+
+              {content.image.src && content.image.enabled !== false ? (
+                <RevealBlock className="ornament-line lg:shrink-0 lg:w-[420px] lg:pl-5 lg:pt-5" delay={0.14} x={34} y={18}>
+                  <div className="relative group overflow-hidden rounded-[1.5rem] rounded-tl-none border border-ink/10 shadow-editorial">
+                    <AboutImageFrame className="hidden lg:block" />
+                    <CinematicImage
+                      src={content.image.src}
+                      alt={content.image.alt}
+                      className="aspect-[4/5] lg:max-h-[520px] rounded-[1.5rem] rounded-tl-none"
+                    />
+                  </div>
+                </RevealBlock>
+              ) : null}
             </div>
- 
-            {/* Horizontal Swipeable Snap container */}
-            <div
-              ref={mobileTimelineScrollRef}
-              className="flex gap-5 overflow-x-auto overscroll-x-contain snap-x snap-mandatory pb-6 px-6 sm:px-10 scroll-pl-6 sm:scroll-pl-10 scrollbar-hide"
-            >
-              {visibleEvents.map((event, idx) => (
+
+            {/* Slides 1-N: Timeline Milestones */}
+            {visibleEvents.map((event, idx) => (
+              <motion.div
+                key={event.id}
+                className={cn(
+                  "relative lg:border-none lg:bg-transparent lg:rounded-none lg:p-0 lg:w-[45vw] lg:max-w-[500px] lg:shrink-0 lg:flex-col lg:justify-center lg:px-12 lg:border-l lg:border-ink/10 lg:h-[80vh] lg:min-h-0",
+                  !event.enabled && "opacity-50"
+                )}
+                initial={{ opacity: 0 }}
+                whileInView={{ opacity: 1 }}
+                viewport={{ once: true, amount: 0.4, margin: "0px -180px 0px 0px" }}
+                transition={{ duration: 0.85, ease: [0.22, 1, 0.36, 1], delay: idx * 0.05 }}
+                style={{ willChange: "transform" }}
+              >
+                {/* Year Indicator with staggered/faster parallax translation */}
                 <motion.div
-                  key={event.id}
-                  className={cn(
-                    "snap-start shrink-0 w-[78vw] max-w-[290px] border border-ink/10 bg-porcelain/30 rounded-2xl p-5 flex flex-col justify-between min-h-[360px] relative",
-                    !event.enabled && "opacity-50 border-dashed"
-                  )}
-                  initial={{ opacity: 0 }}
-                  whileInView={{ opacity: 1 }}
-                  viewport={{ once: true, root: mobileTimelineScrollRef, amount: 0.05 }}
-                  transition={{ duration: 0.65, ease: [0.22, 1, 0.36, 1] }}
-                  style={{ willChange: "transform" }}
+                  style={{ x: currentYearX }}
+                  className="absolute top-4 left-12 text-[10rem] font-bold font-serif text-ink/[0.04] leading-none select-none pointer-events-none"
                 >
-                  <div className="absolute top-4 right-4 text-4xl font-bold font-serif text-ink/10 select-none pointer-events-none">
-                    {event.year}
-                  </div>
+                  {event.year}
+                </motion.div>
 
-                  <div className="space-y-2 mt-4">
-                    <span className="text-[0.6rem] font-bold uppercase tracking-[0.15em] text-ink/40">
-                      {formatTextTemplate(content.timelineStepTemplate, DEFAULT_TIMELINE_STEP_TEMPLATE, {
-                        current: idx + 1,
-                        total: visibleEvents.length
-                      })}
-                    </span>
-                    <h4 className="font-serif text-lg text-ink leading-tight">{event.title}</h4>
-                    <p className="text-xs leading-5 text-graphite/75">{event.description}</p>
-                  </div>
+                <div className="space-y-3 lg:mt-12 lg:space-y-4 lg:relative lg:z-10">
+                  <span className="text-[0.66rem] font-bold uppercase tracking-[0.2em] text-ink/40">
+                    {formatTextTemplate(content.timelineStepTemplate, DEFAULT_TIMELINE_STEP_TEMPLATE, {
+                      current: idx + 1,
+                      total: visibleEvents.length
+                    })}
+                  </span>
+                  <h4 className="font-serif text-3xl lg:md:text-4xl text-ink leading-tight">{event.title}</h4>
+                  <p className="text-sm leading-6 text-graphite/75 lg:max-w-lg">{event.description}</p>
+                </div>
 
-                  {event.image?.src && event.image.enabled !== false && (
-                    <div className="mt-4 aspect-video overflow-hidden rounded-xl border border-ink/10 w-full relative">
+                {event.image?.src && event.image.enabled !== false && (
+                  <div className="mt-8 aspect-[16/10] max-w-md overflow-hidden rounded-xl border border-ink/10 w-full lg:shadow-editorial relative">
+                    <motion.div
+                      style={{ x: currentImageX, scale: shouldUseDesktopTimeline ? 1.15 : 1, willChange: "transform" }}
+                      className="w-full h-full"
+                    >
                       <CinematicImage
                         src={event.image.src}
                         alt={event.image.alt || event.title}
                         className="w-full h-full object-cover"
-                        imageClassName="rounded-xl"
+                        imageClassName="rounded-xl lg:rounded-2xl"
                       />
-                    </div>
-                  )}
-                </motion.div>
-              ))}
-            </div>
+                    </motion.div>
+                  </div>
+                )}
+              </motion.div>
+            ))}
           </motion.div>
-        )}
-      </div>
+
+          {/* Progress Bar (Desktop only) */}
+          {visibleEvents.length > 0 && (
+            <div className="absolute bottom-8 left-16 right-16 h-px bg-ink/[0.055]">
+              <motion.div
+                style={{ scaleX: scrollYProgress, transformOrigin: "left" }}
+                className="h-full bg-ink/45 timeline-progress-bar"
+              />
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Mobile view (vertical intro, swipeable timeline carousel) - hidden on desktop */}
+      {(!isMounted || isMobile) && (
+        <div className="block lg:hidden w-full py-16 px-6 sm:px-10 space-y-16">
+          {/* Intro Slide */}
+          <div className="flex flex-col gap-8 w-full">
+            <div className="space-y-6">
+              <SectionHeading eyebrow={content.eyebrow} title={content.title} reverseDirection={reverseParallax} />
+              <p className="text-lg leading-8 text-graphite/80 sm:text-xl sm:leading-9 whitespace-pre-wrap">
+                {content.body}
+              </p>
+              <div className="pt-4">
+                <MagneticButton href="#contact" variant="outline">
+                  {content.buttonText}
+                </MagneticButton>
+              </div>
+            </div>
+
+            {content.image.src && content.image.enabled !== false ? (
+              <div className="w-full max-w-md ornament-line pl-4 pt-4">
+                <div className="relative group overflow-hidden rounded-[1.5rem] rounded-tl-none border border-ink/10 shadow-editorial">
+                  <CinematicImage
+                    src={content.image.src}
+                    alt={content.image.alt}
+                    className="aspect-[4/5] rounded-[1.5rem] rounded-tl-none w-full"
+                  />
+                </div>
+              </div>
+            ) : null}
+          </div>
+
+          {/* Timeline Events Carousel */}
+          {visibleEvents.length > 0 && (
+            <motion.div
+              className="space-y-6 -mx-6 sm:-mx-10"
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, amount: 0.15 }}
+              variants={{
+                hidden: {},
+                visible: {
+                  transition: {
+                    staggerChildren: 0.08
+                  }
+                }
+              }}
+            >
+              <div className="space-y-1 px-6 sm:px-10">
+                <span className="text-[0.66rem] font-bold uppercase tracking-[0.2em] text-ink/40">{timelineEyebrow}</span>
+                <h3 className="font-serif text-2xl text-ink">{timelineTitle}</h3>
+              </div>
+   
+              {/* Horizontal Swipeable Snap container */}
+              <div
+                ref={mobileTimelineScrollRef}
+                className="flex gap-5 overflow-x-auto overscroll-x-contain snap-x snap-mandatory pb-6 px-6 sm:px-10 scroll-pl-6 sm:scroll-pl-10 scrollbar-hide"
+              >
+                {visibleEvents.map((event, idx) => (
+                  <motion.div
+                    key={event.id}
+                    className={cn(
+                      "snap-start shrink-0 w-[78vw] max-w-[290px] border border-ink/10 bg-porcelain/30 rounded-2xl p-5 flex flex-col justify-between min-h-[360px] relative",
+                      !event.enabled && "opacity-50 border-dashed"
+                    )}
+                    initial={{ opacity: 0 }}
+                    whileInView={{ opacity: 1 }}
+                    viewport={{ once: true, root: mobileTimelineScrollRef, amount: 0.05 }}
+                    transition={{ duration: 0.65, ease: [0.22, 1, 0.36, 1] }}
+                    style={{ willChange: "transform" }}
+                  >
+                    <div className="absolute top-4 right-4 text-4xl font-bold font-serif text-ink/10 select-none pointer-events-none">
+                      {event.year}
+                    </div>
+
+                    <div className="space-y-2 mt-4">
+                      <span className="text-[0.6rem] font-bold uppercase tracking-[0.15em] text-ink/40">
+                        {formatTextTemplate(content.timelineStepTemplate, DEFAULT_TIMELINE_STEP_TEMPLATE, {
+                          current: idx + 1,
+                          total: visibleEvents.length
+                        })}
+                      </span>
+                      <h4 className="font-serif text-lg text-ink leading-tight">{event.title}</h4>
+                      <p className="text-xs leading-5 text-graphite/75">{event.description}</p>
+                    </div>
+
+                    {event.image?.src && event.image.enabled !== false && (
+                      <div className="mt-4 aspect-video overflow-hidden rounded-xl border border-ink/10 w-full relative">
+                        <CinematicImage
+                          src={event.image.src}
+                          alt={event.image.alt || event.title}
+                          className="w-full h-full object-cover"
+                          imageClassName="rounded-xl"
+                        />
+                      </div>
+                    )}
+                  </motion.div>
+                ))}
+              </div>
+            </motion.div>
+          )}
+        </div>
+      )}
 
       {/* Main Section Settings Drawer */}
       <AdminDrawer

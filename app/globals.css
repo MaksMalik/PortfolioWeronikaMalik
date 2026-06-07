@@ -711,12 +711,16 @@ a {
 
 /* Touch / mobile: smooth color fade triggered by Intersection Observer (in-view-mobile) */
 @media (pointer: coarse), (max-width: 1024px) {
+  .cinematicImage .cinematicImageBase,
   .cinematicImage .cinematicImageColor {
     clip-path: none;
-    opacity: 0;
     transition:
       opacity 1500ms cubic-bezier(0.22, 1, 0.36, 1),
+      filter 1500ms cubic-bezier(0.22, 1, 0.36, 1),
       transform 1.6s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .cinematicImage .cinematicImageColor {
+    opacity: 0;
   }
   .cinematicImage.in-view-mobile .cinematicImageColor {
     opacity: 1;
