@@ -346,7 +346,6 @@ body[data-editorial-modal-open="true"] .film-grain {
 }
 
 body[data-editorial-modal-open="true"] .siteContentRoot {
-  content-visibility: hidden;
   pointer-events: none;
 }
 

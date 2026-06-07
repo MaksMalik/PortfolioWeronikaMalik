@@ -149,6 +149,8 @@ export function AdminEditProvider({
   const [remoteSaveBlocked, setRemoteSaveBlocked] = useState(false);
   const hasUnsavedEditsRef = useRef(false);
   const contentReadyRef = useRef(false);
+  const savingInProgressRef = useRef(false);
+  const pendingSaveContentRef = useRef<SiteContent | null>(null);
   
   // Undo/Redo state stack
   const [historyStates, setHistoryStates] = useState<SiteContent[]>([]);
@@ -321,6 +323,44 @@ export function AdminEditProvider({
     }
   }, [content.accentColorsEnabled, content.accentColor, contentReady]);
 
+  const savePreviewWithLock = useCallback(async (contentToSave: SiteContent) => {
+    if (savingInProgressRef.current) {
+      pendingSaveContentRef.current = contentToSave;
+      return;
+    }
+
+    savingInProgressRef.current = true;
+    setAutosaveStatus("saving");
+
+    try {
+      await saveSiteContent(contentToSave, "preview");
+      setRemoteSaveBlocked(false);
+      setAutosaveStatus("saved");
+      setHasUnsavedEdits(false);
+      setStatusMessage(null); // Clear errors on success
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("strona_aktorska_draft_backup");
+        setHasBackup(false);
+      }
+    } catch (err) {
+      if (!isPermissionDenied(err)) {
+        console.warn("Autosave failed:", err);
+        setAutosaveStatus("error");
+      } else {
+        setRemoteSaveBlocked(true);
+        setAutosaveStatus("idle");
+      }
+      setStatusMessage(friendlyErrorMessage(err, "Nie udało się automatycznie zapisać szkicu."));
+    } finally {
+      savingInProgressRef.current = false;
+      if (pendingSaveContentRef.current) {
+        const nextContent = pendingSaveContentRef.current;
+        pendingSaveContentRef.current = null;
+        void savePreviewWithLock(nextContent);
+      }
+    }
+  }, []);
+
   // Debounced Autosave to Firestore preview target
   useEffect(() => {
     if (!hasUnsavedEdits || !editMode || !isAdmin) return;
@@ -331,30 +371,11 @@ export function AdminEditProvider({
 
     queueMicrotask(() => setAutosaveStatus("saving"));
     const timer = setTimeout(async () => {
-      try {
-        await saveSiteContent(content, "preview");
-        setRemoteSaveBlocked(false);
-        setAutosaveStatus("saved");
-        setHasUnsavedEdits(false);
-        setStatusMessage(null); // Clear errors on success
-        if (typeof window !== "undefined") {
-          localStorage.removeItem("strona_aktorska_draft_backup");
-          setHasBackup(false);
-        }
-      } catch (err) {
-        if (!isPermissionDenied(err)) {
-          console.warn("Autosave failed:", err);
-          setAutosaveStatus("error");
-        } else {
-          setRemoteSaveBlocked(true);
-          setAutosaveStatus("idle");
-        }
-        setStatusMessage(friendlyErrorMessage(err, "Nie udało się automatycznie zapisać szkicu."));
-      }
+      void savePreviewWithLock(content);
     }, 3000); // 3 seconds debounce
 
     return () => clearTimeout(timer);
-  }, [content, hasUnsavedEdits, editMode, isAdmin, remoteSaveBlocked]);
+  }, [content, hasUnsavedEdits, editMode, isAdmin, remoteSaveBlocked, savePreviewWithLock]);
 
   useEffect(() => {
     if (!hasUnsavedEdits || !editMode || !isAdmin) return;
@@ -372,27 +393,7 @@ export function AdminEditProvider({
   const triggerImmediateSave = async (currentContent: SiteContent) => {
     if (!hasUnsavedEdits) return;
     if (remoteSaveBlocked) return;
-    setAutosaveStatus("saving");
-    try {
-      await saveSiteContent(currentContent, "preview");
-      setRemoteSaveBlocked(false);
-      setAutosaveStatus("saved");
-      setHasUnsavedEdits(false);
-      setStatusMessage(null); // Clear errors on success
-      if (typeof window !== "undefined") {
-        localStorage.removeItem("strona_aktorska_draft_backup");
-        setHasBackup(false);
-      }
-    } catch (err) {
-      if (!isPermissionDenied(err)) {
-        console.warn("Immediate save failed:", err);
-        setAutosaveStatus("error");
-      } else {
-        setRemoteSaveBlocked(true);
-        setAutosaveStatus("idle");
-      }
-      setStatusMessage(friendlyErrorMessage(err, "Nie udało się zapisać szkicu."));
-    }
+    void savePreviewWithLock(currentContent);
   };
 
   const updateContent = (recipe: (draft: SiteContent) => void) => {
@@ -499,6 +500,11 @@ export function AdminEditProvider({
     setStatusMessage(null);
     setRemoteSaveBlocked(false);
     try {
+      while (savingInProgressRef.current) {
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      }
+      savingInProgressRef.current = true;
+
       await saveSiteContent(content, "preview");
       await createVersionCheckpoint("draft");
       if (typeof window !== "undefined") {
@@ -524,8 +530,9 @@ export function AdminEditProvider({
       } else {
         setAutosaveStatus("error");
       }
-      setStatusMessage(friendlyErrorMessage(error, "Nie udało się zapisać szkicu."));
+      setStatusMessage(friendlyErrorMessage(error, "Nie udało się zapisac szkicu."));
     } finally {
+      savingInProgressRef.current = false;
       setIsSaving(false);
     }
   };
@@ -535,6 +542,11 @@ export function AdminEditProvider({
     setStatusMessage(null);
     setRemoteSaveBlocked(false);
     try {
+      while (savingInProgressRef.current) {
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      }
+      savingInProgressRef.current = true;
+
       // Save to both preview and live targets
       await saveSiteContent(content, "live");
       await saveSiteContent(content, "preview");
@@ -566,6 +578,7 @@ export function AdminEditProvider({
       }
       setStatusMessage(friendlyErrorMessage(error, "Nie udało się opublikować na żywo."));
     } finally {
+      savingInProgressRef.current = false;
       setIsSaving(false);
     }
   };

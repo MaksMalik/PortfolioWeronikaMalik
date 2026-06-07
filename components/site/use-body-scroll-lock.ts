@@ -42,25 +42,35 @@ export function useBodyScrollLock(locked: boolean) {
   }, [locked]);
 }
 
+let savedScrollY = 0;
+
 export function useEditorialModalOptimization(active: boolean) {
   useEffect(() => {
-    if (!active || typeof window === "undefined") {
+    if (typeof window === "undefined") {
       return;
     }
 
     const body = document.body;
 
-    if (editorialModalCount === 0) {
-      body.dataset.editorialModalOpen = "true";
+    if (active) {
+      if (editorialModalCount === 0) {
+        savedScrollY = window.scrollY;
+        body.dataset.editorialModalOpen = "true";
+      }
+      editorialModalCount += 1;
     }
 
-    editorialModalCount += 1;
-
     return () => {
-      editorialModalCount = Math.max(0, editorialModalCount - 1);
+      if (active) {
+        editorialModalCount = Math.max(0, editorialModalCount - 1);
 
-      if (editorialModalCount === 0) {
-        delete body.dataset.editorialModalOpen;
+        if (editorialModalCount === 0) {
+          delete body.dataset.editorialModalOpen;
+          const targetScroll = savedScrollY;
+          setTimeout(() => {
+            window.scrollTo(0, targetScroll);
+          }, 0);
+        }
       }
     };
   }, [active]);
