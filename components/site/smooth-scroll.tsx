@@ -7,8 +7,8 @@ import Lenis from "lenis";
 const ANCHOR_SCROLL_DURATION = 1.15;
 const ANCHOR_SKIP_FINISH_DELAY = 120;
 const SECTION_TRANSITION_ENTER_MS = 280;
-const SECTION_TRANSITION_HOLD_MS = 130;
-const SECTION_TRANSITION_END_MS = 620;
+const SECTION_TRANSITION_HOLD_MS = 140;
+const SECTION_TRANSITION_END_MS = 900;
 const CURTAIN_EASE = [0.22, 1, 0.36, 1] as const;
 
 type AnchorNavigationSource = "anchor" | "header";
@@ -58,11 +58,11 @@ export function SmoothScroll() {
     }),
     animate: {
       clipPath: "inset(0 0 0 0)",
-      transition: { duration: prefersReducedMotion ? 0.01 : 0.44, ease: CURTAIN_EASE }
+      transition: { duration: prefersReducedMotion ? 0.01 : 0.34, ease: CURTAIN_EASE }
     },
     exit: (direction: "down" | "up") => ({
       clipPath: direction === "down" ? "inset(0 0 100% 0)" : "inset(100% 0 0 0)",
-      transition: { delay: prefersReducedMotion ? 0 : 0.14, duration: prefersReducedMotion ? 0.01 : 0.4, ease: CURTAIN_EASE }
+      transition: { delay: prefersReducedMotion ? 0 : 0.12, duration: prefersReducedMotion ? 0.01 : 0.3, ease: CURTAIN_EASE }
     })
   };
 
@@ -72,11 +72,11 @@ export function SmoothScroll() {
     }),
     animate: {
       clipPath: "inset(0 0 0 0)",
-      transition: { delay: prefersReducedMotion ? 0 : 0.08, duration: prefersReducedMotion ? 0.01 : 0.42, ease: CURTAIN_EASE }
+      transition: { delay: prefersReducedMotion ? 0 : 0.06, duration: prefersReducedMotion ? 0.01 : 0.32, ease: CURTAIN_EASE }
     },
     exit: (direction: "down" | "up") => ({
       clipPath: direction === "down" ? "inset(0 0 100% 0)" : "inset(100% 0 0 0)",
-      transition: { delay: prefersReducedMotion ? 0 : 0.08, duration: prefersReducedMotion ? 0.01 : 0.42, ease: CURTAIN_EASE }
+      transition: { delay: prefersReducedMotion ? 0 : 0.06, duration: prefersReducedMotion ? 0.01 : 0.32, ease: CURTAIN_EASE }
     })
   };
 
@@ -86,11 +86,11 @@ export function SmoothScroll() {
     }),
     animate: {
       clipPath: "inset(0 0 0 0)",
-      transition: { delay: prefersReducedMotion ? 0 : 0.14, duration: prefersReducedMotion ? 0.01 : 0.4, ease: CURTAIN_EASE }
+      transition: { delay: prefersReducedMotion ? 0 : 0.12, duration: prefersReducedMotion ? 0.01 : 0.3, ease: CURTAIN_EASE }
     },
     exit: (direction: "down" | "up") => ({
       clipPath: direction === "down" ? "inset(0 0 100% 0)" : "inset(100% 0 0 0)",
-      transition: { delay: prefersReducedMotion ? 0 : 0, duration: prefersReducedMotion ? 0.01 : 0.44, ease: CURTAIN_EASE }
+      transition: { delay: prefersReducedMotion ? 0 : 0, duration: prefersReducedMotion ? 0.01 : 0.34, ease: CURTAIN_EASE }
     })
   };
 
@@ -313,57 +313,56 @@ export function SmoothScroll() {
   return (
     <AnimatePresence>
       {sectionTransition && (
-        <>
-          {/* Layer 1: Backdrop blur panel */}
-          <motion.div
-            key={`${sectionTransition.href}-layer1`}
-            className="pointer-events-none fixed inset-0 z-[999997] bg-ink/15 backdrop-blur-md"
-            custom={sectionTransition.direction}
-            variants={backdropVariants}
-            initial="initial"
-            animate="animate"
-            exit="exit"
-            aria-hidden="true"
-          />
+        <motion.div
+          key={`${sectionTransition.href}-layer1`}
+          className="pointer-events-none fixed inset-0 z-[999997] bg-ink/15 backdrop-blur-md"
+          custom={sectionTransition.direction}
+          variants={backdropVariants}
+          initial="initial"
+          animate="animate"
+          exit="exit"
+          aria-hidden="true"
+        />
+      )}
 
-          {/* Layer 2: Intermediate color panel (graphite/charcoal) */}
-          <motion.div
-            key={`${sectionTransition.href}-layer2`}
-            className="pointer-events-none fixed inset-0 z-[999998] bg-muted/95 dark:bg-muted/80"
-            custom={sectionTransition.direction}
-            variants={intermediateVariants}
-            initial="initial"
-            animate="animate"
-            exit="exit"
-            aria-hidden="true"
-          />
+      {sectionTransition && (
+        <motion.div
+          key={`${sectionTransition.href}-layer2`}
+          className="pointer-events-none fixed inset-0 z-[999998] bg-muted/95 dark:bg-muted/80"
+          custom={sectionTransition.direction}
+          variants={intermediateVariants}
+          initial="initial"
+          animate="animate"
+          exit="exit"
+          aria-hidden="true"
+        />
+      )}
 
-          {/* Layer 3: Main solid panel (ink/obsidian) with content */}
+      {sectionTransition && (
+        <motion.div
+          key={sectionTransition.href}
+          className="pointer-events-none fixed inset-0 z-[999999] flex items-center justify-center overflow-hidden bg-ink text-porcelain"
+          custom={sectionTransition.direction}
+          variants={solidVariants}
+          initial="initial"
+          animate="animate"
+          exit="exit"
+          aria-hidden="true"
+        >
           <motion.div
-            key={sectionTransition.href}
-            className="pointer-events-none fixed inset-0 z-[999999] flex items-center justify-center overflow-hidden bg-ink text-porcelain"
-            custom={sectionTransition.direction}
-            variants={solidVariants}
-            initial="initial"
-            animate="animate"
-            exit="exit"
-            aria-hidden="true"
+            className="flex flex-col items-center gap-5 px-8 text-center"
+            initial={{ opacity: 0, y: sectionTransition.direction === "down" ? 18 : -18 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: sectionTransition.direction === "down" ? -16 : 16 }}
+            transition={{ delay: 0.22, duration: prefersReducedMotion ? 0.01 : 0.3, ease: [0.22, 1, 0.36, 1] }}
           >
-            <motion.div
-              className="flex flex-col items-center gap-5 px-8 text-center"
-              initial={{ opacity: 0, y: sectionTransition.direction === "down" ? 18 : -18 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: sectionTransition.direction === "down" ? -16 : 16 }}
-              transition={{ delay: 0.22, duration: prefersReducedMotion ? 0.01 : 0.3, ease: [0.22, 1, 0.36, 1] }}
-            >
-              <span className="h-px w-24 bg-porcelain/28" />
-              <span className="font-serif text-4xl font-normal tracking-wide text-porcelain sm:text-6xl">
-                {sectionTransition.label}
-              </span>
-              <span className="h-px w-12 bg-porcelain/18" />
-            </motion.div>
+            <span className="h-px w-24 bg-porcelain/28" />
+            <span className="font-serif text-4xl font-normal tracking-wide text-porcelain sm:text-6xl">
+              {sectionTransition.label}
+            </span>
+            <span className="h-px w-12 bg-porcelain/18" />
           </motion.div>
-        </>
+        </motion.div>
       )}
     </AnimatePresence>
   );
