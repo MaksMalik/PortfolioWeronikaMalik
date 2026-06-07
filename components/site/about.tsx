@@ -392,12 +392,16 @@ export function About({
 
           {/* Slides 1-N: Timeline Milestones */}
           {visibleEvents.map((event, idx) => (
-            <div
+            <motion.div
               key={event.id}
               className={cn(
                 "relative lg:border-none lg:bg-transparent lg:rounded-none lg:p-0 lg:w-[45vw] lg:max-w-[500px] lg:shrink-0 lg:flex-col lg:justify-center lg:px-12 lg:border-l lg:border-ink/10 lg:h-[80vh] lg:min-h-0",
                 !event.enabled && "opacity-50"
               )}
+              initial={{ opacity: 0, y: 32 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.15 }}
+              transition={{ duration: 0.85, ease: [0.22, 1, 0.36, 1], delay: idx * 0.05 }}
             >
               {/* Year Indicator with staggered/faster parallax translation */}
               <motion.div
@@ -433,7 +437,7 @@ export function About({
                   </motion.div>
                 </div>
               )}
-            </div>
+            </motion.div>
           ))}
         </motion.div>
 
@@ -488,12 +492,16 @@ export function About({
             {/* Horizontal Swipeable Snap container */}
             <div className="flex gap-5 overflow-x-auto snap-x snap-mandatory pb-6 pr-6 sm:pr-10 scrollbar-hide">
               {visibleEvents.map((event, idx) => (
-                <div
+                <motion.div
                   key={event.id}
                   className={cn(
                     "snap-center shrink-0 w-[80vw] max-w-[320px] border border-ink/10 bg-porcelain/30 rounded-2xl p-5 flex flex-col justify-between min-h-[360px] relative",
                     !event.enabled && "opacity-50 border-dashed"
                   )}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, amount: 0.15 }}
+                  transition={{ duration: 0.64, ease: [0.22, 1, 0.36, 1] }}
                 >
                   <div className="absolute top-4 right-4 text-4xl font-bold font-serif text-ink/10 select-none pointer-events-none">
                     {event.year}
@@ -520,7 +528,7 @@ export function About({
                       />
                     </div>
                   )}
-                </div>
+                </motion.div>
               ))}
             </div>
           </div>

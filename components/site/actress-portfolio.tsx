@@ -7,6 +7,8 @@ import { startFirebaseAnalytics } from "@/lib/firebase/client";
 import { About } from "@/components/site/about";
 import { Contact } from "@/components/site/contact";
 import { CustomCursor } from "@/components/site/custom-cursor";
+import { MouseGlow } from "@/components/site/mouse-glow";
+import { BackToTop } from "@/components/site/back-to-top";
 import { FloatingSocials } from "@/components/site/floating-socials";
 import { Gallery } from "@/components/site/gallery";
 import { Header } from "@/components/site/header";
@@ -150,6 +152,8 @@ export function ActressPortfolio() {
 
       <ClientOnly>
         <CustomCursor />
+        <MouseGlow />
+        <BackToTop />
       </ClientOnly>
       <AdminBar />
     </>

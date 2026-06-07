@@ -46,6 +46,8 @@ export function AdminSettingsDrawer({ isOpen, onClose }: AdminSettingsDrawerProp
   const mouseMagnetismStrength = draftMagnetismStrength;
   const mouseFollowLagEnabled = content.mouseFollowLagEnabled !== false;
   const mouseFollowLagStrength = draftFollowLagStrength;
+  const mouseGlowEnabled = content.mouseGlowEnabled !== false;
+  const backToTopEnabled = content.backToTopEnabled !== false;
 
   const commitAccentColor = (value: string) => {
     clearSettingsTimer(colorCommitTimerRef);
@@ -472,6 +474,60 @@ export function AdminSettingsDrawer({ isOpen, onClose }: AdminSettingsDrawerProp
               className="w-full accent-ink disabled:cursor-not-allowed"
             />
           </div>
+
+          <button
+            type="button"
+            onClick={() =>
+              updateContent((draft) => {
+                draft.mouseGlowEnabled = !mouseGlowEnabled;
+              })
+            }
+            className={cn(
+              "flex items-center justify-between gap-4 rounded-2xl border p-3 text-left transition-colors",
+              mouseGlowEnabled
+                ? "border-ink bg-ink text-white"
+                : "border-ink/10 bg-porcelain/60 text-ink"
+            )}
+          >
+            <span>
+              <span className="block text-xs font-bold uppercase tracking-[0.12em]">
+                Poświata myszki
+              </span>
+              <span className={cn("mt-1 block text-[0.68rem]", mouseGlowEnabled ? "text-white/55" : "text-ink/45")}>
+                Subtelna, rozmyta poświata w kolorze akcentu podążająca za kursorem (tylko ekrany z myszką).
+              </span>
+            </span>
+            <span className="shrink-0 text-[0.62rem] font-bold uppercase tracking-[0.12em]">
+              {mouseGlowEnabled ? "Wł." : "Wył."}
+            </span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() =>
+              updateContent((draft) => {
+                draft.backToTopEnabled = !backToTopEnabled;
+              })
+            }
+            className={cn(
+              "flex items-center justify-between gap-4 rounded-2xl border p-3 text-left transition-colors",
+              backToTopEnabled
+                ? "border-ink bg-ink text-white"
+                : "border-ink/10 bg-porcelain/60 text-ink"
+            )}
+          >
+            <span>
+              <span className="block text-xs font-bold uppercase tracking-[0.12em]">
+                Przycisk powrotu na górę
+              </span>
+              <span className={cn("mt-1 block text-[0.68rem]", backToTopEnabled ? "text-white/55" : "text-ink/45")}>
+                Pojawia się w rogu strony po przewinięciu, pokazując okrągły pasek postępu.
+              </span>
+            </span>
+            <span className="shrink-0 text-[0.62rem] font-bold uppercase tracking-[0.12em]">
+              {backToTopEnabled ? "Wł." : "Wył."}
+            </span>
+          </button>
         </section>
 
         <section className="grid gap-4 rounded-2xl border border-ink/10 bg-white p-4">
