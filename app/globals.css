@@ -559,7 +559,6 @@ a {
     transform 700ms ease;
   -webkit-mask-image: -webkit-radial-gradient(white, black);
   backface-visibility: hidden;
-  contain: layout style paint;
 }
 
 @media (hover: hover) {
@@ -672,7 +671,6 @@ a {
   }
   /* Isolate repaints inside modals for smoother scroll */
   .cinematicImage.isStatic {
-    contain: layout style paint;
     transform: none;
   }
 }

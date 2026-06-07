@@ -474,7 +474,7 @@ export function About({
                 <CinematicImage
                   src={content.image.src}
                   alt={content.image.alt}
-                  className="aspect-[4/5] max-h-[480px] rounded-[1.5rem] rounded-tl-none"
+                  className="aspect-[4/5] rounded-[1.5rem] rounded-tl-none w-full"
                 />
               </div>
             </div>
