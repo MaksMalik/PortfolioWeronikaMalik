@@ -7,9 +7,9 @@ import { useBodyScrollLock } from "@/components/site/use-body-scroll-lock";
 
 const ANCHOR_SCROLL_DURATION = 1.15;
 const ANCHOR_SKIP_FINISH_DELAY = 120;
-const SECTION_TRANSITION_ENTER_MS = 400;
-const SECTION_TRANSITION_HOLD_MS = 300;
-const SECTION_TRANSITION_END_MS = 1150;
+const SECTION_TRANSITION_ENTER_MS = 360;
+const SECTION_TRANSITION_HOLD_MS = 120;
+const SECTION_TRANSITION_END_MS = 900;
 const CURTAIN_EASE = [0.22, 1, 0.36, 1] as const;
 
 type AnchorNavigationSource = "anchor" | "header";
@@ -371,12 +371,12 @@ export function SmoothScroll() {
             animate={{
               opacity: 1,
               y: 0,
-              transition: { delay: 0.22, duration: prefersReducedMotion ? 0.01 : 0.25, ease: [0.22, 1, 0.36, 1] }
+              transition: { delay: 0.16, duration: prefersReducedMotion ? 0.01 : 0.2, ease: [0.22, 1, 0.36, 1] }
             }}
             exit={{
               opacity: 0,
               y: sectionTransition.direction === "down" ? -16 : 16,
-              transition: { delay: 0, duration: prefersReducedMotion ? 0.01 : 0.2, ease: [0.22, 1, 0.36, 1] }
+              transition: { delay: 0, duration: prefersReducedMotion ? 0.01 : 0.15, ease: [0.22, 1, 0.36, 1] }
             }}
           >
             <span className="h-px w-24 bg-porcelain/28" />

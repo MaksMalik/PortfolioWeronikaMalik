@@ -339,6 +339,14 @@ body[data-scroll-locked="true"] {
   overscroll-behavior: contain;
 }
 
+body[data-scroll-locked="true"] header {
+  padding-right: var(--scrollbar-width, 0px);
+}
+
+body[data-scroll-locked="true"] aside {
+  margin-right: var(--scrollbar-width, 0px);
+}
+
 body[data-editorial-modal-open="true"] .siteContentRoot,
 body[data-editorial-modal-open="true"] .cinematicAtmosphere,
 body[data-editorial-modal-open="true"] .film-grain {

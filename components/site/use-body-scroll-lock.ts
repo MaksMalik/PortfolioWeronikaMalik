@@ -23,6 +23,7 @@ export function useBodyScrollLock(locked: boolean) {
 
       if (scrollbarWidth > 0) {
         body.style.paddingRight = `${scrollbarWidth}px`;
+        body.style.setProperty("--scrollbar-width", `${scrollbarWidth}px`);
       }
 
       body.dataset.scrollLocked = "true";
@@ -36,6 +37,7 @@ export function useBodyScrollLock(locked: boolean) {
       if (lockCount === 0) {
         body.style.overflow = originalBodyOverflow;
         body.style.paddingRight = originalBodyPaddingRight;
+        body.style.removeProperty("--scrollbar-width");
         delete body.dataset.scrollLocked;
       }
     };
