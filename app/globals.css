@@ -398,7 +398,6 @@ body[data-editorial-modal-open="true"] .siteContentRoot * {
 .fullscreenModalImage {
   background: #dedbd4;
   display: block;
-  transform: translateZ(0);
 }
 
 body[data-editorial-modal-open="true"] .editorialModalBackdrop {

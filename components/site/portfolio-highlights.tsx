@@ -915,7 +915,7 @@ export const PortfolioHighlights = memo(function PortfolioHighlights({
                       transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
                     >
                   {(activeProject.image.src && activeProject.image.enabled !== false) && (
-                      <img src={activeProject.image.src} alt={activeProject.image.alt} loading="eager" decoding="async" fetchPriority="high" sizes="(min-width: 1024px) 40vw, 92vw" className="editorialModalImage aspect-[3/4] object-cover border border-ink/10 rounded-2xl overflow-hidden" />
+                      <img src={activeProject.image.src} alt={activeProject.image.alt} loading="eager" decoding="sync" fetchPriority="high" sizes="(min-width: 1024px) 40vw, 92vw" className="editorialModalImage aspect-[3/4] object-cover border border-ink/10 rounded-2xl overflow-hidden" />
                     )}
 
                     <div className="flex flex-col justify-center">
