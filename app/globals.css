@@ -1005,11 +1005,6 @@ body.has-accents #contact-social-links a:hover {
   color: var(--accent) !important;
 }
 
-body.has-accents #contact-social-links a:hover svg {
-  stroke: var(--accent) !important;
-  fill: var(--accent) !important;
-}
-
 /* 6. Dynamic Premium Gold Accent Overrides */
 /* Header monogram logo */
 body.has-accents header a.group.rounded-full {
