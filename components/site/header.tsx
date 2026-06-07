@@ -169,7 +169,7 @@ export function Header({
       window.dispatchEvent(new CustomEvent("portfolio:navigate", { detail: { href, source: "header" } }));
     };
 
-    window.setTimeout(dispatchNavigation, wasMobileMenuOpen ? 380 : 0);
+    window.setTimeout(dispatchNavigation, wasMobileMenuOpen ? 20 : 0);
   };
 
   const isHeaderVisible = showHeader || isOpen;

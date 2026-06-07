@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState, ChangeEvent, useRef, memo } from "react";
-import { AnimatePresence, motion, useScroll, useTransform, useSpring } from "framer-motion";
+import { AnimatePresence, motion, useTransform, useSpring, useMotionValue } from "framer-motion";
 import { ChevronLeft, ChevronRight, X, Plus, Trash2, ArrowUp, ArrowDown, Eye, EyeOff, Edit, Upload, Loader2 } from "lucide-react";
 import type { GallerySession, SiteImage } from "@/lib/types";
 import { Button } from "@/components/ui/button";
@@ -72,11 +72,27 @@ export const Gallery = memo(function Gallery({
   }, []);
 
   const modalScrollRef = useRef<HTMLDivElement>(null);
-  const { scrollY } = useScroll({ container: modalScrollRef });
-  const col2Y = useTransform(scrollY, [0, 1000], [0, -32]);
-  const col3Y = useTransform(scrollY, [0, 1000], [0, 24]);
+  const scrollYVal = useMotionValue(0);
+  const col2Y = useTransform(scrollYVal, [0, 1000], [0, -32]);
+  const col3Y = useTransform(scrollYVal, [0, 1000], [0, 24]);
   const col2Spring = useSpring(col2Y, { stiffness: 90, damping: 24, mass: 0.5 });
   const col3Spring = useSpring(col3Y, { stiffness: 90, damping: 24, mass: 0.5 });
+
+  useEffect(() => {
+    const container = modalScrollRef.current;
+    if (!container) return;
+
+    const handleScroll = () => {
+      scrollYVal.set(container.scrollTop);
+    };
+
+    container.addEventListener("scroll", handleScroll, { passive: true });
+    handleScroll();
+
+    return () => {
+      container.removeEventListener("scroll", handleScroll);
+    };
+  }, [activeSessionId, scrollYVal]);
 
   const {
     canScrollNext,

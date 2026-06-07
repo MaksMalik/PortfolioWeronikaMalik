@@ -101,6 +101,12 @@ export function Showreel({
   const [activeVideoPoster, setActiveVideoPoster] = useState<string>("");
   const [activeVideoId, setActiveVideoId] = useState<string | null>(null);
   const [activeCenterIdx, setActiveCenterIdx] = useState<number>(0);
+  const [isVideoActive, setIsVideoActive] = useState(false);
+
+  const closeVideo = () => {
+    setIsVideoActive(false);
+    setActiveVideoUrl(null);
+  };
   
   const [isVideoLoading, setIsVideoLoading] = useState(true);
   const [isUploading, setIsUploading] = useState(false);
@@ -221,7 +227,7 @@ export function Showreel({
 
     const handleKey = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
-        setActiveVideoUrl(null);
+        closeVideo();
       }
     };
 
@@ -489,6 +495,7 @@ export function Showreel({
                           setActiveVideoTitle(video.title);
                           setActiveVideoPoster(thumbSrc);
                           setActiveVideoId(video.id);
+                          setIsVideoActive(true);
                         }}
                         onMouseMove={handleCardMouseMove}
                         onMouseLeave={handleCardMouseLeave}
@@ -551,6 +558,7 @@ export function Showreel({
                     setActiveVideoUrl(mainVideoUrl);
                     setActiveVideoTitle(content.title);
                     setActiveVideoPoster(mainThumbnailSrc);
+                    setIsVideoActive(true);
                   }
                 }}
                 onMouseMove={handleCardMouseMove}
@@ -585,6 +593,7 @@ export function Showreel({
                     setActiveVideoUrl(mainVideoUrl);
                     setActiveVideoTitle(content.title);
                     setActiveVideoPoster(mainThumbnailSrc);
+                    setIsVideoActive(true);
                   }}
                 >
                   {content.buttonText}
@@ -1008,7 +1017,7 @@ export function Showreel({
               exit={{ opacity: 0 }}
               role="dialog"
               aria-modal="true"
-              onClick={() => setActiveVideoUrl(null)}
+              onClick={closeVideo}
             >
               <motion.div
                 layoutId={`showreel-card-${activeVideoId}`}
@@ -1031,7 +1040,7 @@ export function Showreel({
                     variant="ghost"
                     size="icon"
                     className="absolute right-4 top-4 z-30 text-white hover:bg-white/10 rounded-full h-10 w-10"
-                    onClick={() => setActiveVideoUrl(null)}
+                    onClick={closeVideo}
                     aria-label="Zamknij showreel"
                   >
                     <X className="h-5 w-5" />
@@ -1047,25 +1056,27 @@ export function Showreel({
                   )}
 
                   <div className="aspect-video w-full">
-                    {activeVideoUrl.toLowerCase().endsWith(".mp4") || activeVideoUrl.toLowerCase().includes(".mp4?") ? (
-                      <video
-                        src={activeVideoUrl}
-                        className="h-full w-full object-contain"
-                        controls
-                        autoPlay
-                        playsInline
-                        poster={activeVideoPoster}
-                        onCanPlay={() => setIsVideoLoading(false)}
-                      />
-                    ) : (
-                      <iframe
-                        src={activeVideoUrl}
-                        className="h-full w-full"
-                        title={activeVideoTitle}
-                        allow="autoplay; encrypted-media; fullscreen; picture-in-picture"
-                        allowFullScreen
-                        onLoad={() => setIsVideoLoading(false)}
-                      />
+                    {isVideoActive && (
+                      activeVideoUrl.toLowerCase().endsWith(".mp4") || activeVideoUrl.toLowerCase().includes(".mp4?") ? (
+                        <video
+                          src={activeVideoUrl}
+                          className="h-full w-full object-contain"
+                          controls
+                          autoPlay
+                          playsInline
+                          poster={activeVideoPoster}
+                          onCanPlay={() => setIsVideoLoading(false)}
+                        />
+                      ) : (
+                        <iframe
+                          src={activeVideoUrl}
+                          className="h-full w-full"
+                          title={activeVideoTitle}
+                          allow="autoplay; encrypted-media; fullscreen; picture-in-picture"
+                          allowFullScreen
+                          onLoad={() => setIsVideoLoading(false)}
+                        />
+                      )
                     )}
                   </div>
                 </div>
