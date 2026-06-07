@@ -3,12 +3,13 @@
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import Lenis from "lenis";
+import { useBodyScrollLock } from "@/components/site/use-body-scroll-lock";
 
 const ANCHOR_SCROLL_DURATION = 1.15;
 const ANCHOR_SKIP_FINISH_DELAY = 120;
-const SECTION_TRANSITION_ENTER_MS = 280;
-const SECTION_TRANSITION_HOLD_MS = 140;
-const SECTION_TRANSITION_END_MS = 900;
+const SECTION_TRANSITION_ENTER_MS = 400;
+const SECTION_TRANSITION_HOLD_MS = 300;
+const SECTION_TRANSITION_END_MS = 1150;
 const CURTAIN_EASE = [0.22, 1, 0.36, 1] as const;
 
 type AnchorNavigationSource = "anchor" | "header";
@@ -49,8 +50,12 @@ export function SmoothScroll() {
   const rafRef = useRef<number | null>(null);
   const anchorScrollEndTimerRef = useRef<number | null>(null);
   const sectionTransitionTimersRef = useRef<number[]>([]);
+  const isTransitionActiveRef = useRef<boolean>(false);
+  const [isTransitioning, setIsTransitioning] = useState(false);
   const [sectionTransition, setSectionTransition] = useState<SectionTransitionState | null>(null);
   const prefersReducedMotion = useReducedMotion();
+
+  useBodyScrollLock(isTransitioning);
 
   const backdropVariants = {
     initial: (direction: "down" | "up") => ({
@@ -152,6 +157,10 @@ export function SmoothScroll() {
       source: AnchorNavigationSource = "anchor"
     ) => {
       if (!href || href === "#") return false;
+      if (isTransitionActiveRef.current) {
+        // Block concurrent navigations to prevent interrupting curtain animations
+        return true;
+      }
       const targetElement = document.querySelector(href) as HTMLElement | null;
       if (!targetElement) return false;
 
@@ -180,6 +189,10 @@ export function SmoothScroll() {
       }
       anchorScrollEndTimerRef.current = window.setTimeout(() => {
         anchorScrollEndTimerRef.current = null;
+        if (useSectionTransition) {
+          isTransitionActiveRef.current = false;
+          setIsTransitioning(false);
+        }
         window.dispatchEvent(new CustomEvent("portfolio:anchor-scroll-end", {
           detail: { href, skipHorizontalSection, source, top, useSectionTransition }
         }));
@@ -201,6 +214,9 @@ export function SmoothScroll() {
       };
 
       if (useSectionTransition) {
+        isTransitionActiveRef.current = true;
+        setIsTransitioning(true);
+
         clearSectionTransitionTimers();
         setSectionTransition({
           direction: top >= currentTop ? "down" : "up",
@@ -352,9 +368,16 @@ export function SmoothScroll() {
           <motion.div
             className="flex flex-col items-center gap-5 px-8 text-center"
             initial={{ opacity: 0, y: sectionTransition.direction === "down" ? 18 : -18 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: sectionTransition.direction === "down" ? -16 : 16 }}
-            transition={{ delay: 0.22, duration: prefersReducedMotion ? 0.01 : 0.3, ease: [0.22, 1, 0.36, 1] }}
+            animate={{
+              opacity: 1,
+              y: 0,
+              transition: { delay: 0.22, duration: prefersReducedMotion ? 0.01 : 0.25, ease: [0.22, 1, 0.36, 1] }
+            }}
+            exit={{
+              opacity: 0,
+              y: sectionTransition.direction === "down" ? -16 : 16,
+              transition: { delay: 0, duration: prefersReducedMotion ? 0.01 : 0.2, ease: [0.22, 1, 0.36, 1] }
+            }}
           >
             <span className="h-px w-24 bg-porcelain/28" />
             <span className="font-serif text-4xl font-normal tracking-wide text-porcelain sm:text-6xl">
