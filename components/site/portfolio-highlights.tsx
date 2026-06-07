@@ -388,8 +388,8 @@ export const PortfolioHighlights = memo(function PortfolioHighlights({
                     setActiveProject(project);
                   }}
                   aria-label={`Czytaj więcej o roli ${project.title}`}
-                  initial={{ opacity: 0, y: 12 }}
-                  whileInView={{ opacity: 1, y: 0 }}
+                  initial={{ opacity: 0 }}
+                  whileInView={{ opacity: 1 }}
                   viewport={{ once: true, amount: 0.05 }}
                   transition={{ delay: index * 0.08, duration: 0.58, ease: [0.22, 1, 0.36, 1] }}
                 >
@@ -835,44 +835,26 @@ export const PortfolioHighlights = memo(function PortfolioHighlights({
               >
                 <div className="pointer-events-none absolute inset-x-0 top-0 h-24 bg-[linear-gradient(180deg,rgba(255,255,255,0.66),transparent)]" aria-hidden="true" />
                 <div className="rounded-3xl overflow-hidden bg-porcelain">
-                  <div className="editorialModalHeader sticky top-0 z-20 mb-8 border-b border-ink/10 bg-porcelain px-4 py-4 sm:px-6">
-                    <div className="mx-auto flex max-w-6xl items-center justify-between gap-4">
-                      <div>
-                        <AnimatePresence mode="wait" initial={false}>
-                          <motion.p
-                            key={activeProject.id}
-                            className="text-xs font-bold uppercase tracking-[0.22em] text-ink/45"
-                            initial={{ opacity: 0, x: 20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            exit={{ opacity: 0, x: -20 }}
-                            transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-                          >
-                            {activeProject.type} / {activeProject.role} / {activeProject.year}
-                          </motion.p>
-                        </AnimatePresence>
-                        <AnimatePresence mode="wait" initial={false}>
-                          <motion.h2
-                            key={activeProject.id}
-                            className="font-serif text-4xl leading-none sm:text-6xl text-ink"
-                            initial={{ opacity: 0, x: 20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            exit={{ opacity: 0, x: -20 }}
-                            transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-                          >
-                            {activeProject.title}
-                          </motion.h2>
-                        </AnimatePresence>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <AnimatePresence mode="wait" initial={false}>
-                          <motion.div
-                            key={activeProject.id}
-                            className="flex items-center gap-2"
-                            initial={{ opacity: 0, x: 20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            exit={{ opacity: 0, x: -20 }}
-                            transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-                          >
+                  <AnimatePresence mode="wait" initial={false}>
+                    <motion.div
+                      key={activeProject.id}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+                      style={{ backfaceVisibility: "hidden", WebkitBackfaceVisibility: "hidden", willChange: "transform, opacity" }}
+                    >
+                      <div className="editorialModalHeader sticky top-0 z-20 mb-8 border-b border-ink/10 bg-porcelain px-4 py-4 sm:px-6">
+                        <div className="mx-auto flex max-w-6xl items-center justify-between gap-4">
+                          <div>
+                            <p className="text-xs font-bold uppercase tracking-[0.22em] text-ink/45">
+                              {activeProject.type} / {activeProject.role} / {activeProject.year}
+                            </p>
+                            <h2 className="font-serif text-4xl leading-none sm:text-6xl text-ink">
+                              {activeProject.title}
+                            </h2>
+                          </div>
+                          <div className="flex items-center gap-2">
                             <Button
                               variant="outline"
                               size="icon"
@@ -900,93 +882,75 @@ export const PortfolioHighlights = memo(function PortfolioHighlights({
                             >
                               <X className="h-5 w-5" />
                             </Button>
-                          </motion.div>
-                        </AnimatePresence>
+                          </div>
+                        </div>
                       </div>
-                    </div>
-                  </div>
 
-                  <AnimatePresence mode="wait" initial={false}>
-                    <motion.div
-                      key={activeProject.id}
-                      className="grid gap-8 px-6 pb-10 sm:px-8 lg:grid-cols-[0.92fr_1.08fr]"
-                      initial={{ opacity: 0, x: 20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      exit={{ opacity: 0, x: -20 }}
-                      transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-                    >
-                  {(activeProject.image.src && activeProject.image.enabled !== false) && (
-                    <CinematicImage
-                      src={activeProject.image.src}
-                      alt={activeProject.image.alt}
-                      loading="eager"
-                      fetchPriority="high"
-                      disableScrollReveal
-                      className="editorialModalImage aspect-[3/4] object-cover border border-ink/10 rounded-2xl overflow-hidden"
-                      imageClassName="w-full h-full object-cover"
-                    />
-                  )}
+                      <div className="grid gap-8 px-6 pb-10 sm:px-8 lg:grid-cols-[0.92fr_1.08fr]">
+                        {activeProject.image.src && activeProject.image.enabled !== false && (
+                          <CinematicImage
+                            src={activeProject.image.src}
+                            alt={activeProject.image.alt}
+                            loading="eager"
+                            fetchPriority="high"
+                            disableScrollReveal
+                            className="editorialModalImage aspect-[3/4] object-cover border border-ink/10 rounded-2xl overflow-hidden"
+                            imageClassName="w-full h-full object-cover"
+                          />
+                        )}
 
-                    <div className="flex flex-col justify-center">
-                      <p className="font-serif text-3xl leading-tight text-graphite sm:text-4xl">
-                        {activeProject.description}
-                      </p>
-                      {activeProject.details && (
-                        <p className="mt-7 text-lg leading-8 text-graphite/70 whitespace-pre-wrap">
-                          {activeProject.details}
-                        </p>
-                      )}
-                      {activeProject.linkUrl && (
-                        <Button
-                          asChild
-                          className="group mt-8 h-auto w-fit rounded-full border border-ink bg-white px-6 py-3.5 text-xs font-bold uppercase tracking-[0.16em] text-ink transition-colors hover:!bg-ink hover:!text-white"
-                        >
-                          <a
-                            href={activeProject.linkUrl}
-                            target="_blank"
-                            rel="noreferrer"
-                          >
-                            {isFilmwebLink(activeProject.linkLabel, activeProject.linkUrl) && (
-                              <FilmwebMark className="mr-1 h-4 w-4" />
-                            )}
-                            <span>{activeProject.linkLabel || "Zobacz więcej"}</span>
-                            <ExternalLink className="h-4 w-4 ml-2" />
-                          </a>
-                        </Button>
-                      )}
-                    </div>
-                    </motion.div>
-                  </AnimatePresence>
+                        <div className="flex flex-col justify-center">
+                          <p className="font-serif text-3xl leading-tight text-graphite sm:text-4xl">
+                            {activeProject.description}
+                          </p>
+                          {activeProject.details && (
+                            <p className="mt-7 text-lg leading-8 text-graphite/70 whitespace-pre-wrap">
+                              {activeProject.details}
+                            </p>
+                          )}
+                          {activeProject.linkUrl && (
+                            <Button
+                              asChild
+                              className="group mt-8 h-auto w-fit rounded-full border border-ink bg-white px-6 py-3.5 text-xs font-bold uppercase tracking-[0.16em] text-ink transition-colors hover:!bg-ink hover:!text-white"
+                            >
+                              <a
+                                href={activeProject.linkUrl}
+                                target="_blank"
+                                rel="noreferrer"
+                              >
+                                {isFilmwebLink(activeProject.linkLabel, activeProject.linkUrl) && (
+                                  <FilmwebMark className="mr-1 h-4 w-4" />
+                                )}
+                                <span>{activeProject.linkLabel || "Zobacz więcej"}</span>
+                                <ExternalLink className="h-4 w-4 ml-2" />
+                              </a>
+                            </Button>
+                          )}
+                        </div>
+                      </div>
 
-                  <AnimatePresence mode="wait" initial={false}>
-                    {activeProjectImages.length > 0 && (
-                      <motion.div
-                        key={activeProject.id}
-                        initial={{ opacity: 0, x: 20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        exit={{ opacity: 0, x: -20 }}
-                        transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-                        className="mt-10 border-t border-ink/10 pt-10 grid gap-5 px-6 pb-10 sm:grid-cols-2 sm:px-8 lg:grid-cols-3"
-                      >
-                        {activeProjectImages.map((image) => (
+                      {activeProjectImages.length > 0 && (
+                        <div className="mt-10 border-t border-ink/10 pt-10 grid gap-5 px-6 pb-10 sm:grid-cols-2 sm:px-8 lg:grid-cols-3">
+                          {activeProjectImages.map((image) => (
                             <figure key={image.id} className="editorialModalLazyItem border border-ink/10 bg-white rounded-2xl overflow-hidden shadow-sm">
-                            <img src={image.src} alt={image.alt} loading="lazy" decoding="async" sizes="(min-width: 1024px) 28vw, (min-width: 640px) 44vw, 92vw" className={cn("editorialModalImage w-full object-cover", image.aspect === "wide" ? "aspect-video" : image.aspect === "square" ? "aspect-square" : "aspect-[4/5]")} />
-                            {(image.title || image.description) && (
-                              <figcaption className="p-4 border-t border-ink/5">
-                                {image.title && (
-                                  <p className="font-serif text-2xl leading-none text-ink">{image.title}</p>
-                                )}
-                                {image.description && (
-                                  <p className="mt-2 text-sm leading-6 text-ink/55">
-                                    {image.description}
-                                  </p>
-                                )}
-                              </figcaption>
-                            )}
-                          </figure>
-                        ))}
-                      </motion.div>
-                    )}
+                              <img src={image.src} alt={image.alt} loading="lazy" decoding="async" sizes="(min-width: 1024px) 28vw, (min-width: 640px) 44vw, 92vw" className={cn("editorialModalImage w-full object-cover", image.aspect === "wide" ? "aspect-video" : image.aspect === "square" ? "aspect-square" : "aspect-[4/5]")} />
+                              {(image.title || image.description) && (
+                                <figcaption className="p-4 border-t border-ink/5">
+                                  {image.title && (
+                                    <p className="font-serif text-2xl leading-none text-ink">{image.title}</p>
+                                  )}
+                                  {image.description && (
+                                    <p className="mt-2 text-sm leading-6 text-ink/55">
+                                      {image.description}
+                                    </p>
+                                  )}
+                                </figcaption>
+                              )}
+                            </figure>
+                          ))}
+                        </div>
+                      )}
+                    </motion.div>
                   </AnimatePresence>
                 </div>
               </motion.div>

@@ -399,8 +399,8 @@ export function About({
                 "relative lg:border-none lg:bg-transparent lg:rounded-none lg:p-0 lg:w-[45vw] lg:max-w-[500px] lg:shrink-0 lg:flex-col lg:justify-center lg:px-12 lg:border-l lg:border-ink/10 lg:h-[80vh] lg:min-h-0",
                 !event.enabled && "opacity-50"
               )}
-              initial={{ opacity: 0, y: 32 }}
-              whileInView={{ opacity: 1, y: 0 }}
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
               viewport={{ once: true, amount: 0.4, margin: "0px -180px 0px 0px" }}
               transition={{ duration: 0.85, ease: [0.22, 1, 0.36, 1], delay: idx * 0.05 }}
               style={{ willChange: "transform" }}
@@ -516,8 +516,8 @@ export function About({
                     "snap-start shrink-0 w-[78vw] max-w-[290px] border border-ink/10 bg-porcelain/30 rounded-2xl p-5 flex flex-col justify-between min-h-[360px] relative",
                     !event.enabled && "opacity-50 border-dashed"
                   )}
-                  initial={{ opacity: 0, y: 28 }}
-                  whileInView={{ opacity: 1, y: 0 }}
+                  initial={{ opacity: 0 }}
+                  whileInView={{ opacity: 1 }}
                   viewport={{ once: true, root: mobileTimelineScrollRef, amount: 0.05 }}
                   transition={{ duration: 0.65, ease: [0.22, 1, 0.36, 1] }}
                   style={{ willChange: "transform" }}

@@ -479,8 +479,8 @@ export const Gallery = memo(function Gallery({
                       setActiveSessionId(session.id);
                     }}
                     aria-label={`Otwórz sesję ${session.title}`}
-                    initial={{ opacity: 0, y: 12 }}
-                    whileInView={{ opacity: 1, y: 0 }}
+                    initial={{ opacity: 0 }}
+                    whileInView={{ opacity: 1 }}
                     viewport={{ once: true, amount: 0.05 }}
                     transition={{ delay: index * 0.08, duration: 0.58, ease: [0.22, 1, 0.36, 1] }}
                   >
@@ -919,45 +919,26 @@ export const Gallery = memo(function Gallery({
               >
                 <div className="pointer-events-none absolute inset-x-0 top-0 h-24 bg-[linear-gradient(180deg,rgba(255,255,255,0.66),transparent)]" aria-hidden="true" />
                 <div className="rounded-3xl overflow-hidden bg-porcelain">
-                  <div className="editorialModalHeader sticky top-0 z-20 mb-6 border-b border-ink/10 bg-porcelain px-4 py-4 sm:px-6">
-                    <div className="mx-auto flex max-w-7xl flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                      <div>
-                        <AnimatePresence mode="wait" initial={false}>
-                          <motion.p
-                            key={activeSession.id}
-                            className="text-xs font-bold uppercase tracking-[0.22em] text-ink/45"
-                            initial={{ opacity: 0, x: sessionDirection * 20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            exit={{ opacity: 0, x: sessionDirection * -20 }}
-                            transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-                          >
-                            {activeSession.subtitle}
-                          </motion.p>
-                        </AnimatePresence>
-                        <AnimatePresence mode="wait" initial={false}>
-                          <motion.h2
-                            key={activeSession.id}
-                            className="font-serif text-4xl leading-none sm:text-6xl text-ink"
-                            initial={{ opacity: 0, x: sessionDirection * 20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            exit={{ opacity: 0, x: sessionDirection * -20 }}
-                            transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-                          >
-                            {activeSession.title}
-                          </motion.h2>
-                        </AnimatePresence>
-                      </div>
-
-                      <div className="flex items-center gap-2">
-                        <AnimatePresence mode="wait" initial={false}>
-                          <motion.div
-                            key={activeSession.id}
-                            className="flex items-center gap-2"
-                            initial={{ opacity: 0, x: sessionDirection * 20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            exit={{ opacity: 0, x: sessionDirection * -20 }}
-                            transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-                          >
+                  <AnimatePresence mode="wait" initial={false}>
+                    <motion.div
+                      key={activeSession.id}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+                      style={{ backfaceVisibility: "hidden", WebkitBackfaceVisibility: "hidden", willChange: "transform, opacity" }}
+                    >
+                      <div className="editorialModalHeader sticky top-0 z-20 mb-6 border-b border-ink/10 bg-porcelain px-4 py-4 sm:px-6">
+                        <div className="mx-auto flex max-w-7xl flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                          <div>
+                            <p className="text-xs font-bold uppercase tracking-[0.22em] text-ink/45">
+                              {activeSession.subtitle}
+                            </p>
+                            <h2 className="font-serif text-4xl leading-none sm:text-6xl text-ink">
+                              {activeSession.title}
+                            </h2>
+                          </div>
+                          <div className="flex items-center gap-2">
                             <Button
                               variant="outline"
                               size="icon"
@@ -988,77 +969,20 @@ export const Gallery = memo(function Gallery({
                             >
                               <X className="h-5 w-5" />
                             </Button>
-                          </motion.div>
-                        </AnimatePresence>
-                      </div>
-                    </div>
-                  </div>
-
-                  <AnimatePresence mode="wait" initial={false}>
-                    {activeSession.description && (
-                      <motion.p
-                        key={activeSession.id}
-                        className="mb-8 max-w-3xl px-4 text-lg leading-8 text-graphite/70 sm:px-6 whitespace-pre-wrap"
-                        initial={{ opacity: 0, x: sessionDirection * 20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        exit={{ opacity: 0, x: sessionDirection * -20 }}
-                        transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-                      >
-                        {activeSession.description}
-                      </motion.p>
-                    )}
-                  </AnimatePresence>
-
-                                   <AnimatePresence mode="wait" initial={false}>
-                    <motion.div
-                      key={activeSession.id}
-                      initial={{ opacity: 0, x: sessionDirection * 56 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      exit={{ opacity: 0, x: sessionDirection * -56 }}
-                      transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
-                      className="px-4 pb-10 sm:px-6"
-                    >
-                      {/* Mobile & Tablet grid (flat columns) */}
-                      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:hidden">
-                        {visibleImages.map((image) => (
-                          <figure
-                            key={image.id}
-                            className="editorialModalLazyItem overflow-hidden border border-ink/10 bg-white rounded-2xl shadow-sm"
-                          >
-                            <button
-                              type="button"
-                              className="block w-full text-left cursor-zoom-in"
-                              onClick={() => setActiveImage(image)}
-                              aria-label={`Powiększ zdjęcie ${image.title ?? image.alt}`}
-                            >
-                              <img
-                                src={image.src}
-                                alt={image.alt}
-                                loading="lazy"
-                                decoding="async"
-                                sizes="(min-width: 640px) 46vw, 92vw"
-                                className={cn("editorialModalImage w-full object-cover", aspectClass(image))}
-                              />
-                            </button>
-                            {(image.title || image.description) && (
-                              <figcaption className="px-4 py-4 border-t border-ink/5">
-                                {image.title && (
-                                  <p className="font-serif text-2xl leading-none text-ink">{image.title}</p>
-                                )}
-                                {image.description && (
-                                  <p className="mt-2 text-sm leading-6 text-ink/55">{image.description}</p>
-                                )}
-                              </figcaption>
-                            )}
-                          </figure>
-                        ))}
+                          </div>
+                        </div>
                       </div>
 
-                      {/* Desktop Parallax Asymmetric grid (3 split columns) */}
-                      <div className="hidden lg:grid lg:grid-cols-3 lg:gap-5 lg:items-start">
-                        {/* Column 1: Static Scroll */}
-                        <div className="flex flex-col gap-5">
-                          {col1.map((image) => (
+                      {activeSession.description && (
+                        <p className="mb-8 max-w-3xl px-4 text-lg leading-8 text-graphite/70 sm:px-6 whitespace-pre-wrap">
+                          {activeSession.description}
+                        </p>
+                      )}
+
+                      <div className="px-4 pb-10 sm:px-6">
+                        {/* Mobile & Tablet grid (flat columns) */}
+                        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:hidden">
+                          {visibleImages.map((image) => (
                             <figure
                               key={image.id}
                               className="editorialModalLazyItem overflow-hidden border border-ink/10 bg-white rounded-2xl shadow-sm"
@@ -1074,7 +998,7 @@ export const Gallery = memo(function Gallery({
                                   alt={image.alt}
                                   loading="lazy"
                                   decoding="async"
-                                  sizes="30vw"
+                                  sizes="(min-width: 640px) 46vw, 92vw"
                                   className={cn("editorialModalImage w-full object-cover", aspectClass(image))}
                                 />
                               </button>
@@ -1092,77 +1016,116 @@ export const Gallery = memo(function Gallery({
                           ))}
                         </div>
 
-                        {/* Column 2: Parallax Scroll Up (Faster) */}
-                        <motion.div className="flex flex-col gap-5" style={{ y: col2Spring }}>
-                          {col2.map((image) => (
-                            <figure
-                              key={image.id}
-                              className="editorialModalLazyItem overflow-hidden border border-ink/10 bg-white rounded-2xl shadow-sm"
-                            >
-                              <button
-                                type="button"
-                                className="block w-full text-left cursor-zoom-in"
-                                onClick={() => setActiveImage(image)}
-                                aria-label={`Powiększ zdjęcie ${image.title ?? image.alt}`}
+                        {/* Desktop Parallax Asymmetric grid (3 split columns) */}
+                        <div className="hidden lg:grid lg:grid-cols-3 lg:gap-5 lg:items-start">
+                          {/* Column 1: Static Scroll */}
+                          <div className="flex flex-col gap-5">
+                            {col1.map((image) => (
+                              <figure
+                                key={image.id}
+                                className="editorialModalLazyItem overflow-hidden border border-ink/10 bg-white rounded-2xl shadow-sm"
                               >
-                                <img
-                                  src={image.src}
-                                  alt={image.alt}
-                                  loading="lazy"
-                                  decoding="async"
-                                  sizes="30vw"
-                                  className={cn("editorialModalImage w-full object-cover", aspectClass(image))}
-                                />
-                              </button>
-                              {(image.title || image.description) && (
-                                <figcaption className="px-4 py-4 border-t border-ink/5">
-                                  {image.title && (
-                                    <p className="font-serif text-2xl leading-none text-ink">{image.title}</p>
-                                  )}
-                                  {image.description && (
-                                    <p className="mt-2 text-sm leading-6 text-ink/55">{image.description}</p>
-                                  )}
-                                </figcaption>
-                              )}
-                            </figure>
-                          ))}
-                        </motion.div>
+                                <button
+                                  type="button"
+                                  className="block w-full text-left cursor-zoom-in"
+                                  onClick={() => setActiveImage(image)}
+                                  aria-label={`Powiększ zdjęcie ${image.title ?? image.alt}`}
+                                >
+                                  <img
+                                    src={image.src}
+                                    alt={image.alt}
+                                    loading="lazy"
+                                    decoding="async"
+                                    sizes="30vw"
+                                    className={cn("editorialModalImage w-full object-cover", aspectClass(image))}
+                                  />
+                                </button>
+                                {(image.title || image.description) && (
+                                  <figcaption className="px-4 py-4 border-t border-ink/5">
+                                    {image.title && (
+                                      <p className="font-serif text-2xl leading-none text-ink">{image.title}</p>
+                                    )}
+                                    {image.description && (
+                                      <p className="mt-2 text-sm leading-6 text-ink/55">{image.description}</p>
+                                    )}
+                                  </figcaption>
+                                )}
+                              </figure>
+                            ))}
+                          </div>
 
-                        {/* Column 3: Parallax Scroll Down (Slower) */}
-                        <motion.div className="flex flex-col gap-5" style={{ y: col3Spring }}>
-                          {col3.map((image) => (
-                            <figure
-                              key={image.id}
-                              className="editorialModalLazyItem overflow-hidden border border-ink/10 bg-white rounded-2xl shadow-sm"
-                            >
-                              <button
-                                type="button"
-                                className="block w-full text-left cursor-zoom-in"
-                                onClick={() => setActiveImage(image)}
-                                aria-label={`Powiększ zdjęcie ${image.title ?? image.alt}`}
+                          {/* Column 2: Parallax Scroll Up (Faster) */}
+                          <motion.div className="flex flex-col gap-5" style={{ y: col2Spring }}>
+                            {col2.map((image) => (
+                              <figure
+                                key={image.id}
+                                className="editorialModalLazyItem overflow-hidden border border-ink/10 bg-white rounded-2xl shadow-sm"
                               >
-                                <img
-                                  src={image.src}
-                                  alt={image.alt}
-                                  loading="lazy"
-                                  decoding="async"
-                                  sizes="30vw"
-                                  className={cn("editorialModalImage w-full object-cover", aspectClass(image))}
-                                />
-                              </button>
-                              {(image.title || image.description) && (
-                                <figcaption className="px-4 py-4 border-t border-ink/5">
-                                  {image.title && (
-                                    <p className="font-serif text-2xl leading-none text-ink">{image.title}</p>
-                                  )}
-                                  {image.description && (
-                                    <p className="mt-2 text-sm leading-6 text-ink/55">{image.description}</p>
-                                  )}
-                                </figcaption>
-                              )}
-                            </figure>
-                          ))}
-                        </motion.div>
+                                <button
+                                  type="button"
+                                  className="block w-full text-left cursor-zoom-in"
+                                  onClick={() => setActiveImage(image)}
+                                  aria-label={`Powiększ zdjęcie ${image.title ?? image.alt}`}
+                                >
+                                  <img
+                                    src={image.src}
+                                    alt={image.alt}
+                                    loading="lazy"
+                                    decoding="async"
+                                    sizes="30vw"
+                                    className={cn("editorialModalImage w-full object-cover", aspectClass(image))}
+                                  />
+                                </button>
+                                {(image.title || image.description) && (
+                                  <figcaption className="px-4 py-4 border-t border-ink/5">
+                                    {image.title && (
+                                      <p className="font-serif text-2xl leading-none text-ink">{image.title}</p>
+                                    )}
+                                    {image.description && (
+                                      <p className="mt-2 text-sm leading-6 text-ink/55">{image.description}</p>
+                                    )}
+                                  </figcaption>
+                                )}
+                              </figure>
+                            ))}
+                          </motion.div>
+
+                          {/* Column 3: Parallax Scroll Down (Slower) */}
+                          <motion.div className="flex flex-col gap-5" style={{ y: col3Spring }}>
+                            {col3.map((image) => (
+                              <figure
+                                key={image.id}
+                                className="editorialModalLazyItem overflow-hidden border border-ink/10 bg-white rounded-2xl shadow-sm"
+                              >
+                                <button
+                                  type="button"
+                                  className="block w-full text-left cursor-zoom-in"
+                                  onClick={() => setActiveImage(image)}
+                                  aria-label={`Powiększ zdjęcie ${image.title ?? image.alt}`}
+                                >
+                                  <img
+                                    src={image.src}
+                                    alt={image.alt}
+                                    loading="lazy"
+                                    decoding="async"
+                                    sizes="30vw"
+                                    className={cn("editorialModalImage w-full object-cover", aspectClass(image))}
+                                  />
+                                </button>
+                                {(image.title || image.description) && (
+                                  <figcaption className="px-4 py-4 border-t border-ink/5">
+                                    {image.title && (
+                                      <p className="font-serif text-2xl leading-none text-ink">{image.title}</p>
+                                    )}
+                                    {image.description && (
+                                      <p className="mt-2 text-sm leading-6 text-ink/55">{image.description}</p>
+                                    )}
+                                  </figcaption>
+                                )}
+                              </figure>
+                            ))}
+                          </motion.div>
+                        </div>
                       </div>
                     </motion.div>
                   </AnimatePresence>
@@ -1245,7 +1208,7 @@ export const Gallery = memo(function Gallery({
                       src={activeImage.src}
                       alt={activeImage.alt}
                       loading="eager"
-                      decoding="async"
+                      decoding="sync"
                       fetchPriority="high"
                       sizes="100vw"
                       className="fullscreenModalImage max-h-[75vh] max-w-full rounded-lg object-contain shadow-2xl border border-white/5"

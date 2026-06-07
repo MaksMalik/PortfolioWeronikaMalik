@@ -32,6 +32,7 @@ function StaticCinematicImage({
   layoutId,
   transition
 }: Omit<CinematicImageProps, "disableScrollReveal">) {
+  const decoding = loading === "eager" ? "sync" : "async";
   return (
     <motion.div
       className={cn(
@@ -47,7 +48,7 @@ function StaticCinematicImage({
         className={cn("cinematicImageColor", imageClassName)}
         loading={loading}
         fetchPriority={fetchPriority}
-        decoding="async"
+        decoding={decoding}
         draggable={false}
         onError={onError}
       />
@@ -74,11 +75,11 @@ function ScrollRevealCinematicImage({
   const revealAnim = useRef<Animation | null>(null);
 
   const isInView = useInView(containerRef, {
-    margin: "-10% 0px -10% 0px",
-    once: true
+    margin: "-15% 0px -15% 0px",
+    once: false
   });
 
-
+  const decoding = loading === "eager" ? "sync" : "async";
 
   /* ── Circle-reveal animation (desktop / fine-pointer only) ──── */
   useEffect(() => {
@@ -167,7 +168,7 @@ function ScrollRevealCinematicImage({
         className={cn("cinematicImageBase", imageClassName)}
         loading={loading}
         fetchPriority={fetchPriority}
-        decoding="async"
+        decoding={decoding}
         draggable={false}
         onError={onError}
       />
@@ -179,7 +180,7 @@ function ScrollRevealCinematicImage({
         className={cn("cinematicImageColor", imageClassName)}
         loading={loading}
         fetchPriority={fetchPriority}
-        decoding="async"
+        decoding={decoding}
         draggable={false}
         onError={onError}
       />
@@ -195,5 +196,3 @@ export const CinematicImage = memo(function CinematicImage(props: CinematicImage
   }
   return <ScrollRevealCinematicImage {...props} />;
 });
-
-
