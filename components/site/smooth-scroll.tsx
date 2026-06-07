@@ -163,14 +163,14 @@ export function SmoothScroll() {
       const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
       const useSectionTransition = distance > 32 && (source === "header" || skipHorizontalSection);
       
-      const enterDelay = isMobileOrTouch ? 200 : SECTION_TRANSITION_ENTER_MS;
-      const holdDelay = isMobileOrTouch ? 60 : SECTION_TRANSITION_HOLD_MS;
+      const enterDelay = isMobileOrTouch ? 320 : SECTION_TRANSITION_ENTER_MS;
+      const holdDelay = isMobileOrTouch ? 360 : 220; // 220ms on desktop, 360ms on mobile to make the label readable
 
       const finishDelay = useSectionTransition
         ? prefersReducedMotion
           ? ANCHOR_SKIP_FINISH_DELAY
           : isMobileOrTouch
-          ? 520
+          ? 1000
           : SECTION_TRANSITION_END_MS
         : skipHorizontalSection
         ? ANCHOR_SKIP_FINISH_DELAY

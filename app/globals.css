@@ -190,6 +190,24 @@ body {
   overflow-x: clip;
 }
 
+img {
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  -webkit-transform: translate3d(0, 0, 0);
+  transform: translate3d(0, 0, 0);
+}
+
+.siteContentRoot h1,
+.siteContentRoot h2,
+.siteContentRoot h3,
+.siteContentRoot p,
+.siteContentRoot span,
+.siteContentRoot a {
+  -webkit-font-smoothing: antialiased;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+}
+
 
 .cinematicAtmosphere {
   position: fixed;
@@ -350,10 +368,12 @@ body[data-scroll-locked="true"] aside {
   margin-right: var(--scrollbar-width, 0px);
 }
 
-body[data-editorial-modal-open="true"] .siteContentRoot,
-body[data-editorial-modal-open="true"] .cinematicAtmosphere,
-body[data-editorial-modal-open="true"] .film-grain {
-  visibility: hidden;
+@media (hover: hover) and (pointer: fine) {
+  body[data-editorial-modal-open="true"] .siteContentRoot,
+  body[data-editorial-modal-open="true"] .cinematicAtmosphere,
+  body[data-editorial-modal-open="true"] .film-grain {
+    visibility: hidden;
+  }
 }
 
 .film-grain {
@@ -389,8 +409,10 @@ body[data-editorial-modal-open="true"] .siteContentRoot {
   pointer-events: none;
 }
 
-body[data-editorial-modal-open="true"] .siteContentRoot * {
-  animation-play-state: paused !important;
+@media (hover: hover) and (pointer: fine) {
+  body[data-editorial-modal-open="true"] .siteContentRoot * {
+    animation-play-state: paused !important;
+  }
 }
 
 .editorialModalBackdrop {

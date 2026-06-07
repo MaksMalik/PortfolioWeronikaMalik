@@ -13,6 +13,11 @@ export function useBodyScrollLock(locked: boolean) {
       return;
     }
 
+    const isMobileOrTouch = window.matchMedia("(pointer: coarse)").matches || window.innerWidth < 1024;
+    if (isMobileOrTouch) {
+      return;
+    }
+
     const body = document.body;
     const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
     const headers = document.querySelectorAll("header");
