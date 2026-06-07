@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { motion, useMotionValue, useSpring } from "framer-motion";
+import { AnimatePresence, motion, useMotionValue, useSpring } from "framer-motion";
 import { cn } from "@/lib/utils";
 
 import { useAdminEdit } from "@/components/admin/admin-edit-context";
@@ -210,11 +210,13 @@ export function CustomCursor() {
     return null;
   }
 
-  const labelText = mode === "view"
-    ? cursorLabel || "Zobacz"
-    : mode === "play"
-      ? cursorLabel || "Play"
-      : "";
+  const labelText = (previewSrc && portalCursorEnabled)
+    ? ""
+    : mode === "view"
+      ? cursorLabel || "Zobacz"
+      : mode === "play"
+        ? cursorLabel || "Play"
+        : "";
 
   return (
     <motion.div
@@ -237,7 +239,20 @@ export function CustomCursor() {
           />
         )}
         <span className="customCursorLabel">
-          {labelText}
+          <AnimatePresence mode="popLayout">
+            {labelText && (
+              <motion.span
+                key={labelText}
+                initial={{ opacity: 0, y: 8, scale: 0.82 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: -8, scale: 0.82 }}
+                transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+                className="inline-block"
+              >
+                {labelText}
+              </motion.span>
+            )}
+          </AnimatePresence>
         </span>
       </span>
     </motion.div>

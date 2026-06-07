@@ -120,7 +120,7 @@ function MobileSectionHeading({
           {eyebrow}
         </motion.span>
         <motion.h2
-          className="font-serif text-4xl font-medium leading-none text-ink sm:text-6xl lg:text-7xl"
+          className="font-serif text-4xl font-normal leading-none text-ink sm:text-6xl lg:text-7xl"
           variants={{
             hidden: { opacity: 0, y: 24 },
             visible: { opacity: 1, y: 0 }
@@ -200,7 +200,7 @@ function DesktopSectionHeading({
           {eyebrow}
         </motion.span>
         <motion.h2
-          className="font-serif text-4xl font-medium leading-none text-ink sm:text-6xl lg:text-7xl"
+          className="font-serif text-4xl font-normal leading-none text-ink sm:text-6xl lg:text-7xl"
           style={{ x: xTitle }}
           variants={{
             hidden: { opacity: 0, y: 24 },

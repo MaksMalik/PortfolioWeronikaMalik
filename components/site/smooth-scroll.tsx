@@ -270,29 +270,54 @@ export function SmoothScroll() {
   return (
     <AnimatePresence>
       {sectionTransition && (
-        <motion.div
-          key={sectionTransition.href}
-          className="pointer-events-none fixed inset-0 z-[999999] flex items-center justify-center overflow-hidden bg-ink text-porcelain"
-          initial={{ clipPath: sectionTransition.direction === "down" ? "inset(100% 0 0 0)" : "inset(0 0 100% 0)" }}
-          animate={{ clipPath: "inset(0 0 0 0)" }}
-          exit={{ clipPath: sectionTransition.direction === "down" ? "inset(0 0 100% 0)" : "inset(100% 0 0 0)" }}
-          transition={{ duration: prefersReducedMotion ? 0.01 : 0.34, ease: [0.22, 1, 0.36, 1] }}
-          aria-hidden="true"
-        >
+        <>
+          {/* Layer 1: Backdrop blur panel */}
           <motion.div
-            className="flex flex-col items-center gap-5 px-8 text-center"
-            initial={{ opacity: 0, y: sectionTransition.direction === "down" ? 18 : -18 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: sectionTransition.direction === "down" ? -16 : 16 }}
-            transition={{ duration: prefersReducedMotion ? 0.01 : 0.26, ease: [0.22, 1, 0.36, 1] }}
+            key={`${sectionTransition.href}-layer1`}
+            className="pointer-events-none fixed inset-0 z-[999997] bg-ink/15 backdrop-blur-md"
+            initial={{ clipPath: sectionTransition.direction === "down" ? "inset(100% 0 0 0)" : "inset(0 0 100% 0)" }}
+            animate={{ clipPath: "inset(0 0 0 0)" }}
+            exit={{ clipPath: sectionTransition.direction === "down" ? "inset(0 0 100% 0)" : "inset(100% 0 0 0)" }}
+            transition={{ duration: prefersReducedMotion ? 0.01 : 0.44, ease: [0.22, 1, 0.36, 1] }}
+            aria-hidden="true"
+          />
+
+          {/* Layer 2: Intermediate color panel (graphite/charcoal) */}
+          <motion.div
+            key={`${sectionTransition.href}-layer2`}
+            className="pointer-events-none fixed inset-0 z-[999998] bg-muted/95 dark:bg-muted/80"
+            initial={{ clipPath: sectionTransition.direction === "down" ? "inset(100% 0 0 0)" : "inset(0 0 100% 0)" }}
+            animate={{ clipPath: "inset(0 0 0 0)" }}
+            exit={{ clipPath: sectionTransition.direction === "down" ? "inset(0 0 100% 0)" : "inset(100% 0 0 0)" }}
+            transition={{ delay: 0.08, duration: prefersReducedMotion ? 0.01 : 0.42, ease: [0.22, 1, 0.36, 1] }}
+            aria-hidden="true"
+          />
+
+          {/* Layer 3: Main solid panel (ink/obsidian) with content */}
+          <motion.div
+            key={sectionTransition.href}
+            className="pointer-events-none fixed inset-0 z-[999999] flex items-center justify-center overflow-hidden bg-ink text-porcelain"
+            initial={{ clipPath: sectionTransition.direction === "down" ? "inset(100% 0 0 0)" : "inset(0 0 100% 0)" }}
+            animate={{ clipPath: "inset(0 0 0 0)" }}
+            exit={{ clipPath: sectionTransition.direction === "down" ? "inset(0 0 100% 0)" : "inset(100% 0 0 0)" }}
+            transition={{ delay: 0.14, duration: prefersReducedMotion ? 0.01 : 0.4, ease: [0.22, 1, 0.36, 1] }}
+            aria-hidden="true"
           >
-            <span className="h-px w-24 bg-porcelain/28" />
-            <span className="font-serif text-4xl font-medium tracking-wide text-porcelain sm:text-6xl">
-              {sectionTransition.label}
-            </span>
-            <span className="h-px w-12 bg-porcelain/18" />
+            <motion.div
+              className="flex flex-col items-center gap-5 px-8 text-center"
+              initial={{ opacity: 0, y: sectionTransition.direction === "down" ? 18 : -18 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: sectionTransition.direction === "down" ? -16 : 16 }}
+              transition={{ delay: 0.22, duration: prefersReducedMotion ? 0.01 : 0.3, ease: [0.22, 1, 0.36, 1] }}
+            >
+              <span className="h-px w-24 bg-porcelain/28" />
+              <span className="font-serif text-4xl font-normal tracking-wide text-porcelain sm:text-6xl">
+                {sectionTransition.label}
+              </span>
+              <span className="h-px w-12 bg-porcelain/18" />
+            </motion.div>
           </motion.div>
-        </motion.div>
+        </>
       )}
     </AnimatePresence>
   );

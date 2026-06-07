@@ -182,7 +182,7 @@ export function Hero({
           </motion.div>
 
           <motion.h1
-            className="hero-written-name heroMobileStaticName max-w-[760px] font-serif text-[2.85rem] font-medium leading-[0.92] text-ink min-[380px]:text-[3.2rem] sm:text-[5.1rem] lg:text-[6.2rem] xl:text-[6.8rem]"
+            className="hero-written-name heroMobileStaticName max-w-[760px] font-serif text-[2.85rem] font-normal leading-[0.92] text-ink min-[380px]:text-[3.2rem] sm:text-[5.1rem] lg:text-[6.2rem] xl:text-[6.8rem]"
             style={{ x: nameX }}
           >
             {nameWords.map((word, wordIndex) => (

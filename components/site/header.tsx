@@ -7,6 +7,70 @@ import { cn } from "@/lib/utils";
 import { useAdminEdit } from "@/components/admin/admin-edit-context";
 import { useBodyScrollLock } from "@/components/site/use-body-scroll-lock";
 
+const settingPercentToScale = (value: number) => {
+  const normalized = Math.max(0, Math.min(1, (value - 1) / 149));
+  return Math.pow(normalized, 1.35);
+};
+
+function MagneticNavLink({
+  children,
+  href,
+  isActive,
+  accentColorsEnabled,
+  handleNavClick,
+  className,
+  style,
+  ariaCurrent
+}: {
+  children: React.ReactNode;
+  href: string;
+  isActive: boolean;
+  accentColorsEnabled?: boolean;
+  handleNavClick: (event: React.MouseEvent<HTMLAnchorElement>, href: string) => void;
+  className?: string;
+  style?: React.CSSProperties;
+  ariaCurrent?: "page";
+}) {
+  const { content } = useAdminEdit();
+  const [offset, setOffset] = useState({ x: 0, y: 0 });
+  const customCursorEnabled = content.customCursorEnabled !== false;
+  const magnetismEnabled = customCursorEnabled && content.mouseMagnetismEnabled !== false;
+  const magnetismScale = settingPercentToScale(
+    Math.max(1, Math.min(150, content.mouseMagnetismStrength ?? 100))
+  );
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!magnetismEnabled || magnetismScale === 0) {
+      setOffset({ x: 0, y: 0 });
+      return;
+    }
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = (e.clientX - rect.left - rect.width / 2) * 0.32 * magnetismScale;
+    const y = (e.clientY - rect.top - rect.height / 2) * 0.32 * magnetismScale;
+    setOffset({ x, y });
+  };
+
+  return (
+    <motion.div
+      animate={offset}
+      transition={{ type: "spring", stiffness: 120, damping: 18, mass: 0.6 }}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={() => setOffset({ x: 0, y: 0 })}
+      className="inline-flex items-center justify-center py-2 px-2 -my-2 -mx-2"
+    >
+      <a
+        href={href}
+        className={className}
+        style={style}
+        aria-current={ariaCurrent}
+        onClick={(event) => handleNavClick(event, href)}
+      >
+        {children}
+      </a>
+    </motion.div>
+  );
+}
+
 export function Header({
   monogram
 }: {
@@ -114,11 +178,14 @@ export function Header({
           </span>
         </a>
 
-        <nav className="hidden items-center gap-5 lg:flex" aria-label="Główna nawigacja">
+        <nav className="hidden items-center gap-2 lg:flex" aria-label="Główna nawigacja">
           {activeNavItems.map((item) => (
-            <a
+            <MagneticNavLink
               key={item.href}
               href={item.href}
+              isActive={activeHref === item.href}
+              accentColorsEnabled={content.accentColorsEnabled}
+              handleNavClick={handleNavClick}
               className={cn(
                 "group relative text-[0.68rem] font-bold uppercase tracking-[0.22em] transition-colors",
                 content.accentColorsEnabled
@@ -134,8 +201,7 @@ export function Header({
                   ? { color: "var(--accent)" }
                   : undefined
               }
-              aria-current={activeHref === item.href ? "page" : undefined}
-              onClick={(event) => handleNavClick(event, item.href)}
+              ariaCurrent={activeHref === item.href ? "page" : undefined}
             >
               {item.label}
               <span
@@ -145,7 +211,7 @@ export function Header({
                   content.accentColorsEnabled ? "bg-[var(--accent)]" : "bg-ink"
                 )}
               />
-            </a>
+            </MagneticNavLink>
           ))}
         </nav>
 
@@ -209,7 +275,7 @@ export function Header({
                     closed: { opacity: 0, y: 18, transition: { duration: 0.28, ease: [0.4, 0, 1, 1] } }
                   }}
                   className={cn(
-                    "font-serif text-4xl font-medium tracking-wide transition-colors",
+                    "font-serif text-4xl font-normal tracking-wide transition-colors",
                     content.accentColorsEnabled
                       ? activeHref === item.href
                         ? ""
