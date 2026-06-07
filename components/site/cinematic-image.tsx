@@ -14,7 +14,6 @@ type CinematicImageProps = {
   children?: React.ReactNode;
   onError?: () => void;
   disableScrollReveal?: boolean;
-  disableAnimations?: boolean;
   layoutId?: string;
   transition?: any;
 };
@@ -28,7 +27,6 @@ function StaticCinematicImage({
   fetchPriority,
   children,
   onError,
-  disableAnimations = false,
   layoutId,
   transition
 }: Omit<CinematicImageProps, "disableScrollReveal">) {
@@ -187,9 +185,6 @@ function ScrollRevealCinematicImage({
     const color = colorRef.current;
     if (!container || !color) return;
 
-    // Skip animations if disabled
-    if (disableAnimations) return;
-
     // Skip JS animations on touch devices — mobile uses CSS opacity via in-view-mobile
     if (
       window.matchMedia("(pointer: coarse)").matches ||
@@ -255,7 +250,7 @@ function ScrollRevealCinematicImage({
         window.cancelAnimationFrame(tiltFrame.current);
       }
     };
-  }, [disableAnimations]);
+  }, []);
 
   /* ── 3D tilt + spotlight follow (direct image hover only) ───── */
   const handleMouseMove = useCallback(
@@ -335,7 +330,7 @@ function ScrollRevealCinematicImage({
 
 export const CinematicImage = memo(function CinematicImage(props: CinematicImageProps) {
   if (props.disableScrollReveal) {
-    return <StaticCinematicImage {...props} disableAnimations={props.disableAnimations} />;
+    return <StaticCinematicImage {...props} />;
   }
   return <ScrollRevealCinematicImage {...props} />;
 });
