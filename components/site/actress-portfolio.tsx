@@ -116,40 +116,42 @@ export function ActressPortfolio() {
   let nonHeroIndex = 0;
 
   return (
-    <motion.main
-      className="siteContentRoot relative"
-      style={{ paddingBottom: isAdmin ? "5.75rem" : "0px" }}
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.65, ease: "easeOut" }}
-      suppressHydrationWarning
-    >
-      <SeoMetadata />
-      <ClientOnly>
-        <ScrollProgress />
-      </ClientOnly>
-      <Header monogram={content.hero.monogram} />
-      <ClientOnly>
-        <FloatingSocials contact={content.contact} initialDelay={FLOATING_SOCIALS_INTRO_DELAY} />
-      </ClientOnly>
+    <>
+      <motion.main
+        className="siteContentRoot relative"
+        style={{ paddingBottom: isAdmin ? "5.75rem" : "0px" }}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.65, ease: "easeOut" }}
+        suppressHydrationWarning
+      >
+        <SeoMetadata />
+        <ClientOnly>
+          <ScrollProgress />
+        </ClientOnly>
+        <Header monogram={content.hero.monogram} />
+        <ClientOnly>
+          <FloatingSocials contact={content.contact} initialDelay={FLOATING_SOCIALS_INTRO_DELAY} />
+        </ClientOnly>
 
-      {renderedSections.map((sec) => {
-        let bgClass = "bg-white";
-        let reverseParallax = false;
-        
-        if (sec.id !== "hero") {
-          bgClass = nonHeroIndex % 2 === 0 ? "bg-porcelain" : "bg-white";
-          reverseParallax = nonHeroIndex % 2 !== 0;
-          nonHeroIndex++;
-        }
-        
-        return sec.render(bgClass, reverseParallax);
-      })}
+        {renderedSections.map((sec) => {
+          let bgClass = "bg-white";
+          let reverseParallax = false;
+          
+          if (sec.id !== "hero") {
+            bgClass = nonHeroIndex % 2 === 0 ? "bg-porcelain" : "bg-white";
+            reverseParallax = nonHeroIndex % 2 !== 0;
+            nonHeroIndex++;
+          }
+          
+          return sec.render(bgClass, reverseParallax);
+        })}
+      </motion.main>
 
       <ClientOnly>
         <CustomCursor />
       </ClientOnly>
       <AdminBar />
-    </motion.main>
+    </>
   );
 }
