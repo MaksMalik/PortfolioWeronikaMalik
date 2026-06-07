@@ -15,6 +15,8 @@ export function useBodyScrollLock(locked: boolean) {
 
     const body = document.body;
     const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
+    const headers = document.querySelectorAll("header");
+    const asides = document.querySelectorAll("aside");
 
     if (lockCount === 0) {
       originalBodyOverflow = body.style.overflow;
@@ -24,6 +26,12 @@ export function useBodyScrollLock(locked: boolean) {
       if (scrollbarWidth > 0) {
         body.style.paddingRight = `${scrollbarWidth}px`;
         body.style.setProperty("--scrollbar-width", `${scrollbarWidth}px`);
+        headers.forEach((h) => {
+          h.style.paddingRight = `${scrollbarWidth}px`;
+        });
+        asides.forEach((a) => {
+          a.style.marginRight = `${scrollbarWidth}px`;
+        });
       }
 
       body.dataset.scrollLocked = "true";
@@ -38,6 +46,12 @@ export function useBodyScrollLock(locked: boolean) {
         body.style.overflow = originalBodyOverflow;
         body.style.paddingRight = originalBodyPaddingRight;
         body.style.removeProperty("--scrollbar-width");
+        headers.forEach((h) => {
+          h.style.paddingRight = "";
+        });
+        asides.forEach((a) => {
+          a.style.marginRight = "";
+        });
         delete body.dataset.scrollLocked;
       }
     };
