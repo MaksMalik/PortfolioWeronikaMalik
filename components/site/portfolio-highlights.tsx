@@ -67,13 +67,6 @@ export const PortfolioHighlights = memo(function PortfolioHighlights({
   const [editingProject, setEditingProject] = useState<PortfolioProject | null>(null);
   const [isSectionDrawerOpen, setIsSectionDrawerOpen] = useState(false);
   const [uploadingImageId, setUploadingImageId] = useState<string | null>(null);
-  const [originallyClickedProjectId, setOriginallyClickedProjectId] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (activeProject === null) {
-      setOriginallyClickedProjectId(null);
-    }
-  }, [activeProject]);
   const activeProjectImages = useMemo(
     () => (activeProject?.images ?? []).filter((image) => image.enabled),
     [activeProject?.images]
@@ -393,7 +386,6 @@ export const PortfolioHighlights = memo(function PortfolioHighlights({
                     }
 
                     setActiveProject(project);
-                    setOriginallyClickedProjectId(project.id);
                   }}
                   aria-label={`Czytaj więcej o roli ${project.title}`}
                   initial={{ opacity: 0, y: 12 }}
@@ -407,7 +399,6 @@ export const PortfolioHighlights = memo(function PortfolioHighlights({
                         src={project.image.src}
                         alt={project.image.alt}
                         className="aspect-[3/4] rounded-t-2xl w-full"
-                        layoutId={`portfolio-image-${project.id}`}
                       />
                       <CinematicCardFrame />
                     </div>
@@ -931,7 +922,6 @@ export const PortfolioHighlights = memo(function PortfolioHighlights({
                       loading="eager"
                       fetchPriority="high"
                       disableScrollReveal
-                      layoutId={activeProject.id === originallyClickedProjectId ? `portfolio-image-${activeProject.id}` : undefined}
                       className="editorialModalImage aspect-[3/4] object-cover border border-ink/10 rounded-2xl overflow-hidden"
                       imageClassName="w-full h-full object-cover"
                     />
