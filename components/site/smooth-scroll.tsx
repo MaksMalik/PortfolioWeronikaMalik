@@ -58,43 +58,43 @@ export function SmoothScroll() {
   useBodyScrollLock(isTransitioning);
 
   const backdropVariants = {
-    initial: (direction: "down" | "up") => ({
-      clipPath: direction === "down" ? "inset(100% 0 0 0)" : "inset(0 0 100% 0)"
-    }),
-    animate: {
-      clipPath: "inset(0 0 0 0)",
-      transition: { duration: prefersReducedMotion ? 0.01 : 0.34, ease: CURTAIN_EASE }
+    initial: {
+      opacity: 0
     },
-    exit: (direction: "down" | "up") => ({
-      clipPath: direction === "down" ? "inset(0 0 100% 0)" : "inset(100% 0 0 0)",
-      transition: { delay: prefersReducedMotion ? 0 : 0.12, duration: prefersReducedMotion ? 0.01 : 0.3, ease: CURTAIN_EASE }
-    })
+    animate: {
+      opacity: 1,
+      transition: { duration: prefersReducedMotion ? 0.01 : 0.34, ease: "easeInOut" as const }
+    },
+    exit: {
+      opacity: 0,
+      transition: { delay: prefersReducedMotion ? 0 : 0.12, duration: prefersReducedMotion ? 0.01 : 0.3, ease: "easeInOut" as const }
+    }
   };
 
   const intermediateVariants = {
     initial: (direction: "down" | "up") => ({
-      clipPath: direction === "down" ? "inset(100% 0 0 0)" : "inset(0 0 100% 0)"
+      y: direction === "down" ? "100%" : "-100%"
     }),
     animate: {
-      clipPath: "inset(0 0 0 0)",
+      y: "0%",
       transition: { delay: prefersReducedMotion ? 0 : 0.06, duration: prefersReducedMotion ? 0.01 : 0.32, ease: CURTAIN_EASE }
     },
     exit: (direction: "down" | "up") => ({
-      clipPath: direction === "down" ? "inset(0 0 100% 0)" : "inset(100% 0 0 0)",
+      y: direction === "down" ? "-100%" : "100%",
       transition: { delay: prefersReducedMotion ? 0 : 0.06, duration: prefersReducedMotion ? 0.01 : 0.32, ease: CURTAIN_EASE }
     })
   };
 
   const solidVariants = {
     initial: (direction: "down" | "up") => ({
-      clipPath: direction === "down" ? "inset(100% 0 0 0)" : "inset(0 0 100% 0)"
+      y: direction === "down" ? "100%" : "-100%"
     }),
     animate: {
-      clipPath: "inset(0 0 0 0)",
+      y: "0%",
       transition: { delay: prefersReducedMotion ? 0 : 0.12, duration: prefersReducedMotion ? 0.01 : 0.3, ease: CURTAIN_EASE }
     },
     exit: (direction: "down" | "up") => ({
-      clipPath: direction === "down" ? "inset(0 0 100% 0)" : "inset(100% 0 0 0)",
+      y: direction === "down" ? "-100%" : "100%",
       transition: { delay: prefersReducedMotion ? 0 : 0, duration: prefersReducedMotion ? 0.01 : 0.34, ease: CURTAIN_EASE }
     })
   };
@@ -355,11 +355,11 @@ export function SmoothScroll() {
         <motion.div
           key={`${sectionTransition.href}-layer1`}
           className="pointer-events-none fixed inset-0 z-[999997] bg-ink/15 backdrop-blur-md"
-          custom={sectionTransition.direction}
           variants={backdropVariants}
           initial="initial"
           animate="animate"
           exit="exit"
+          style={{ willChange: "opacity" }}
           aria-hidden="true"
         />
       )}
@@ -373,6 +373,7 @@ export function SmoothScroll() {
           initial="initial"
           animate="animate"
           exit="exit"
+          style={{ willChange: "transform" }}
           aria-hidden="true"
         />
       )}
@@ -386,6 +387,7 @@ export function SmoothScroll() {
           initial="initial"
           animate="animate"
           exit="exit"
+          style={{ willChange: "transform" }}
           aria-hidden="true"
         >
           <motion.div
