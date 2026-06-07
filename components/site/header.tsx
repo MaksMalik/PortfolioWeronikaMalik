@@ -278,7 +278,7 @@ export function Header({
       <AnimatePresence mode="wait">
         {isOpen && (
           <motion.div
-            className="fixed inset-0 z-40 flex flex-col justify-between bg-porcelain/95 px-8 pt-28 pb-10 backdrop-blur-2xl lg:hidden h-svh w-screen"
+            className="fixed inset-0 z-40 flex flex-col justify-between bg-porcelain px-8 pt-28 pb-10 lg:hidden h-svh w-screen"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}

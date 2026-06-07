@@ -53,6 +53,7 @@ export function SmoothScroll() {
   const isTransitionActiveRef = useRef<boolean>(false);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [sectionTransition, setSectionTransition] = useState<SectionTransitionState | null>(null);
+  const [isMobile, setIsMobile] = useState(false);
   const prefersReducedMotion = useReducedMotion();
 
   useBodyScrollLock(isTransitioning);
@@ -63,11 +64,18 @@ export function SmoothScroll() {
     },
     animate: {
       opacity: 1,
-      transition: { duration: prefersReducedMotion ? 0.01 : 0.34, ease: "easeInOut" as const }
+      transition: {
+        duration: prefersReducedMotion ? 0.01 : isMobile ? 0.22 : 0.34,
+        ease: "easeInOut" as const
+      }
     },
     exit: {
       opacity: 0,
-      transition: { delay: prefersReducedMotion ? 0 : 0.12, duration: prefersReducedMotion ? 0.01 : 0.3, ease: "easeInOut" as const }
+      transition: {
+        delay: prefersReducedMotion ? 0 : isMobile ? 0.06 : 0.12,
+        duration: prefersReducedMotion ? 0.01 : isMobile ? 0.2 : 0.3,
+        ease: "easeInOut" as const
+      }
     }
   };
 
@@ -77,11 +85,19 @@ export function SmoothScroll() {
     }),
     animate: {
       y: "0%",
-      transition: { delay: prefersReducedMotion ? 0 : 0.06, duration: prefersReducedMotion ? 0.01 : 0.32, ease: CURTAIN_EASE }
+      transition: {
+        delay: prefersReducedMotion ? 0 : isMobile ? 0.03 : 0.06,
+        duration: prefersReducedMotion ? 0.01 : isMobile ? 0.22 : 0.32,
+        ease: CURTAIN_EASE
+      }
     },
     exit: (direction: "down" | "up") => ({
       y: direction === "down" ? "-100%" : "100%",
-      transition: { delay: prefersReducedMotion ? 0 : 0.06, duration: prefersReducedMotion ? 0.01 : 0.32, ease: CURTAIN_EASE }
+      transition: {
+        delay: prefersReducedMotion ? 0 : isMobile ? 0.03 : 0.06,
+        duration: prefersReducedMotion ? 0.01 : isMobile ? 0.22 : 0.32,
+        ease: CURTAIN_EASE
+      }
     })
   };
 
@@ -91,16 +107,25 @@ export function SmoothScroll() {
     }),
     animate: {
       y: "0%",
-      transition: { delay: prefersReducedMotion ? 0 : 0.12, duration: prefersReducedMotion ? 0.01 : 0.3, ease: CURTAIN_EASE }
+      transition: {
+        delay: prefersReducedMotion ? 0 : isMobile ? 0.06 : 0.12,
+        duration: prefersReducedMotion ? 0.01 : isMobile ? 0.2 : 0.3,
+        ease: CURTAIN_EASE
+      }
     },
     exit: (direction: "down" | "up") => ({
       y: direction === "down" ? "-100%" : "100%",
-      transition: { delay: prefersReducedMotion ? 0 : 0, duration: prefersReducedMotion ? 0.01 : 0.34, ease: CURTAIN_EASE }
+      transition: {
+        delay: prefersReducedMotion ? 0 : 0,
+        duration: prefersReducedMotion ? 0.01 : isMobile ? 0.22 : 0.34,
+        ease: CURTAIN_EASE
+      }
     })
   };
 
   useEffect(() => {
     const isMobileOrTouch = window.matchMedia("(pointer: coarse)").matches || window.innerWidth < 1024;
+    setIsMobile(isMobileOrTouch);
 
     const clearSectionTransitionTimers = () => {
       sectionTransitionTimersRef.current.forEach((timer) => window.clearTimeout(timer));
@@ -137,9 +162,15 @@ export function SmoothScroll() {
       const distance = Math.abs(top - currentTop);
       const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
       const useSectionTransition = distance > 32 && (source === "header" || skipHorizontalSection);
+      
+      const enterDelay = isMobileOrTouch ? 200 : SECTION_TRANSITION_ENTER_MS;
+      const holdDelay = isMobileOrTouch ? 60 : SECTION_TRANSITION_HOLD_MS;
+
       const finishDelay = useSectionTransition
         ? prefersReducedMotion
           ? ANCHOR_SKIP_FINISH_DELAY
+          : isMobileOrTouch
+          ? 520
           : SECTION_TRANSITION_END_MS
         : skipHorizontalSection
         ? ANCHOR_SKIP_FINISH_DELAY
@@ -194,8 +225,8 @@ export function SmoothScroll() {
           return true;
         }
 
-        scheduleSectionTransitionTimer(scrollImmediately, SECTION_TRANSITION_ENTER_MS);
-        scheduleSectionTransitionTimer(() => setSectionTransition(null), SECTION_TRANSITION_ENTER_MS + SECTION_TRANSITION_HOLD_MS);
+        scheduleSectionTransitionTimer(scrollImmediately, enterDelay);
+        scheduleSectionTransitionTimer(() => setSectionTransition(null), enterDelay + holdDelay);
         return true;
       }
 
@@ -354,7 +385,7 @@ export function SmoothScroll() {
       {sectionTransition && (
         <motion.div
           key={`${sectionTransition.href}-layer1`}
-          className="pointer-events-none fixed inset-0 z-[999997] bg-ink/15 backdrop-blur-md"
+          className="pointer-events-none fixed inset-0 z-[999997] bg-ink/15 lg:backdrop-blur-md"
           variants={backdropVariants}
           initial="initial"
           animate="animate"
