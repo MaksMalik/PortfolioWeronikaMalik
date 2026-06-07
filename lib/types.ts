@@ -150,7 +150,6 @@ export type SiteContent = {
   mouseMagnetismStrength?: number;
   mouseFollowLagEnabled?: boolean;
   mouseFollowLagStrength?: number;
-  mouseGlowEnabled?: boolean;
   backToTopEnabled?: boolean;
   seo?: SeoContent;
   sections: {

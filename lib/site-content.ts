@@ -14,7 +14,6 @@ export const siteContent: SiteContent = {
   mouseMagnetismStrength: 100,
   mouseFollowLagEnabled: true,
   mouseFollowLagStrength: 100,
-  mouseGlowEnabled: true,
   backToTopEnabled: true,
   seo: {
     title: "Weronika Malik | Portfolio aktorskie",

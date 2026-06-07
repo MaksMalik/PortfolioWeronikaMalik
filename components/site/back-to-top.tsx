@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useMemo } from "react";
-import { AnimatePresence, motion, useScroll } from "framer-motion";
+import { AnimatePresence, motion, useScroll, useMotionValueEvent } from "framer-motion";
 import { ArrowUp } from "lucide-react";
 import { useAdminEdit } from "@/components/admin/admin-edit-context";
 import { cn } from "@/lib/utils";
@@ -13,10 +13,11 @@ const settingPercentToScale = (value: number) => {
 
 export function BackToTop() {
   const { content } = useAdminEdit();
-  const { scrollY } = useScroll();
+  const { scrollY, scrollYProgress } = useScroll();
   const [visible, setVisible] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
+  const [scrollProgress, setScrollProgress] = useState(0);
 
   const backToTopEnabled = content.backToTopEnabled !== false;
   const customCursorEnabled = content.customCursorEnabled !== false;
@@ -26,11 +27,14 @@ export function BackToTop() {
   );
 
   // Monitor scroll height to show/hide button
-  useEffect(() => {
-    return scrollY.on("change", (latest) => {
-      setVisible(latest > 600);
-    });
-  }, [scrollY]);
+  useMotionValueEvent(scrollY, "change", (latest) => {
+    setVisible(latest > 600);
+  });
+
+  // Track scroll progress using Framer Motion's scrollYProgress
+  useMotionValueEvent(scrollYProgress, "change", (latest) => {
+    setScrollProgress(latest);
+  });
 
   // Monitor mobile status
   useEffect(() => {
@@ -42,19 +46,6 @@ export function BackToTop() {
     checkMobile();
     window.addEventListener("resize", checkMobile);
     return () => window.removeEventListener("resize", checkMobile);
-  }, []);
-
-  // Compute scroll progress for circular outline
-  const [scrollProgress, setScrollProgress] = useState(0);
-  useEffect(() => {
-    const handleScroll = () => {
-      const totalHeight = document.documentElement.scrollHeight - window.innerHeight;
-      if (totalHeight <= 0) return;
-      const progress = window.scrollY / totalHeight;
-      setScrollProgress(progress);
-    };
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   const strokeDashoffset = 113 - (113 * scrollProgress);
