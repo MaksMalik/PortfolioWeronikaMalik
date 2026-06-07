@@ -483,19 +483,19 @@ export function About({
 
         {/* Timeline Events Carousel */}
         {visibleEvents.length > 0 && (
-          <div className="space-y-6 -mx-6 sm:-mx-10 pl-6 sm:pl-10">
-            <div className="space-y-1">
+          <div className="space-y-6 -mx-6 sm:-mx-10">
+            <div className="space-y-1 px-6 sm:px-10">
               <span className="text-[0.66rem] font-bold uppercase tracking-[0.2em] text-ink/40">{timelineEyebrow}</span>
               <h3 className="font-serif text-2xl text-ink">{timelineTitle}</h3>
             </div>
 
             {/* Horizontal Swipeable Snap container */}
-            <div className="flex gap-5 overflow-x-auto snap-x snap-mandatory pb-6 pr-6 sm:pr-10 scrollbar-hide">
+            <div className="flex gap-5 overflow-x-auto snap-x snap-mandatory pb-6 px-6 sm:px-10 scroll-pl-6 sm:scroll-pl-10 scrollbar-hide">
               {visibleEvents.map((event, idx) => (
                 <motion.div
                   key={event.id}
                   className={cn(
-                    "snap-center shrink-0 w-[80vw] max-w-[320px] border border-ink/10 bg-porcelain/30 rounded-2xl p-5 flex flex-col justify-between min-h-[360px] relative",
+                    "snap-start shrink-0 w-[78vw] max-w-[290px] border border-ink/10 bg-porcelain/30 rounded-2xl p-5 flex flex-col justify-between min-h-[360px] relative",
                     !event.enabled && "opacity-50 border-dashed"
                   )}
                   initial={{ opacity: 0, y: 20 }}
