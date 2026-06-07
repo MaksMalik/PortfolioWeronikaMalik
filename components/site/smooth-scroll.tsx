@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { AnimatePresence, motion, useReducedMotion, animate } from "framer-motion";
 import Lenis from "lenis";
 import { useBodyScrollLock } from "@/components/site/use-body-scroll-lock";
 
@@ -205,7 +205,17 @@ export function SmoothScroll() {
           duration: ANCHOR_SCROLL_DURATION
         });
       } else {
-        window.scrollTo({ top, behavior: skipHorizontalSection ? "auto" : "smooth" });
+        if (skipHorizontalSection || prefersReducedMotion) {
+          window.scrollTo({ top, behavior: "auto" });
+        } else {
+          // Native "smooth" scrolling on iOS is sluggish. Use Framer Motion's GPU-synced animate loop
+          const currentY = window.scrollY;
+          animate(currentY, top, {
+            duration: 0.8,
+            ease: [0.32, 0.72, 0, 1],
+            onUpdate: (latest) => window.scrollTo({ top: latest, left: 0, behavior: "auto" })
+          });
+        }
       }
 
       if (shouldPushState && window.location.hash !== href) {

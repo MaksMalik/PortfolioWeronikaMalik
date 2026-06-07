@@ -364,7 +364,7 @@ export const PortfolioHighlights = memo(function PortfolioHighlights({
             ref={railRef}
             {...railDragHandlers}
             className={cn(
-              "no-scrollbar grid auto-cols-[84%] grid-flow-col gap-5 overflow-x-auto pt-12 pb-20 -mt-12 -mb-16 select-none [scroll-snap-type:x_proximity] sm:auto-cols-[52%] lg:auto-cols-[calc((100%_-_2.5rem)/3)]",
+              "no-scrollbar grid auto-cols-[84%] grid-flow-col gap-5 overflow-x-auto touch-pan-x overscroll-x-contain pt-12 pb-20 -mt-12 -mb-16 select-none [scroll-snap-type:x_proximity] sm:auto-cols-[52%] lg:auto-cols-[calc((100%_-_2.5rem)/3)]",
               isDragging ? "cursor-grabbing" : "cursor-grab"
             )}
           >
