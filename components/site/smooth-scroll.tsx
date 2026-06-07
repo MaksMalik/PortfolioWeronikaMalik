@@ -100,43 +100,7 @@ export function SmoothScroll() {
   };
 
   useEffect(() => {
-    const stopRaf = () => {
-      if (rafRef.current !== null) {
-        cancelAnimationFrame(rafRef.current);
-        rafRef.current = null;
-      }
-    };
-
-    const startRaf = (lenis: Lenis) => {
-      if (rafRef.current !== null || document.hidden) return;
-
-      function raf(time: number) {
-        lenis.raf(time);
-        rafRef.current = requestAnimationFrame(raf);
-      }
-
-      rafRef.current = requestAnimationFrame(raf);
-    };
-
-    const createLenis = () => {
-      const lenis = new Lenis({
-        duration: 1.1,
-        easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
-        orientation: "vertical",
-        smoothWheel: true,
-        wheelMultiplier: 0.9,
-        touchMultiplier: 1.0,
-        syncTouch: true,
-        infinite: false,
-      });
-
-      lenisRef.current = lenis;
-      startRaf(lenis);
-
-      return lenis;
-    };
-
-    createLenis();
+    const isMobileOrTouch = window.matchMedia("(pointer: coarse)").matches || window.innerWidth < 1024;
 
     const clearSectionTransitionTimers = () => {
       sectionTransitionTimersRef.current.forEach((timer) => window.clearTimeout(timer));
@@ -257,8 +221,6 @@ export function SmoothScroll() {
       scrollToHash(href, false, detail?.source ?? "anchor");
     };
 
-    // Handle anchor links with smooth scroll. Header navigation dispatches
-    // a custom event after preventDefault, so skip already-handled clicks.
     const handleClick = (e: MouseEvent) => {
       if (e.defaultPrevented) return;
       const target = e.target as HTMLElement;
@@ -274,6 +236,57 @@ export function SmoothScroll() {
 
     document.addEventListener('click', handleClick);
     window.addEventListener("portfolio:navigate", handleProgrammaticNavigation);
+
+    if (isMobileOrTouch) {
+      // Mobile & touch early exit: completely bypass Lenis initialization
+      // to rely on native GPU-accelerated momentum scrolling and fix horizontal swipe carousels.
+      return () => {
+        clearSectionTransitionTimers();
+        if (anchorScrollEndTimerRef.current !== null) {
+          window.clearTimeout(anchorScrollEndTimerRef.current);
+        }
+        document.removeEventListener('click', handleClick);
+        window.removeEventListener("portfolio:navigate", handleProgrammaticNavigation);
+      };
+    }
+
+    // Desktop only scroll container animation loop
+    const stopRaf = () => {
+      if (rafRef.current !== null) {
+        cancelAnimationFrame(rafRef.current);
+        rafRef.current = null;
+      }
+    };
+
+    const startRaf = (lenis: Lenis) => {
+      if (rafRef.current !== null || document.hidden) return;
+
+      function raf(time: number) {
+        lenis.raf(time);
+        rafRef.current = requestAnimationFrame(raf);
+      }
+
+      rafRef.current = requestAnimationFrame(raf);
+    };
+
+    const createLenis = () => {
+      const lenis = new Lenis({
+        duration: 1.1,
+        easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+        orientation: "vertical",
+        smoothWheel: true,
+        wheelMultiplier: 0.9,
+        touchMultiplier: 1.0,
+        infinite: false,
+      });
+
+      lenisRef.current = lenis;
+      startRaf(lenis);
+
+      return lenis;
+    };
+
+    createLenis();
 
     const handleVisibilityChange = () => {
       if (document.hidden) {
