@@ -65,41 +65,7 @@ export const Gallery = memo(function Gallery({
   const [editingSession, setEditingSession] = useState<GallerySession | null>(null);
   const [isSectionDrawerOpen, setIsSectionDrawerOpen] = useState(false);
   const [uploadingImageId, setUploadingImageId] = useState<string | null>(null);
-  const [sessionDirection, setSessionDirection] = useState<-1 | 1>(1);
-
-  const handleCardMouseMove = (e: React.MouseEvent<HTMLElement>) => {
-    if (editMode || isMobile) return;
-    const card = e.currentTarget;
-    const rect = card.getBoundingClientRect();
-    const nx = (e.clientX - rect.left) / rect.width - 0.5;
-    const ny = (e.clientY - rect.top) / rect.height - 0.5;
-    
-    card.style.setProperty("--tilt-x", `${ny * -8}deg`);
-    card.style.setProperty("--tilt-y", `${nx * 8}deg`);
-
-    const cinematicImg = card.querySelector(".cinematicImage") as HTMLElement | null;
-    if (cinematicImg) {
-      const imgRect = cinematicImg.getBoundingClientRect();
-      const spotX = e.clientX - imgRect.left;
-      const spotY = e.clientY - imgRect.top;
-      cinematicImg.style.setProperty("--spot-x", `${spotX}px`);
-      cinematicImg.style.setProperty("--spot-y", `${spotY}px`);
-    }
-  };
-
-  const handleCardMouseLeave = (e: React.MouseEvent<HTMLElement>) => {
-    const card = e.currentTarget;
-    card.style.setProperty("--tilt-x", "0deg");
-    card.style.setProperty("--tilt-y", "0deg");
-    
-    const cinematicImg = card.querySelector(".cinematicImage") as HTMLElement | null;
-    if (cinematicImg) {
-      cinematicImg.style.setProperty("--tilt-x", "0deg");
-      cinematicImg.style.setProperty("--tilt-y", "0deg");
-    }
-  };
-
-  const modalImageRef = useRef<HTMLDivElement>(null);
+  const [sessionDirection, setSessionDirection] = useState<-1 | 1>(1);const modalImageRef = useRef<HTMLDivElement>(null);
   const {
     canScrollNext,
     canScrollPrev,
@@ -1027,18 +993,7 @@ export const Gallery = memo(function Gallery({
                           className="block w-full text-left cursor-zoom-in"
                           onClick={() => setActiveImage(image)}
                           aria-label={`Powiększ zdjęcie ${image.title ?? image.alt}`}
-                        >
-                          <CinematicImage
-                            src={image.src}
-                            alt={image.alt}
-                            disableScrollReveal
-                            loading="lazy"
-                            className={cn("w-full", aspectClass(image))}
-                            imageClassName={cn(
-                              "rounded-2xl",
-                              (image.title || image.description) && "rounded-b-none"
-                            )}
-                          />
+                        ><img src={image.src} alt={image.alt} loading="lazy" className={cn("w-full object-cover", aspectClass(image))} />
                         </button>
                         {(image.title || image.description) && (
                           <figcaption className="px-4 py-4 border-t border-ink/5">
@@ -1149,5 +1104,13 @@ export const Gallery = memo(function Gallery({
     </SectionReveal>
   );
 });
+
+
+
+
+
+
+
+
 
 

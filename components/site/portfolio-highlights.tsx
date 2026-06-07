@@ -63,41 +63,7 @@ export const PortfolioHighlights = memo(function PortfolioHighlights({
   const visibleProjects = useMemo(
     () => projects.filter((project) => editMode || project.enabled),
     [projects, editMode]
-  );
-
-  const handleCardMouseMove = (e: React.MouseEvent<HTMLButtonElement>) => {
-    if (editMode) return;
-    if (window.matchMedia("(pointer: coarse)").matches) return; // skip mobile
-    const card = e.currentTarget;
-    const rect = card.getBoundingClientRect();
-    const nx = (e.clientX - rect.left) / rect.width - 0.5;
-    const ny = (e.clientY - rect.top) / rect.height - 0.5;
-    card.style.setProperty("--tilt-x", `${ny * -8}deg`);
-    card.style.setProperty("--tilt-y", `${nx * 8}deg`);
-
-    const cinematicImg = card.querySelector(".cinematicImage") as HTMLElement | null;
-    if (cinematicImg) {
-      const imgRect = cinematicImg.getBoundingClientRect();
-      const spotX = e.clientX - imgRect.left;
-      const spotY = e.clientY - imgRect.top;
-      cinematicImg.style.setProperty("--spot-x", `${spotX}px`);
-      cinematicImg.style.setProperty("--spot-y", `${spotY}px`);
-    }
-  };
-
-  const handleCardMouseLeave = (e: React.MouseEvent<HTMLButtonElement>) => {
-    const card = e.currentTarget;
-    card.style.setProperty("--tilt-x", "0deg");
-    card.style.setProperty("--tilt-y", "0deg");
-
-    const cinematicImg = card.querySelector(".cinematicImage") as HTMLElement | null;
-    if (cinematicImg) {
-      cinematicImg.style.setProperty("--tilt-x", "0deg");
-      cinematicImg.style.setProperty("--tilt-y", "0deg");
-    }
-  };
-
-  const [activeProject, setActiveProject] = useState<PortfolioProject | null>(null);
+  );const [activeProject, setActiveProject] = useState<PortfolioProject | null>(null);
   const [editingProject, setEditingProject] = useState<PortfolioProject | null>(null);
   const [isSectionDrawerOpen, setIsSectionDrawerOpen] = useState(false);
   const [uploadingImageId, setUploadingImageId] = useState<string | null>(null);
@@ -944,13 +910,7 @@ export const PortfolioHighlights = memo(function PortfolioHighlights({
                       transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
                     >
                   {(activeProject.image.src && activeProject.image.enabled !== false) && (
-                      <CinematicImage
-                        src={activeProject.image.src}
-                        alt={activeProject.image.alt}
-                        disableScrollReveal
-                        loading="eager"
-                        className="aspect-[3/4] border border-ink/10 rounded-2xl overflow-hidden"
-                      />
+                      <img src={activeProject.image.src} alt={activeProject.image.alt} loading="eager" className="aspect-[3/4] object-cover border border-ink/10 rounded-2xl overflow-hidden" />
                     )}
 
                     <div className="flex flex-col justify-center">
@@ -998,20 +958,7 @@ export const PortfolioHighlights = memo(function PortfolioHighlights({
                           .filter((image) => image.enabled)
                           .map((image) => (
                             <figure key={image.id} className="border border-ink/10 bg-white rounded-2xl overflow-hidden shadow-sm">
-                            <CinematicImage
-                              src={image.src}
-                              alt={image.alt}
-                              disableScrollReveal
-                              loading="lazy"
-                              className={cn(
-                                "w-full",
-                                image.aspect === "wide"
-                                  ? "aspect-video"
-                                  : image.aspect === "square"
-                                  ? "aspect-square"
-                                  : "aspect-[4/5]"
-                              )}
-                            />
+                            <img src={image.src} alt={image.alt} loading="lazy" className={cn("w-full object-cover", image.aspect === "wide" ? "aspect-video" : image.aspect === "square" ? "aspect-square" : "aspect-[4/5]")} />
                             {(image.title || image.description) && (
                               <figcaption className="p-4 border-t border-ink/5">
                                 {image.title && (
@@ -1039,5 +986,9 @@ export const PortfolioHighlights = memo(function PortfolioHighlights({
     </SectionReveal>
   );
 });
+
+
+
+
 
 
