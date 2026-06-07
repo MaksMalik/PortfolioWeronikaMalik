@@ -7,7 +7,7 @@ import { siteContent as defaultSiteContent } from "@/lib/site-content";
 import { AboutImageFrame } from "@/components/site/about-image-frame";
 import { CinematicImage } from "@/components/site/cinematic-image";
 import { MagneticButton } from "@/components/site/magnetic-button";
-import { RevealBlock, SectionHeading, SectionReveal } from "@/components/site/section-reveal";
+import { RevealBlock, SectionHeading } from "@/components/site/section-reveal";
 import { useAdminEdit } from "@/components/admin/admin-edit-context";
 import { uploadImageFile } from "@/lib/firebase/content";
 import { Upload, Loader2, Edit, Plus, Trash2, ArrowUp, ArrowDown, Eye, EyeOff } from "lucide-react";
@@ -52,7 +52,6 @@ export function About({
   const [uploadingImageId, setUploadingImageId] = useState<string | null>(null);
 
   const [isMobile, setIsMobile] = useState(false);
-  const [mounted, setMounted] = useState(false);
   const [desktopScrollHeight, setDesktopScrollHeight] = useState<number | null>(null);
   const [anchorNavigationOffsets, setAnchorNavigationOffsets] = useState<{
     imageX: string;
@@ -61,7 +60,6 @@ export function About({
   } | null>(null);
 
   useEffect(() => {
-    setMounted(true);
     const checkMobile = () => {
       setIsMobile(
         window.matchMedia("(pointer: coarse)").matches || window.innerWidth < 1024
@@ -93,9 +91,11 @@ export function About({
 
   useEffect(() => {
     if (isMobile || !hasVisibleTimelineEvents) {
-      setTranslateXVal(0);
-      setDesktopScrollHeight(null);
-      return;
+      const frame = window.requestAnimationFrame(() => {
+        setTranslateXVal(0);
+        setDesktopScrollHeight(null);
+      });
+      return () => window.cancelAnimationFrame(frame);
     }
 
     const element = scrollRef.current;
@@ -285,7 +285,7 @@ export function About({
   };
 
   const isSectionEnabled = globalContent.sections.about.enabled;
-  const shouldUseDesktopTimeline = mounted && !isMobile && hasVisibleTimelineEvents;
+  const shouldUseDesktopTimeline = !isMobile && hasVisibleTimelineEvents;
   const currentX = shouldUseDesktopTimeline
     ? anchorNavigationOffsets?.railX ?? springX
     : 0;
@@ -301,7 +301,7 @@ export function About({
       ref={containerRef}
       id="about"
       style={
-        mounted && !isMobile && hasVisibleTimelineEvents && desktopScrollHeight
+        !isMobile && hasVisibleTimelineEvents && desktopScrollHeight
           ? { height: `${desktopScrollHeight}px` }
           : undefined
       }

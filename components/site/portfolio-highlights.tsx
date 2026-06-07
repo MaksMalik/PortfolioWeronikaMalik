@@ -67,6 +67,10 @@ export const PortfolioHighlights = memo(function PortfolioHighlights({
   const [editingProject, setEditingProject] = useState<PortfolioProject | null>(null);
   const [isSectionDrawerOpen, setIsSectionDrawerOpen] = useState(false);
   const [uploadingImageId, setUploadingImageId] = useState<string | null>(null);
+  const activeProjectImages = useMemo(
+    () => (activeProject?.images ?? []).filter((image) => image.enabled),
+    [activeProject?.images]
+  );
 
   const {
     canScrollNext,
@@ -798,14 +802,14 @@ export const PortfolioHighlights = memo(function PortfolioHighlights({
           {activeProject && (
             <>
               <motion.div
-                className="fixed inset-0 z-[89] bg-ink/30 backdrop-blur-[2px]"
+                className="editorialModalBackdrop fixed inset-0 z-[89]"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 onClick={() => setActiveProject(null)}
               />
               <motion.div
-                className="fixed inset-0 z-[90] h-screen overflow-y-auto overscroll-contain text-ink will-change-transform [-webkit-overflow-scrolling:touch]"
+                className="editorialModalScroll fixed inset-0 z-[90] h-screen overflow-y-auto overscroll-contain text-ink [-webkit-overflow-scrolling:touch]"
                 data-lenis-prevent
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
@@ -821,7 +825,7 @@ export const PortfolioHighlights = memo(function PortfolioHighlights({
                 }}
               >
               <motion.div
-                className="mx-auto max-w-6xl rounded-3xl bg-porcelain my-8 border border-ink/10 shadow-editorial relative overflow-hidden"
+                className="editorialModalCard mx-auto max-w-6xl rounded-3xl bg-porcelain my-8 border border-ink/10 shadow-editorial relative overflow-hidden"
                 initial={{ y: "100vh", opacity: 0.9 }}
                 animate={{ y: 0, opacity: 1 }}
                 exit={{ y: "100vh", opacity: 0.9 }}
@@ -910,7 +914,7 @@ export const PortfolioHighlights = memo(function PortfolioHighlights({
                       transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
                     >
                   {(activeProject.image.src && activeProject.image.enabled !== false) && (
-                      <img src={activeProject.image.src} alt={activeProject.image.alt} loading="eager" className="aspect-[3/4] object-cover border border-ink/10 rounded-2xl overflow-hidden" />
+                      <img src={activeProject.image.src} alt={activeProject.image.alt} loading="eager" decoding="async" fetchPriority="high" className="editorialModalImage aspect-[3/4] object-cover border border-ink/10 rounded-2xl overflow-hidden" />
                     )}
 
                     <div className="flex flex-col justify-center">
@@ -945,7 +949,7 @@ export const PortfolioHighlights = memo(function PortfolioHighlights({
                   </AnimatePresence>
 
                   <AnimatePresence mode="wait" initial={false}>
-                    {(activeProject.images ?? []).filter((image) => image.enabled).length > 0 && (
+                    {activeProjectImages.length > 0 && (
                       <motion.div
                         key={activeProject.id}
                         initial={{ opacity: 0, x: 20 }}
@@ -954,11 +958,9 @@ export const PortfolioHighlights = memo(function PortfolioHighlights({
                         transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
                         className="mt-10 border-t border-ink/10 pt-10 grid gap-5 px-6 pb-10 sm:grid-cols-2 sm:px-8 lg:grid-cols-3"
                       >
-                        {(activeProject.images ?? [])
-                          .filter((image) => image.enabled)
-                          .map((image) => (
-                            <figure key={image.id} className="border border-ink/10 bg-white rounded-2xl overflow-hidden shadow-sm">
-                            <img src={image.src} alt={image.alt} loading="lazy" className={cn("w-full object-cover", image.aspect === "wide" ? "aspect-video" : image.aspect === "square" ? "aspect-square" : "aspect-[4/5]")} />
+                        {activeProjectImages.map((image) => (
+                            <figure key={image.id} className="editorialModalLazyItem border border-ink/10 bg-white rounded-2xl overflow-hidden shadow-sm">
+                            <img src={image.src} alt={image.alt} loading="lazy" decoding="async" className={cn("editorialModalImage w-full object-cover", image.aspect === "wide" ? "aspect-video" : image.aspect === "square" ? "aspect-square" : "aspect-[4/5]")} />
                             {(image.title || image.description) && (
                               <figcaption className="p-4 border-t border-ink/5">
                                 {image.title && (

@@ -1,7 +1,7 @@
 "use client";
 
-import { useRef, useEffect, useCallback, memo } from "react";
-import { useInView, motion } from "framer-motion";
+import { useRef, useEffect, memo } from "react";
+import { useInView, motion, type Transition } from "framer-motion";
 import { cn } from "@/lib/utils";
 
 type CinematicImageProps = {
@@ -15,8 +15,127 @@ type CinematicImageProps = {
   onError?: () => void;
   disableScrollReveal?: boolean;
   layoutId?: string;
-  transition?: any;
+  transition?: Transition;
 };
+
+type MobileColorEntry = {
+  element: HTMLElement;
+  lastProgress: number;
+};
+
+const mobileColorEntries = new Set<MobileColorEntry>();
+let mobileColorFrame: number | null = null;
+let mobileColorListenersAttached = false;
+let mobileColorQuery: MediaQueryList | null = null;
+let reducedMotionQuery: MediaQueryList | null = null;
+
+function getMobileColorQuery() {
+  if (mobileColorQuery === null) {
+    mobileColorQuery = window.matchMedia("(pointer: coarse), (max-width: 1024px)");
+  }
+
+  return mobileColorQuery;
+}
+
+function getReducedMotionQuery() {
+  if (reducedMotionQuery === null) {
+    reducedMotionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+  }
+
+  return reducedMotionQuery;
+}
+
+function detachMobileColorListeners() {
+  if (!mobileColorListenersAttached || mobileColorEntries.size > 0) return;
+
+  window.removeEventListener("scroll", scheduleMobileColorUpdate);
+  window.removeEventListener("resize", scheduleMobileColorUpdate);
+  mobileColorQuery?.removeEventListener("change", scheduleMobileColorUpdate);
+  reducedMotionQuery?.removeEventListener("change", scheduleMobileColorUpdate);
+
+  if (mobileColorFrame !== null) {
+    window.cancelAnimationFrame(mobileColorFrame);
+    mobileColorFrame = null;
+  }
+
+  mobileColorListenersAttached = false;
+}
+
+function updateMobileColorEntries() {
+  mobileColorFrame = null;
+
+  const isMobileViewport = getMobileColorQuery().matches;
+  const prefersReducedMotion = getReducedMotionQuery().matches;
+  const viewportCenter = window.innerHeight / 2;
+
+  mobileColorEntries.forEach((entry) => {
+    if (!entry.element.isConnected) {
+      mobileColorEntries.delete(entry);
+      return;
+    }
+
+    if (!isMobileViewport) {
+      if (entry.lastProgress !== -1) {
+        entry.element.style.removeProperty("--mobile-color-progress");
+        entry.lastProgress = -1;
+      }
+      return;
+    }
+
+    if (prefersReducedMotion) {
+      if (entry.lastProgress !== 1) {
+        entry.element.style.setProperty("--mobile-color-progress", "1");
+        entry.lastProgress = 1;
+      }
+      return;
+    }
+
+    const rect = entry.element.getBoundingClientRect();
+    const elementCenter = rect.top + rect.height / 2;
+    const distance = Math.abs(elementCenter - viewportCenter);
+    const activeDistance = Math.max(window.innerHeight * 0.56, rect.height * 1.15);
+    const rawProgress = Math.max(0, Math.min(1, 1 - distance / activeDistance));
+    const progress = Math.round(Math.pow(rawProgress, 0.72) * 1000) / 1000;
+
+    if (Math.abs(progress - entry.lastProgress) >= 0.01) {
+      entry.element.style.setProperty("--mobile-color-progress", progress.toFixed(3));
+      entry.lastProgress = progress;
+    }
+  });
+
+  detachMobileColorListeners();
+}
+
+function scheduleMobileColorUpdate() {
+  if (mobileColorFrame !== null) return;
+  mobileColorFrame = window.requestAnimationFrame(updateMobileColorEntries);
+}
+
+function attachMobileColorListeners() {
+  if (mobileColorListenersAttached) return;
+
+  const mobileQuery = getMobileColorQuery();
+  const motionQuery = getReducedMotionQuery();
+
+  window.addEventListener("scroll", scheduleMobileColorUpdate, { passive: true });
+  window.addEventListener("resize", scheduleMobileColorUpdate, { passive: true });
+  mobileQuery.addEventListener("change", scheduleMobileColorUpdate);
+  motionQuery.addEventListener("change", scheduleMobileColorUpdate);
+  mobileColorListenersAttached = true;
+}
+
+function registerMobileColorElement(element: HTMLElement) {
+  const entry: MobileColorEntry = { element, lastProgress: -1 };
+  mobileColorEntries.add(entry);
+  attachMobileColorListeners();
+  scheduleMobileColorUpdate();
+
+  return () => {
+    mobileColorEntries.delete(entry);
+    element.style.removeProperty("--mobile-color-progress");
+    detachMobileColorListeners();
+  };
+}
 
 function StaticCinematicImage({
   src,
@@ -30,60 +149,12 @@ function StaticCinematicImage({
   layoutId,
   transition
 }: Omit<CinematicImageProps, "disableScrollReveal">) {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const tiltFrame = useRef<number | null>(null);
-  const isTouchRef = useRef(false);
-
-  useEffect(() => {
-    isTouchRef.current =
-      window.matchMedia("(pointer: coarse)").matches || window.innerWidth < 1024;
-  }, []);
-
-  const handleMouseMove = useCallback(
-    (e: React.MouseEvent<HTMLDivElement>) => {
-      if (isTouchRef.current) return;
-      const el = containerRef.current;
-      if (!el) return;
-      const clientX = e.clientX;
-      const clientY = e.clientY;
-
-      if (tiltFrame.current !== null) return;
-
-      tiltFrame.current = window.requestAnimationFrame(() => {
-        tiltFrame.current = null;
-        const rect = el.getBoundingClientRect();
-        const nx = (clientX - rect.left) / rect.width - 0.5;
-        const ny = (clientY - rect.top) / rect.height - 0.5;
-        
-        
-        
-        
-      });
-    },
-    []
-  );
-
-  const handleMouseLeave = useCallback(() => {
-    if (isTouchRef.current) return;
-    const el = containerRef.current;
-    if (!el) return;
-    if (tiltFrame.current !== null) {
-      window.cancelAnimationFrame(tiltFrame.current);
-      tiltFrame.current = null;
-    }
-    el.style.setProperty("--tilt-x", "0deg");
-    el.style.setProperty("--tilt-y", "0deg");
-  }, []);
-
   return (
     <motion.div
-      ref={containerRef}
       className={cn(
         "cinematicImage isStatic",
         className
       )}
-      onMouseMove={handleMouseMove}
-      onMouseLeave={handleMouseLeave}
       layoutId={layoutId}
       transition={transition}
     >
@@ -118,7 +189,6 @@ function ScrollRevealCinematicImage({
   const containerRef = useRef<HTMLDivElement>(null);
   const colorRef = useRef<HTMLImageElement>(null);
   const revealAnim = useRef<Animation | null>(null);
-  const tiltFrame = useRef<number | null>(null);
 
   const isInView = useInView(containerRef, {
     margin: "-10% 0px -10% 0px",
@@ -129,54 +199,7 @@ function ScrollRevealCinematicImage({
     const container = containerRef.current;
     if (!container) return;
 
-    const mobileQuery = window.matchMedia("(pointer: coarse), (max-width: 1024px)");
-    const reducedMotionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
-    let frame = 0;
-
-    const updateMobileColorProgress = () => {
-      frame = 0;
-
-      if (!mobileQuery.matches) {
-        container.style.removeProperty("--mobile-color-progress");
-        return;
-      }
-
-      if (reducedMotionQuery.matches) {
-        container.style.setProperty("--mobile-color-progress", "1");
-        return;
-      }
-
-      const rect = container.getBoundingClientRect();
-      const viewportCenter = window.innerHeight / 2;
-      const elementCenter = rect.top + rect.height / 2;
-      const distance = Math.abs(elementCenter - viewportCenter);
-      const activeDistance = Math.max(window.innerHeight * 0.56, rect.height * 1.15);
-      const rawProgress = Math.max(0, Math.min(1, 1 - distance / activeDistance));
-      const easedProgress = Math.pow(rawProgress, 0.72);
-
-      container.style.setProperty("--mobile-color-progress", easedProgress.toFixed(3));
-    };
-
-    const scheduleUpdate = () => {
-      if (frame) return;
-      frame = window.requestAnimationFrame(updateMobileColorProgress);
-    };
-
-    updateMobileColorProgress();
-    window.addEventListener("scroll", scheduleUpdate, { passive: true });
-    window.addEventListener("resize", scheduleUpdate, { passive: true });
-    mobileQuery.addEventListener("change", scheduleUpdate);
-    reducedMotionQuery.addEventListener("change", scheduleUpdate);
-
-    return () => {
-      if (frame) {
-        window.cancelAnimationFrame(frame);
-      }
-      window.removeEventListener("scroll", scheduleUpdate);
-      window.removeEventListener("resize", scheduleUpdate);
-      mobileQuery.removeEventListener("change", scheduleUpdate);
-      reducedMotionQuery.removeEventListener("change", scheduleUpdate);
-    };
+    return registerMobileColorElement(container);
   }, []);
 
   /* ── Circle-reveal animation (desktop / fine-pointer only) ──── */
@@ -246,45 +269,7 @@ function ScrollRevealCinematicImage({
       hoverTarget.removeEventListener("mouseenter", onEnter);
       hoverTarget.removeEventListener("mouseleave", onLeave);
       revealAnim.current?.cancel();
-      if (tiltFrame.current !== null) {
-        window.cancelAnimationFrame(tiltFrame.current);
-      }
     };
-  }, []);
-
-  /* ── 3D tilt + spotlight follow (direct image hover only) ───── */
-  const handleMouseMove = useCallback(
-    (e: React.MouseEvent<HTMLDivElement>) => {
-      const el = containerRef.current;
-      if (!el) return;
-      const clientX = e.clientX;
-      const clientY = e.clientY;
-
-      if (tiltFrame.current !== null) return;
-
-      tiltFrame.current = window.requestAnimationFrame(() => {
-        tiltFrame.current = null;
-        const rect = el.getBoundingClientRect();
-        const nx = (clientX - rect.left) / rect.width - 0.5;
-        const ny = (clientY - rect.top) / rect.height - 0.5;
-        
-        
-        
-        
-      });
-    },
-    []
-  );
-
-  const handleMouseLeave = useCallback(() => {
-    const el = containerRef.current;
-    if (!el) return;
-    if (tiltFrame.current !== null) {
-      window.cancelAnimationFrame(tiltFrame.current);
-      tiltFrame.current = null;
-    }
-    el.style.setProperty("--tilt-x", "0deg");
-    el.style.setProperty("--tilt-y", "0deg");
   }, []);
 
   return (
@@ -295,8 +280,6 @@ function ScrollRevealCinematicImage({
         isInView && "in-view-mobile",
         className
       )}
-      onMouseMove={handleMouseMove}
-      onMouseLeave={handleMouseLeave}
       layoutId={layoutId}
       transition={transition}
     >

@@ -143,9 +143,13 @@ export type SiteContent = {
   theme?: "light" | "dark";
   accentColorsEnabled?: boolean;
   accentColor?: string;
+  customCursorEnabled?: boolean;
   portalCursorEnabled?: boolean;
+  adminCursorPreviewEnabled?: boolean;
   mouseMagnetismEnabled?: boolean;
   mouseMagnetismStrength?: number;
+  mouseFollowLagEnabled?: boolean;
+  mouseFollowLagStrength?: number;
   seo?: SeoContent;
   sections: {
     hero: SectionSettings;

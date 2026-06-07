@@ -1,16 +1,37 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { motion, useMotionValue, useSpring } from "framer-motion";
 import { cn } from "@/lib/utils";
 
 import { useAdminEdit } from "@/components/admin/admin-edit-context";
+
+const settingPercentToScale = (value: number, exponent = 1.35) => {
+  const normalized = Math.max(0, Math.min(1, (value - 1) / 149));
+  return Math.pow(normalized, exponent);
+};
 
 export function CustomCursor() {
   const { editMode, content: globalContent } = useAdminEdit();
   const [isMobile, setIsMobile] = useState(false);
   const [previewSrc, setPreviewSrc] = useState<string | null>(null);
   const previewSrcRef = useRef<string | null>(null);
+  const customCursorEnabled = globalContent.customCursorEnabled !== false;
+  const portalCursorEnabled = globalContent.portalCursorEnabled === true;
+  const adminCursorPreviewEnabled = globalContent.adminCursorPreviewEnabled === true;
+  const mouseFollowLagEnabled = globalContent.mouseFollowLagEnabled !== false;
+  const mouseFollowLagStrength = Math.max(1, Math.min(150, globalContent.mouseFollowLagStrength ?? 100));
+  const followLagScale = useMemo(
+    () => settingPercentToScale(mouseFollowLagStrength, 1.45),
+    [mouseFollowLagStrength]
+  );
+  const springConfig = useMemo(() => {
+    return {
+      stiffness: Math.round(1200 - followLagScale * 900),
+      damping: Math.round(70 - followLagScale * 44),
+      mass: 0.28 + followLagScale * 0.38
+    };
+  }, [followLagScale]);
 
   useEffect(() => {
     const checkMobile = () => {
@@ -25,8 +46,10 @@ export function CustomCursor() {
 
   const x = useMotionValue(-80);
   const y = useMotionValue(-80);
-  const springX = useSpring(x, { stiffness: 400, damping: 30, mass: 0.5 });
-  const springY = useSpring(y, { stiffness: 400, damping: 30, mass: 0.5 });
+  const springX = useSpring(x, springConfig);
+  const springY = useSpring(y, springConfig);
+  const cursorX = mouseFollowLagEnabled && followLagScale > 0 ? springX : x;
+  const cursorY = mouseFollowLagEnabled && followLagScale > 0 ? springY : y;
   const [mode, setMode] = useState<"default" | "action" | "view" | "play">("default");
   const [visible, setVisible] = useState(false);
   const [cursorLabel, setCursorLabel] = useState("");
@@ -47,26 +70,35 @@ export function CustomCursor() {
   }, [cursorLabel]);
 
   useEffect(() => {
-    if (editMode || isMobile) {
+    if (editMode && !adminCursorPreviewEnabled) {
       document.body.classList.remove("has-custom-cursor");
       document.body.classList.add("is-edit-mode");
       return;
     }
 
-    document.body.classList.add("has-custom-cursor");
     document.body.classList.remove("is-edit-mode");
-    const portalCursorEnabled = globalContent.portalCursorEnabled === true;
+
+    if (isMobile || !customCursorEnabled) {
+      document.body.classList.remove("has-custom-cursor");
+      return;
+    }
+
+    document.body.classList.add("has-custom-cursor");
     const magnetismEnabled = globalContent.mouseMagnetismEnabled !== false;
-    const magnetismStrength = Math.max(0, Math.min(1.5, (globalContent.mouseMagnetismStrength ?? 100) / 100));
+    const magnetismScale = settingPercentToScale(
+      Math.max(1, Math.min(150, globalContent.mouseMagnetismStrength ?? 100))
+    );
 
-    const cursorSize = (nextMode: typeof mode, hasPreview: boolean) => {
-      if (hasPreview) return 90;
-      if (nextMode === "view" || nextMode === "play") return 72;
-      if (nextMode === "action") return 54;
-      return 38;
-    };
+    let cursorFrame: number | null = null;
+    let pendingEvent: MouseEvent | null = null;
 
-    const handleMove = (event: MouseEvent) => {
+    const updateFromPointer = () => {
+      cursorFrame = null;
+
+      const event = pendingEvent;
+      if (!event) return;
+      pendingEvent = null;
+
       const target = event.target as HTMLElement | null;
       const isShowreel = Boolean(target?.closest("[data-cursor='play']"));
       const isViewable = Boolean(target?.closest("[data-cursor='view']"));
@@ -88,20 +120,16 @@ export function CustomCursor() {
       const labelEl = target?.closest("[data-cursor-label]") as HTMLElement | null;
       const nextCursorLabel = labelEl?.getAttribute("data-cursor-label")?.trim() ?? "";
       
-      const hasPreview = Boolean(cursorImg) && portalCursorEnabled;
-
-      const size = cursorSize(nextMode, hasPreview);
-      
       const magneticTarget = target?.closest("a, button, [role='button']");
-      let targetX = event.clientX - size / 2;
-      let targetY = event.clientY - size / 2;
+      let targetX = event.clientX;
+      let targetY = event.clientY;
 
-      if (magneticTarget && magnetismEnabled && magnetismStrength > 0) {
+      if (magneticTarget && magnetismEnabled && magnetismScale > 0) {
         const rect = magneticTarget.getBoundingClientRect();
         const centerX = rect.left + rect.width / 2;
         const centerY = rect.top + rect.height / 2;
-        targetX = event.clientX + (centerX - event.clientX) * 0.15 * magnetismStrength - size / 2;
-        targetY = event.clientY + (centerY - event.clientY) * 0.15 * magnetismStrength - size / 2;
+        targetX = event.clientX + (centerX - event.clientX) * 0.22 * magnetismScale;
+        targetY = event.clientY + (centerY - event.clientY) * 0.22 * magnetismScale;
       }
 
       x.set(targetX);
@@ -134,7 +162,18 @@ export function CustomCursor() {
       }
     };
 
+    const handleMove = (event: MouseEvent) => {
+      pendingEvent = event;
+      if (cursorFrame !== null) return;
+      cursorFrame = window.requestAnimationFrame(updateFromPointer);
+    };
+
     const handleLeave = () => {
+      if (cursorFrame !== null) {
+        window.cancelAnimationFrame(cursorFrame);
+        cursorFrame = null;
+      }
+      pendingEvent = null;
       visibleRef.current = false;
       setVisible(false);
       cursorLabelRef.current = "";
@@ -149,20 +188,25 @@ export function CustomCursor() {
     return () => {
       document.body.classList.remove("has-custom-cursor");
       document.body.classList.remove("is-edit-mode");
+      if (cursorFrame !== null) {
+        window.cancelAnimationFrame(cursorFrame);
+      }
       window.removeEventListener("mousemove", handleMove);
       window.removeEventListener("mouseleave", handleLeave);
     };
   }, [
+    adminCursorPreviewEnabled,
+    customCursorEnabled,
     editMode,
     globalContent.mouseMagnetismEnabled,
     globalContent.mouseMagnetismStrength,
-    globalContent.portalCursorEnabled,
+    portalCursorEnabled,
     isMobile,
     x,
     y
   ]);
 
-  if (editMode || isMobile) {
+  if ((editMode && !adminCursorPreviewEnabled) || isMobile || !customCursorEnabled) {
     return null;
   }
 
@@ -174,7 +218,8 @@ export function CustomCursor() {
         `is-${mode}`,
         previewSrc && "hasPreview"
       )}
-      style={{ x: springX, y: springY }}
+      style={{ x: cursorX, y: cursorY }}
+      transformTemplate={(_, generated) => `${generated} translate(-50%, -50%)`}
       aria-hidden="true"
     >
       <span className="customCursorRing">

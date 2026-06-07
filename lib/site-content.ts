@@ -1,15 +1,19 @@
 import type { SiteContent } from "@/lib/types";
 
-export const SITE_CONTENT_SCHEMA_VERSION = 8;
+export const SITE_CONTENT_SCHEMA_VERSION = 9;
 
 export const siteContent: SiteContent = {
   schemaVersion: SITE_CONTENT_SCHEMA_VERSION,
   theme: "light",
   accentColorsEnabled: false,
   accentColor: "#c5a880",
+  customCursorEnabled: true,
   portalCursorEnabled: false,
+  adminCursorPreviewEnabled: false,
   mouseMagnetismEnabled: true,
   mouseMagnetismStrength: 100,
+  mouseFollowLagEnabled: true,
+  mouseFollowLagStrength: 100,
   seo: {
     title: "Weronika Malik | Portfolio aktorskie",
     description: "Portfolio aktorskie Weroniki Malik: role, showreel, galeria, prasa i kontakt.",

@@ -43,10 +43,7 @@ export function SeoMetadata() {
     upsertMeta('meta[name="twitter:image"]', { name: "twitter:image" }, image);
     upsertMeta('meta[name="twitter:card"]', { name: "twitter:card" }, image ? "summary_large_image" : undefined);
   }, [
-    content.seo?.description,
-    content.seo?.image?.enabled,
-    content.seo?.image?.src,
-    content.seo?.title,
+    content.seo,
     contentReady
   ]);
 

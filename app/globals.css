@@ -339,6 +339,48 @@ body[data-scroll-locked="true"] {
   overscroll-behavior: contain;
 }
 
+.editorialModalBackdrop {
+  background: rgba(16, 16, 16, 0.32);
+  -webkit-backdrop-filter: blur(2px);
+  backdrop-filter: blur(2px);
+  contain: paint;
+  transform: translateZ(0);
+}
+
+.editorialModalScroll {
+  contain: layout style;
+  scrollbar-gutter: stable;
+}
+
+.editorialModalCard {
+  contain: layout style paint;
+  isolation: isolate;
+  transform: translateZ(0);
+}
+
+.editorialModalLazyItem {
+  content-visibility: auto;
+  contain-intrinsic-size: 420px 560px;
+}
+
+.editorialModalImage,
+.fullscreenModalImage {
+  background: #dedbd4;
+  transform: translateZ(0);
+}
+
+@supports (-webkit-touch-callout: none) {
+  .editorialModalBackdrop {
+    background: rgba(16, 16, 16, 0.38);
+    -webkit-backdrop-filter: blur(1px);
+    backdrop-filter: blur(1px);
+  }
+
+  .editorialModalLazyItem {
+    contain-intrinsic-size: 360px 520px;
+  }
+}
+
 section[id] {
   scroll-margin-top: 6rem;
 }

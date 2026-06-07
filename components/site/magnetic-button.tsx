@@ -11,6 +11,11 @@ type MagneticButtonProps = ButtonProps & {
   href?: string;
 };
 
+const settingPercentToScale = (value: number) => {
+  const normalized = Math.max(0, Math.min(1, (value - 1) / 149));
+  return Math.pow(normalized, 1.35);
+};
+
 export function MagneticButton({
   children,
   href,
@@ -20,18 +25,21 @@ export function MagneticButton({
 }: MagneticButtonProps) {
   const { content } = useAdminEdit();
   const [offset, setOffset] = useState({ x: 0, y: 0 });
-  const magnetismEnabled = content.mouseMagnetismEnabled !== false;
-  const magnetismStrength = Math.max(0, Math.min(1.5, (content.mouseMagnetismStrength ?? 100) / 100));
+  const customCursorEnabled = content.customCursorEnabled !== false;
+  const magnetismEnabled = customCursorEnabled && content.mouseMagnetismEnabled !== false;
+  const magnetismScale = settingPercentToScale(
+    Math.max(1, Math.min(150, content.mouseMagnetismStrength ?? 100))
+  );
 
   const handleMove = (event: React.MouseEvent<HTMLDivElement>) => {
-    if (!magnetismEnabled || magnetismStrength === 0) {
+    if (!magnetismEnabled || magnetismScale === 0) {
       setOffset({ x: 0, y: 0 });
       return;
     }
 
     const rect = event.currentTarget.getBoundingClientRect();
-    const x = (event.clientX - rect.left - rect.width / 2) * 0.16 * magnetismStrength;
-    const y = (event.clientY - rect.top - rect.height / 2) * 0.18 * magnetismStrength;
+    const x = (event.clientX - rect.left - rect.width / 2) * 0.28 * magnetismScale;
+    const y = (event.clientY - rect.top - rect.height / 2) * 0.31 * magnetismScale;
     setOffset({ x, y });
   };
 

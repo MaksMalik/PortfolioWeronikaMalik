@@ -46,22 +46,13 @@ export const Gallery = memo(function Gallery({
 }) {
   const { editMode, updateContent, content: globalContent } = useAdminEdit();
   const sessions = editMode ? globalContent.gallery : initialSessions;
-  const visibleSessions = sessions.filter((session) => editMode || session.enabled);
+  const visibleSessions = useMemo(
+    () => sessions.filter((session) => editMode || session.enabled),
+    [sessions, editMode]
+  );
 
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
   const [activeImage, setActiveImage] = useState<SiteImage | null>(null);
-  const [isMobile, setIsMobile] = useState(false);
-
-  useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(
-        window.matchMedia("(pointer: coarse)").matches || window.innerWidth < 1024
-      );
-    };
-    checkMobile();
-    window.addEventListener("resize", checkMobile);
-    return () => window.removeEventListener("resize", checkMobile);
-  }, []);
   const [editingSession, setEditingSession] = useState<GallerySession | null>(null);
   const [isSectionDrawerOpen, setIsSectionDrawerOpen] = useState(false);
   const [uploadingImageId, setUploadingImageId] = useState<string | null>(null);
@@ -854,14 +845,14 @@ export const Gallery = memo(function Gallery({
           {activeSession && (
             <>
               <motion.div
-                className="fixed inset-0 z-[89] bg-ink/30 backdrop-blur-[2px]"
+                className="editorialModalBackdrop fixed inset-0 z-[89]"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 onClick={() => setActiveSessionId(null)}
               />
               <motion.div
-                className="fixed inset-0 z-[90] h-screen overflow-y-auto overscroll-contain text-ink will-change-transform [-webkit-overflow-scrolling:touch]"
+                className="editorialModalScroll fixed inset-0 z-[90] h-screen overflow-y-auto overscroll-contain text-ink [-webkit-overflow-scrolling:touch]"
                 data-lenis-prevent
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
@@ -876,7 +867,7 @@ export const Gallery = memo(function Gallery({
                 }}
               >
               <motion.div
-                className="mx-auto max-w-7xl rounded-3xl bg-porcelain my-8 border border-ink/10 shadow-editorial relative overflow-hidden"
+                className="editorialModalCard mx-auto max-w-7xl rounded-3xl bg-porcelain my-8 border border-ink/10 shadow-editorial relative overflow-hidden"
                 initial={{ y: "100vh", opacity: 0.9 }}
                 animate={{ y: 0, opacity: 1 }}
                 exit={{ y: "100vh", opacity: 0.9 }}
@@ -986,14 +977,14 @@ export const Gallery = memo(function Gallery({
                     {visibleImages.map((image) => (
                       <figure
                         key={image.id}
-                        className="mb-5 break-inside-avoid overflow-hidden border border-ink/10 bg-white rounded-2xl shadow-sm"
+                        className="editorialModalLazyItem mb-5 break-inside-avoid overflow-hidden border border-ink/10 bg-white rounded-2xl shadow-sm"
                       >
                         <button
                           type="button"
                           className="block w-full text-left cursor-zoom-in"
                           onClick={() => setActiveImage(image)}
                           aria-label={`Powiększ zdjęcie ${image.title ?? image.alt}`}
-                        ><img src={image.src} alt={image.alt} loading="lazy" className={cn("w-full object-cover", aspectClass(image))} />
+                        ><img src={image.src} alt={image.alt} loading="lazy" decoding="async" className={cn("editorialModalImage w-full object-cover", aspectClass(image))} />
                         </button>
                         {(image.title || image.description) && (
                           <figcaption className="px-4 py-4 border-t border-ink/5">
@@ -1089,7 +1080,10 @@ export const Gallery = memo(function Gallery({
                     <img
                       src={activeImage.src}
                       alt={activeImage.alt}
-                      className="max-h-[75vh] max-w-full rounded-lg object-contain shadow-2xl border border-white/5"
+                      loading="eager"
+                      decoding="async"
+                      fetchPriority="high"
+                      className="fullscreenModalImage max-h-[75vh] max-w-full rounded-lg object-contain shadow-2xl border border-white/5"
                     />
                     {activeImage.title && (
                       <p className="mt-4 font-serif text-2xl text-white/90 text-center">{activeImage.title}</p>

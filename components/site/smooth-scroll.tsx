@@ -52,6 +52,24 @@ export function SmoothScroll() {
   const prefersReducedMotion = useReducedMotion();
 
   useEffect(() => {
+    const stopRaf = () => {
+      if (rafRef.current !== null) {
+        cancelAnimationFrame(rafRef.current);
+        rafRef.current = null;
+      }
+    };
+
+    const startRaf = (lenis: Lenis) => {
+      if (rafRef.current !== null || document.hidden) return;
+
+      function raf(time: number) {
+        lenis.raf(time);
+        rafRef.current = requestAnimationFrame(raf);
+      }
+
+      rafRef.current = requestAnimationFrame(raf);
+    };
+
     const createLenis = () => {
       const lenis = new Lenis({
         duration: 1.2,
@@ -64,13 +82,7 @@ export function SmoothScroll() {
       });
 
       lenisRef.current = lenis;
-
-      function raf(time: number) {
-        lenis.raf(time);
-        rafRef.current = requestAnimationFrame(raf);
-      }
-
-      rafRef.current = requestAnimationFrame(raf);
+      startRaf(lenis);
 
       return lenis;
     };
@@ -203,16 +215,24 @@ export function SmoothScroll() {
     document.addEventListener('click', handleClick);
     window.addEventListener("portfolio:navigate", handleProgrammaticNavigation);
 
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        stopRaf();
+        return;
+      }
+
+      if (lenisRef.current) {
+        startRaf(lenisRef.current);
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
     // Watch for scroll lock changes and destroy/recreate Lenis
     const checkScrollLock = () => {
       const isLocked = document.body.dataset.scrollLocked === "true";
       if (isLocked && lenisRef.current) {
-        // Cancel RAF
-        if (rafRef.current) {
-          cancelAnimationFrame(rafRef.current);
-          rafRef.current = null;
-        }
-        // Destroy Lenis
+        stopRaf();
         lenisRef.current.destroy();
         lenisRef.current = null;
       } else if (!isLocked && !lenisRef.current) {
@@ -235,14 +255,13 @@ export function SmoothScroll() {
       if (anchorScrollEndTimerRef.current !== null) {
         window.clearTimeout(anchorScrollEndTimerRef.current);
       }
-      if (rafRef.current) {
-        cancelAnimationFrame(rafRef.current);
-      }
+      stopRaf();
       if (lenisRef.current) {
         lenisRef.current.destroy();
       }
       document.removeEventListener('click', handleClick);
       window.removeEventListener("portfolio:navigate", handleProgrammaticNavigation);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
       observer.disconnect();
     };
   }, []);

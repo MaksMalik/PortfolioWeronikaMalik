@@ -86,21 +86,26 @@ export function FloatingSocials({
   const enabled = contact.floatingSocialsEnabled ?? true;
 
   useEffect(() => {
+    let frame = 0;
+
     if (initialDelay <= 0) {
-      setIntroReady(true);
-      return;
+      frame = window.requestAnimationFrame(() => setIntroReady(true));
+      return () => window.cancelAnimationFrame(frame);
     }
 
-    setIntroReady(false);
+    frame = window.requestAnimationFrame(() => setIntroReady(false));
     const timer = window.setTimeout(() => setIntroReady(true), initialDelay * 1000);
-    return () => window.clearTimeout(timer);
+    return () => {
+      window.cancelAnimationFrame(frame);
+      window.clearTimeout(timer);
+    };
   }, [initialDelay]);
 
   useEffect(() => {
     const target = document.getElementById("contact-social-links");
     if (!target) {
-      setContactSocialsVisible(false);
-      return;
+      const frame = window.requestAnimationFrame(() => setContactSocialsVisible(false));
+      return () => window.cancelAnimationFrame(frame);
     }
 
     const observer = new IntersectionObserver(
