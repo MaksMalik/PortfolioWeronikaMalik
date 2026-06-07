@@ -715,8 +715,8 @@ a {
     clip-path: none;
     opacity: 0;
     transition:
-      opacity 800ms cubic-bezier(0.25, 1, 0.5, 1),
-      transform 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+      opacity 1500ms cubic-bezier(0.22, 1, 0.36, 1),
+      transform 1.6s cubic-bezier(0.16, 1, 0.3, 1);
   }
   .cinematicImage.in-view-mobile .cinematicImageColor {
     opacity: 1;

@@ -75,7 +75,7 @@ function ScrollRevealCinematicImage({
   const revealAnim = useRef<Animation | null>(null);
 
   const isInView = useInView(containerRef, {
-    margin: "-15% 0px -15% 0px",
+    margin: "-25% 0px -25% 0px",
     once: false
   });
 
