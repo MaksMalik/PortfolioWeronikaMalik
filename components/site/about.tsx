@@ -357,7 +357,7 @@ export function About({
       <div className="hidden lg:block relative lg:sticky lg:top-0 lg:h-screen lg:w-full lg:overflow-hidden lg:flex-row lg:items-center lg:py-0 lg:px-0 lg:border-y lg:border-ink/10">
         <motion.div
           ref={scrollRef}
-          style={{ x: currentX }}
+          style={{ x: currentX, willChange: "transform" }}
           className="flex lg:flex-row lg:h-full lg:items-center lg:pl-16 lg:pr-32 lg:gap-0 lg:w-max lg:shrink-0"
         >
           {/* Slide 0: Biography Intro */}
@@ -421,7 +421,7 @@ export function About({
               {event.image?.src && event.image.enabled !== false && (
                 <div className="mt-8 aspect-[16/10] max-w-md overflow-hidden rounded-xl border border-ink/10 w-full lg:shadow-editorial relative">
                   <motion.div
-                    style={{ x: currentImageX, scale: shouldUseDesktopTimeline ? 1.15 : 1 }}
+                    style={{ x: currentImageX, scale: shouldUseDesktopTimeline ? 1.15 : 1, willChange: "transform" }}
                     className="w-full h-full"
                   >
                     <CinematicImage
