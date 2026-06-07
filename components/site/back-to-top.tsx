@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useMemo } from "react";
-import { AnimatePresence, motion, useScroll, useMotionValueEvent } from "framer-motion";
+import { AnimatePresence, motion, useScroll, useMotionValueEvent, useTransform } from "framer-motion";
 import { ArrowUp } from "lucide-react";
 import { useAdminEdit } from "@/components/admin/admin-edit-context";
 import { cn } from "@/lib/utils";
@@ -17,7 +17,6 @@ export function BackToTop() {
   const [visible, setVisible] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
-  const [scrollProgress, setScrollProgress] = useState(0);
 
   const backToTopEnabled = content.backToTopEnabled !== false;
   const customCursorEnabled = content.customCursorEnabled !== false;
@@ -29,11 +28,6 @@ export function BackToTop() {
   // Monitor scroll height to show/hide button
   useMotionValueEvent(scrollY, "change", (latest) => {
     setVisible(latest > 600);
-  });
-
-  // Track scroll progress using Framer Motion's scrollYProgress
-  useMotionValueEvent(scrollYProgress, "change", (latest) => {
-    setScrollProgress(latest);
   });
 
   // Monitor mobile status
@@ -48,7 +42,8 @@ export function BackToTop() {
     return () => window.removeEventListener("resize", checkMobile);
   }, []);
 
-  const strokeDashoffset = 113 - (113 * scrollProgress);
+  // Map scroll progress (0 to 1) directly to SVG strokeDashoffset (113 to 0)
+  const strokeDashoffset = useTransform(scrollYProgress, [0, 1], [113, 0]);
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     if (isMobile || !magnetismEnabled || magnetismScale === 0) {
